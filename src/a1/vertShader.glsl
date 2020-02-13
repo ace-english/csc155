@@ -17,7 +17,7 @@ void main(void){
 		varyingColor=vec3(0.0,1.0,0.0);
 		}
 	else{
-	 gl_Position = vec4(0.25 + Tx, 0.1 + Ty, 0.0, 1.0);
+	 gl_Position = vec4(0.0 + Tx, 0.1 + Ty, 0.0, 1.0);
 		varyingColor=vec3(0.0,0.0,1.0);
   	}
 }

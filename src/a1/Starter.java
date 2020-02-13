@@ -11,11 +11,16 @@ import static com.jogamp.opengl.GL2ES2.GL_INFO_LOG_LENGTH;
 import static com.jogamp.opengl.GL2ES2.GL_LINK_STATUS;
 import static com.jogamp.opengl.GL2ES2.GL_VERTEX_SHADER;
 
+import java.awt.Container;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.Scanner;
 import java.util.Vector;
 
+import javax.swing.JButton;
 import javax.swing.JFrame;
 
 import com.jogamp.opengl.GL4;
@@ -34,7 +39,7 @@ public class Starter extends JFrame implements GLEventListener {
 	private float inc = 0.01f; // offset for moving the triangle vert
 	GL4 gl;
 	private String openGLVersion, JoglVersion, JavaVersion;
-	boolean rainbow, vertical, circle;
+	private int rainbow, vertical, circle;
 
 	public Starter() {
 		setTitle("Assignment 1");
@@ -45,23 +50,43 @@ public class Starter extends JFrame implements GLEventListener {
 		myCanvas.setLocation(200, 0);
 		myCanvas.addGLEventListener(this);
 		this.setVisible(true);
-		/*
-		 * // Define new buttons JButton vertButton = new JButton("Move Vertically");
-		 * JButton circleButton = new JButton("Move Radially"); Container
-		 * buttonContainer = new Container(); buttonContainer.setSize(200, 400);
-		 * 
-		 * buttonContainer.setLayout(new FlowLayout()); this.add(buttonContainer);
-		 * 
-		 * // Add buttons to the frame (and spaces between buttons)
-		 * buttonContainer.add(vertButton); buttonContainer.add(circleButton);
-		 * 
-		 * this.add(buttonContainer);
-		 */
+
+		rainbow = 1;
+		vertical = 1;
+		circle = 0;
+		
+		  //Define new buttons 
+		JButton vertButton = new JButton("Move Vertically");
+		vertButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e){  
+				System.out.println("Togglin': "+vertical);
+				toggleVertical();
+				System.out.println("Toggled: "+vertical);
+				
+			}
+		});
+		JButton circleButton = new JButton("Move Radially");
+		Container buttonContainer = new Container(); buttonContainer.setSize(200, 400);
+		 
+		buttonContainer.setLayout(new FlowLayout()); this.add(buttonContainer);
+		 
+		// Add buttons to the frame (and spaces between buttons)
+		buttonContainer.add(vertButton); buttonContainer.add(circleButton);
+		  
+		this.add(buttonContainer);
+		 
 		this.add(myCanvas);
 		this.setVisible(true);
 
 		Animator animtr = new Animator(myCanvas);
 		animtr.start();
+	}
+	
+	public void toggleVertical() {
+		if(vertical==0)
+			vertical=1;
+		else
+			vertical=0;
 	}
 
 	public void display(GLAutoDrawable drawable) {
@@ -69,14 +94,18 @@ public class Starter extends JFrame implements GLEventListener {
 		gl.glClear(GL_DEPTH_BUFFER_BIT); // clear the background to black, each time
 		gl.glClear(GL_COLOR_BUFFER_BIT);
 		gl.glUseProgram(renderingProgram);
-		x += inc;
-		// move the triangle along y axis
-		if (x > 1.0f)
-			inc = -0.01f; // switch to moving the triangle down
-		if (x < -1.0f)
-			inc = 0.01f; // switch to moving the triangle up
+		if(vertical!=0) {
+			x += inc;
+			// move the triangle along y axis
+			if (x > 1.0f)
+				inc = -0.01f; // switch to moving the triangle down
+			if (x < -1.0f)
+				inc = 0.01f; // switch to moving the triangle up
+		}
 		int offsetLoc = gl.glGetUniformLocation(renderingProgram, "Ty"); // retrieve pointer to "offset"
 		gl.glProgramUniform1f(renderingProgram, offsetLoc, x);
+		int rainbowLoc = gl.glGetUniformLocation(renderingProgram, "rainbow"); // retrieve pointer to "rainbow"
+		gl.glProgramUniform1f(renderingProgram, rainbowLoc, rainbow);
 		gl.glDrawArrays(GL_TRIANGLES, 0, 3);
 
 	}
@@ -99,12 +128,7 @@ public class Starter extends JFrame implements GLEventListener {
 		System.out.println("JOGL version: " + JoglVersion);
 		System.out.println("Java version: " + JavaVersion);
 		
-		float vertices[] = {
-			    // positions         // colors
-			     0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // bottom right
-			    -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
-			     0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // top 
-			};   
+		
 	}
 
 	private int createShaderProgram() {
@@ -240,5 +264,5 @@ public class Starter extends JFrame implements GLEventListener {
 		}
 		return program;
 	}
-
+	
 }
