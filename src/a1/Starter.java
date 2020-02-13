@@ -36,6 +36,7 @@ public class Starter extends JFrame implements GLEventListener {
 	private int renderingProgram;
 	private int vao[] = new int[1];
 	private float x = 0.0f; // location of triangle
+	private float y = 0.0f; // location of triangle
 	private float inc = 0.01f; // offset for moving the triangle vert
 	GL4 gl;
 	private String openGLVersion, JoglVersion, JavaVersion;
@@ -47,7 +48,7 @@ public class Starter extends JFrame implements GLEventListener {
 		setLocation(200, 200);
 		myCanvas = new GLCanvas();
 		myCanvas.setSize(600, 400);
-		myCanvas.setLocation(200, 0);
+		myCanvas.setLocation(400, 0);
 		myCanvas.addGLEventListener(this);
 		this.setVisible(true);
 
@@ -59,13 +60,17 @@ public class Starter extends JFrame implements GLEventListener {
 		JButton vertButton = new JButton("Move Vertically");
 		vertButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e){  
-				System.out.println("Togglin': "+vertical);
 				toggleVertical();
-				System.out.println("Toggled: "+vertical);
-				
+				circle=0;
 			}
 		});
 		JButton circleButton = new JButton("Move Radially");
+		circleButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e){  
+				toggleCircular();
+				vertical=0;
+			}
+		});
 		Container buttonContainer = new Container(); buttonContainer.setSize(200, 400);
 		 
 		buttonContainer.setLayout(new FlowLayout()); this.add(buttonContainer);
@@ -88,6 +93,17 @@ public class Starter extends JFrame implements GLEventListener {
 		else
 			vertical=0;
 	}
+	
+	public void toggleCircular() {
+		if(circle==0)
+			circle=1;
+		else
+			circle=0;
+	}
+	private float getDistance(float x1, float y1, float x2, float y2) {
+		return (float) Math.hypot(x1-x2, y1-y2);
+	}
+	
 
 	public void display(GLAutoDrawable drawable) {
 		gl = (GL4) GLContext.getCurrentGL();
@@ -95,15 +111,20 @@ public class Starter extends JFrame implements GLEventListener {
 		gl.glClear(GL_COLOR_BUFFER_BIT);
 		gl.glUseProgram(renderingProgram);
 		if(vertical!=0) {
-			x += inc;
+			y += inc;
 			// move the triangle along y axis
-			if (x > 1.0f)
+			if (y > 1.0f)
 				inc = -0.01f; // switch to moving the triangle down
-			if (x < -1.0f)
+			if (y < -1.0f)
 				inc = 0.01f; // switch to moving the triangle up
 		}
-		int offsetLoc = gl.glGetUniformLocation(renderingProgram, "Ty"); // retrieve pointer to "offset"
-		gl.glProgramUniform1f(renderingProgram, offsetLoc, x);
+		if(circle!=0) {
+			
+		}
+		int txLoc = gl.glGetUniformLocation(renderingProgram, "Tx"); // retrieve pointer to "Tx"
+		gl.glProgramUniform1f(renderingProgram, txLoc, x);
+		int tyLoc = gl.glGetUniformLocation(renderingProgram, "Ty"); // retrieve pointer to "Ty"
+		gl.glProgramUniform1f(renderingProgram, tyLoc, y);
 		int rainbowLoc = gl.glGetUniformLocation(renderingProgram, "rainbow"); // retrieve pointer to "rainbow"
 		gl.glProgramUniform1f(renderingProgram, rainbowLoc, rainbow);
 		gl.glDrawArrays(GL_TRIANGLES, 0, 3);
