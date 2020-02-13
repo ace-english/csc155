@@ -98,6 +98,13 @@ public class Starter extends JFrame implements GLEventListener {
 		System.out.println("OpenGL version: " + openGLVersion);
 		System.out.println("JOGL version: " + JoglVersion);
 		System.out.println("Java version: " + JavaVersion);
+		
+		float vertices[] = {
+			    // positions         // colors
+			     0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // bottom right
+			    -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
+			     0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // top 
+			};   
 	}
 
 	private int createShaderProgram() {
