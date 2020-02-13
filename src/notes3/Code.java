@@ -1,4 +1,4 @@
-package notes2;
+package notes3;
 
 import static com.jogamp.opengl.GL.GL_COLOR_BUFFER_BIT;
 import static com.jogamp.opengl.GL.GL_DEPTH_BUFFER_BIT;
@@ -85,8 +85,8 @@ public class Code extends JFrame implements GLEventListener {
 		int vShader = gl.glCreateShader(GL_VERTEX_SHADER);
 		int fShader = gl.glCreateShader(GL_FRAGMENT_SHADER);
 
-		String[] vshaderSource = readShaderSource("src/notes2/vertShader.glsl");
-		String[] fshaderSource = readShaderSource("src/notes2/fragShader.glsl");
+		String[] vshaderSource = readShaderSource("vertShader.glsl");
+		String[] fshaderSource = readShaderSource("fragShader.glsl");
 
 		gl.glShaderSource(vShader, vshaderSource.length, vshaderSource, null, 0);
 		gl.glShaderSource(fShader, fshaderSource.length, fshaderSource, null, 0);

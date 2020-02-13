@@ -112,8 +112,8 @@ public class Starter extends JFrame implements GLEventListener {
 		int vShader = gl.glCreateShader(GL_VERTEX_SHADER);
 		int fShader = gl.glCreateShader(GL_FRAGMENT_SHADER);
 
-		String[] vshaderSource = readShaderSource("vertShader.glsl");
-		String[] fshaderSource = readShaderSource("fragShader.glsl");
+		String[] vshaderSource = readShaderSource("src/a1/vertShader.glsl");
+		String[] fshaderSource = readShaderSource("src/a1/fragShader.glsl");
 
 		gl.glShaderSource(vShader, vshaderSource.length, vshaderSource, null, 0);
 		gl.glShaderSource(fShader, fshaderSource.length, fshaderSource, null, 0);
