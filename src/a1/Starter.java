@@ -11,14 +11,11 @@ import static com.jogamp.opengl.GL2ES2.GL_INFO_LOG_LENGTH;
 import static com.jogamp.opengl.GL2ES2.GL_LINK_STATUS;
 import static com.jogamp.opengl.GL2ES2.GL_VERTEX_SHADER;
 
-import java.awt.Container;
-import java.awt.FlowLayout;
 import java.io.File;
 import java.io.IOException;
 import java.util.Scanner;
 import java.util.Vector;
 
-import javax.swing.JButton;
 import javax.swing.JFrame;
 
 import com.jogamp.opengl.GL4;
@@ -48,21 +45,18 @@ public class Starter extends JFrame implements GLEventListener {
 		myCanvas.setLocation(200, 0);
 		myCanvas.addGLEventListener(this);
 		this.setVisible(true);
-
-		// Define new buttons
-		JButton vertButton = new JButton("Move Vertically");
-		JButton circleButton = new JButton("Move Radially");
-		Container buttonContainer = new Container();
-		buttonContainer.setSize(200, 400);
-
-		buttonContainer.setLayout(new FlowLayout());
-		this.add(buttonContainer);
-
-		// Add buttons to the frame (and spaces between buttons)
-		buttonContainer.add(vertButton);
-		buttonContainer.add(circleButton);
-
-		this.add(buttonContainer);
+		/*
+		 * // Define new buttons JButton vertButton = new JButton("Move Vertically");
+		 * JButton circleButton = new JButton("Move Radially"); Container
+		 * buttonContainer = new Container(); buttonContainer.setSize(200, 400);
+		 * 
+		 * buttonContainer.setLayout(new FlowLayout()); this.add(buttonContainer);
+		 * 
+		 * // Add buttons to the frame (and spaces between buttons)
+		 * buttonContainer.add(vertButton); buttonContainer.add(circleButton);
+		 * 
+		 * this.add(buttonContainer);
+		 */
 		this.add(myCanvas);
 		this.setVisible(true);
 
