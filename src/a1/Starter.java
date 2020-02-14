@@ -15,6 +15,10 @@ import java.awt.Container;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.Scanner;
@@ -31,12 +35,16 @@ import com.jogamp.opengl.awt.GLCanvas;
 import com.jogamp.opengl.glu.GLU;
 import com.jogamp.opengl.util.Animator;
 
-public class Starter extends JFrame implements GLEventListener {
+public class Starter extends JFrame implements GLEventListener, KeyListener, MouseWheelListener{
 	private GLCanvas myCanvas;
 	private int renderingProgram;
 	private int vao[] = new int[1];
-	private float x = 0.0f; // location of triangle
+	private float x = 0.5f; // location of triangle
 	private float y = 0.0f; // location of triangle
+	private float scale=1.0f;
+	private double radius=1;
+	private double delta=0.083;
+	private double theta;
 	private float inc = 0.01f; // offset for moving the triangle vert
 	GL4 gl;
 	private String openGLVersion, JoglVersion, JavaVersion;
@@ -51,7 +59,10 @@ public class Starter extends JFrame implements GLEventListener {
 		myCanvas.setLocation(400, 0);
 		myCanvas.addGLEventListener(this);
 		this.setVisible(true);
-
+		myCanvas.addKeyListener(this);
+		myCanvas.addMouseWheelListener(this);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		
 		rainbow = 1;
 		vertical = 1;
 		circle = 0;
@@ -95,13 +106,27 @@ public class Starter extends JFrame implements GLEventListener {
 	}
 	
 	public void toggleCircular() {
-		if(circle==0)
+		if(circle==0) {
 			circle=1;
+			radius=getDistance(x,y,0.5f,0);
+		}
 		else
 			circle=0;
 	}
-	private float getDistance(float x1, float y1, float x2, float y2) {
-		return (float) Math.hypot(x1-x2, y1-y2);
+	
+	public void toggleRainbow() {
+		if(rainbow==0)
+			rainbow=1;
+		else
+			rainbow=0;
+	}
+	private double getDistance(float x1, float y1, float x2, float y2) {
+		return Math.hypot(x1-x2, y1-y2);
+	}
+	private double getAngle(float x1, float y1, float x2, float y2) {
+		double ret= Math.atan2(x1-x2, y1-y2);
+		//System.out.printf("x1: %.3f y1: %.5f x2: %.5f y2: %.5f theta: %.5f\n",x1,y1,x2,y2,ret);
+		return ret;
 	}
 	
 
@@ -119,12 +144,16 @@ public class Starter extends JFrame implements GLEventListener {
 				inc = 0.01f; // switch to moving the triangle up
 		}
 		if(circle!=0) {
-			
+			theta=getAngle(x,y,0,0)+0.03;
+			x=(float) (Math.sin(theta)*radius);
+			y=(float) (Math.cos(theta)*radius);
 		}
 		int txLoc = gl.glGetUniformLocation(renderingProgram, "Tx"); // retrieve pointer to "Tx"
 		gl.glProgramUniform1f(renderingProgram, txLoc, x);
 		int tyLoc = gl.glGetUniformLocation(renderingProgram, "Ty"); // retrieve pointer to "Ty"
 		gl.glProgramUniform1f(renderingProgram, tyLoc, y);
+		int sLoc = gl.glGetUniformLocation(renderingProgram, "s"); // retrieve pointer to "s"
+		gl.glProgramUniform1f(renderingProgram, sLoc, scale);
 		int rainbowLoc = gl.glGetUniformLocation(renderingProgram, "rainbow"); // retrieve pointer to "rainbow"
 		gl.glProgramUniform1f(renderingProgram, rainbowLoc, rainbow);
 		gl.glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -211,6 +240,7 @@ public class Starter extends JFrame implements GLEventListener {
 	}
 
 	public void dispose(GLAutoDrawable drawable) {
+	
 	}
 
 	private void printShaderLog(int shader) {
@@ -285,5 +315,43 @@ public class Starter extends JFrame implements GLEventListener {
 		}
 		return program;
 	}
+
+
+	@Override
+	public void keyReleased(KeyEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public void keyTyped(KeyEvent e) {
+		if (e.getKeyCode() == KeyEvent.VK_R) {
+        	toggleRainbow();
+        }
+		
+	}
+
+	@Override
+	public void keyPressed(KeyEvent e) {
+		if (e.getKeyCode() == KeyEvent.VK_R) {
+        	toggleRainbow();
+        }
+		
+	}
+
+	@Override
+	public void mouseWheelMoved(MouseWheelEvent e) {
+	       int notches = e.getWheelRotation();
+	       if (notches > 0) {
+	    	   scale+=.2;
+	       }
+	       else if (notches < 0){
+	    	   scale-=0.2;
+	       }
+		
+	}
+		
+	
 	
 }
