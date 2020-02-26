@@ -55,6 +55,9 @@ public class Starter extends JFrame implements GLEventListener {
 	private float aspect;
 	private double tf;
 	private int numSphereVerts;
+	private ImportedModel mugObj;
+	private ImportedModel coinObj;
+	private ImportedModel rocketObj;
 
 	public Starter() {
 		setTitle("Assignment 2");
@@ -87,8 +90,47 @@ public class Starter extends JFrame implements GLEventListener {
 		mvStack.translate(-cameraX, -cameraY, -cameraZ);
 
 		tf = elapsedTime / 1000.0; // time factor
+		/*
+		// ----------------------  pyramid == sun  
+				mvStack.pushMatrix();
+				mvStack.translate(0.0f, 0.0f, 0.0f);
+				mvStack.pushMatrix();
+				mvStack.rotate((float)tf, 1.0f, 0.0f, 0.0f);
+				gl.glUniformMatrix4fv(mvLoc, 1, false, mvStack.get(vals));
+				gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+				gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+				gl.glEnableVertexAttribArray(0);
+				gl.glEnable(GL_DEPTH_TEST);
+				gl.glDrawArrays(GL_TRIANGLES, 0, 18); 
+				mvStack.popMatrix();
+				
+				//-----------------------  cube == planet  
+				mvStack.pushMatrix();
+				mvStack.translate((float)Math.sin(tf)*4.0f, 0.0f, (float)Math.cos(tf)*4.0f);
+				mvStack.pushMatrix();
+				mvStack.rotate((float)tf, 0.0f, 1.0f, 0.0f);
+				gl.glUniformMatrix4fv(mvLoc, 1, false, mvStack.get(vals));
+				gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+				gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+				gl.glEnableVertexAttribArray(0);
+				gl.glDrawArrays(GL_TRIANGLES, 0, 36);
+				mvStack.popMatrix();
 
-		// ---------------------- pyramid == sun
+				//-----------------------  smaller cube == moon
+				mvStack.pushMatrix();
+				mvStack.translate(0.0f, (float)Math.sin(tf)*2.0f, (float)Math.cos(tf)*2.0f);
+				mvStack.rotate((float)tf, 0.0f, 0.0f, 1.0f);
+				mvStack.scale(0.25f, 0.25f, 0.25f);
+				gl.glUniformMatrix4fv(mvLoc, 1, false, mvStack.get(vals));
+				gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+				gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+				gl.glEnableVertexAttribArray(0);
+				gl.glDrawArrays(GL_TRIANGLES, 0, 36);
+				mvStack.popMatrix();  mvStack.popMatrix();  mvStack.popMatrix();
+				mvStack.popMatrix();
+
+		*/
+		// ---------------------- sun
 		mvStack.pushMatrix();
 		mvStack.translate(0.0f, 0.0f, 0.0f);
 		mvStack.pushMatrix();
@@ -113,7 +155,7 @@ public class Starter extends JFrame implements GLEventListener {
 		mvStack.popMatrix();	//print planet 1
 
 
-		// ----------------------- smaller cube == moon
+		// ----------------------- gem == moon
 		mvStack.pushMatrix();
 		mvStack.translate(0.0f, (float) Math.sin(tf) * 2.0f, (float) Math.cos(tf) * 2.0f);
 		mvStack.scale(0.25f, 0.25f, 0.25f);
@@ -126,7 +168,7 @@ public class Starter extends JFrame implements GLEventListener {
 		
 
 
-		// ----------------------- second moon
+		// ----------------------- second gem moon
 		mvStack.pushMatrix();
 		mvStack.translate(0.0f, (float) Math.sin(tf) * -2.0f, (float) Math.cos(tf) * -2.0f);
 		mvStack.scale(0.25f, 0.25f, 0.25f);
@@ -138,28 +180,37 @@ public class Starter extends JFrame implements GLEventListener {
 		mvStack.popMatrix();	//print moon 2
 		mvStack.popMatrix();	//pop moon orbital
 		mvStack.popMatrix();	//pop planet orbital
-
-		
-		// ----------------------- second planet
+/*
+		// ----------------------- second planet - mug
 		mvStack.pushMatrix();
 		mvStack.translate((float) Math.sin(tf) * -7.0f, 0.0f, (float) Math.cos(tf) * -7.0f);
 		mvStack.pushMatrix();
 		gl.glUniformMatrix4fv(mvLoc, 1, false, mvStack.get(vals));
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[6]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
 		gl.glEnableVertexAttribArray(0);
-		gl.glDrawArrays(GL_TRIANGLES, 0, 36);
+		gl.glDrawArrays(GL_TRIANGLES, 0, mugObj.getNumVertices());
 		mvStack.popMatrix();	//print planet 1
+		
+		// ----------------------- moon - shuttle
+		
+		// ----------------------- Satellite - coin
+		
+		
 		mvStack.popMatrix();	//leave planet orbital
+		*/
 		
 		
 		mvStack.popMatrix();	//final pop
-
+		
 	}
 
 	public void init(GLAutoDrawable drawable) {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
-		renderingProgram = createShaderProgram("src/notes5/vertShader.glsl", "src/notes5/fragShader.glsl");
+		renderingProgram = createShaderProgram("src/a2/vertShader.glsl", "src/a2/fragShader.glsl");
+		//mugObj=new ImportedModel("assets/coin.obj");
+		//coinObj=new ImportedModel("assets/coin.obj");
+		//rocketObj=new ImportedModel("assets/shuttle.obj");
 		setupVertices();
 		cameraX = 0.0f;
 		cameraY = 0.0f;
@@ -204,26 +255,42 @@ public class Starter extends JFrame implements GLEventListener {
 		Sphere mySphere = new Sphere(96);
 		numSphereVerts = mySphere.getIndices().length;
 	
-		int[] indices = mySphere.getIndices();
-		Vector3f[] vert = mySphere.getVertices();
-		Vector2f[] tex  = mySphere.getTexCoords();
-		Vector3f[] norm = mySphere.getNormals();
+		int[] indicesSphere = mySphere.getIndices();
 		
-		float[] pvalues = new float[indices.length*3];
-		float[] tvalues = new float[indices.length*2];
-		float[] nvalues = new float[indices.length*3];
+		float[] pvaluesSphere = new float[indicesSphere.length*3];
+		float[] tvaluesSphere = new float[indicesSphere.length*2];
+		float[] nvaluesSphere = new float[indicesSphere.length*3];
 		
-		for (int i=0; i<indices.length; i++)
-		{	pvalues[i*3] = (float) (vert[indices[i]]).x;
-			pvalues[i*3+1] = (float) (vert[indices[i]]).y;
-			pvalues[i*3+2] = (float) (vert[indices[i]]).z;
-			tvalues[i*2] = (float) (tex[indices[i]]).x;
-			tvalues[i*2+1] = (float) (tex[indices[i]]).y;
-			nvalues[i*3] = (float) (norm[indices[i]]).x;
-			nvalues[i*3+1]= (float)(norm[indices[i]]).y;
-			nvalues[i*3+2]=(float) (norm[indices[i]]).z;
+		for (int i=0; i<indicesSphere.length; i++)
+		{	pvaluesSphere[i*3] = (float) (mySphere.getVertices()[indicesSphere[i]]).x;
+			pvaluesSphere[i*3+1] = (float) (mySphere.getVertices()[indicesSphere[i]]).y;
+			pvaluesSphere[i*3+2] = (float) (mySphere.getVertices()[indicesSphere[i]]).z;
+			tvaluesSphere[i*2] = (float) (mySphere.getTexCoords()[indicesSphere[i]]).x;
+			tvaluesSphere[i*2+1] = (float) (mySphere.getTexCoords()[indicesSphere[i]]).y;
+			nvaluesSphere[i*3] = (float) (mySphere.getNormals()[indicesSphere[i]]).x;
+			nvaluesSphere[i*3+1]= (float)(mySphere.getNormals()[indicesSphere[i]]).y;
+			nvaluesSphere[i*3+2]=(float) (mySphere.getNormals()[indicesSphere[i]]).z;
 		}
-
+		
+		
+		/*
+		float[] pvaluesMug = new float[mugObj.getNumVertices()*3];
+		float[] tvaluesMug = new float[mugObj.getNumVertices()*2];
+		float[] nvaluesMug = new float[mugObj.getNumVertices()*3];
+		
+		for (int i=0; i<mugObj.getNumVertices(); i++)
+		{	pvaluesMug[i*3]   = (float) (mugObj.getVertices()[i]).x();
+			pvaluesMug[i*3+1] = (float) (mugObj.getVertices()[i]).y();
+			pvaluesMug[i*3+2] = (float) (mugObj.getVertices()[i]).z();
+			tvaluesMug[i*2]   = (float) (mugObj.getTexCoords()[i]).x();
+			tvaluesMug[i*2+1] = (float) (mugObj.getTexCoords()[i]).y();
+			nvaluesMug[i*3]   = (float) (mugObj.getNormals()[i]).x();
+			nvaluesMug[i*3+1] = (float) (mugObj.getNormals()[i]).y();
+			nvaluesMug[i*3+2] = (float) (mugObj.getNormals()[i]).z();
+		}
+		
+		
+*/
 		gl.glGenVertexArrays(vao.length, vao, 0);
 		gl.glBindVertexArray(vao[0]);
 		gl.glGenBuffers(vbo.length, vbo, 0);
@@ -241,12 +308,21 @@ public class Starter extends JFrame implements GLEventListener {
 		gl.glBufferData(GL_ARRAY_BUFFER, gemBuf.limit() * 4, gemBuf, GL_STATIC_DRAW);
 
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
-		FloatBuffer vertBuf = Buffers.newDirectFloatBuffer(pvalues);
-		gl.glBufferData(GL_ARRAY_BUFFER, vertBuf.limit()*4, vertBuf, GL_STATIC_DRAW);
+		FloatBuffer vertSphereBuf = Buffers.newDirectFloatBuffer(pvaluesSphere);
+		gl.glBufferData(GL_ARRAY_BUFFER, vertSphereBuf.limit()*4, vertSphereBuf, GL_STATIC_DRAW);
 
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[4]);
-		FloatBuffer texBuf = Buffers.newDirectFloatBuffer(tvalues);
-		gl.glBufferData(GL_ARRAY_BUFFER, texBuf.limit()*4, texBuf, GL_STATIC_DRAW);
+		FloatBuffer texSphereBuf = Buffers.newDirectFloatBuffer(tvaluesSphere);
+		gl.glBufferData(GL_ARRAY_BUFFER, texSphereBuf.limit()*4, texSphereBuf, GL_STATIC_DRAW);
+		/*
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[5]);
+		FloatBuffer vertBuf = Buffers.newDirectFloatBuffer(pvaluesMug);
+		gl.glBufferData(GL_ARRAY_BUFFER, vertBuf.limit()*4, vertBuf, GL_STATIC_DRAW);
+
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[6]);
+		FloatBuffer texBuf = Buffers.newDirectFloatBuffer(tvaluesMug);
+		gl.glBufferData(GL_ARRAY_BUFFER, texBuf.limit()*4, texBuf, GL_STATIC_DRAW); */
+
 	}
 
 	public static void main(String[] args) {
