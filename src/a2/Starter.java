@@ -15,6 +15,28 @@ import static com.jogamp.opengl.GL3ES3.GL_GEOMETRY_SHADER;
 import static com.jogamp.opengl.GL3ES3.GL_TESS_CONTROL_SHADER;
 import static com.jogamp.opengl.GL3ES3.GL_TESS_EVALUATION_SHADER;
 
+import java.io.*;
+import java.nio.*;
+import javax.swing.*;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Scanner;
+import java.util.Vector;
+
+import static com.jogamp.opengl.GL4.*;
+import com.jogamp.opengl.*;
+import com.jogamp.opengl.awt.GLCanvas;
+import com.jogamp.opengl.glu.GLU;
+import com.jogamp.opengl.util.texture.*;
+import com.jogamp.common.nio.Buffers;
+
+import javax.imageio.ImageIO;
+import java.awt.image.*;
+import java.awt.geom.AffineTransform;
+import java.awt.Graphics2D;
+import java.awt.color.ColorSpace;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.FloatBuffer;
@@ -35,6 +57,7 @@ import com.jogamp.opengl.GLContext;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.awt.GLCanvas;
 import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.texture.*;
 
 public class Starter extends JFrame implements GLEventListener {
 	private GLCanvas myCanvas;
@@ -58,6 +81,7 @@ public class Starter extends JFrame implements GLEventListener {
 	private ImportedModel mugObj;
 	private ImportedModel coinObj;
 	private ImportedModel rocketObj;
+	private int neptuneTex;
 
 	public Starter() {
 		setTitle("Assignment 2");
@@ -90,46 +114,7 @@ public class Starter extends JFrame implements GLEventListener {
 		mvStack.translate(-cameraX, -cameraY, -cameraZ);
 
 		tf = elapsedTime / 1000.0; // time factor
-		/*
-		// ----------------------  pyramid == sun  
-				mvStack.pushMatrix();
-				mvStack.translate(0.0f, 0.0f, 0.0f);
-				mvStack.pushMatrix();
-				mvStack.rotate((float)tf, 1.0f, 0.0f, 0.0f);
-				gl.glUniformMatrix4fv(mvLoc, 1, false, mvStack.get(vals));
-				gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-				gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
-				gl.glEnableVertexAttribArray(0);
-				gl.glEnable(GL_DEPTH_TEST);
-				gl.glDrawArrays(GL_TRIANGLES, 0, 18); 
-				mvStack.popMatrix();
-				
-				//-----------------------  cube == planet  
-				mvStack.pushMatrix();
-				mvStack.translate((float)Math.sin(tf)*4.0f, 0.0f, (float)Math.cos(tf)*4.0f);
-				mvStack.pushMatrix();
-				mvStack.rotate((float)tf, 0.0f, 1.0f, 0.0f);
-				gl.glUniformMatrix4fv(mvLoc, 1, false, mvStack.get(vals));
-				gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-				gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
-				gl.glEnableVertexAttribArray(0);
-				gl.glDrawArrays(GL_TRIANGLES, 0, 36);
-				mvStack.popMatrix();
-
-				//-----------------------  smaller cube == moon
-				mvStack.pushMatrix();
-				mvStack.translate(0.0f, (float)Math.sin(tf)*2.0f, (float)Math.cos(tf)*2.0f);
-				mvStack.rotate((float)tf, 0.0f, 0.0f, 1.0f);
-				mvStack.scale(0.25f, 0.25f, 0.25f);
-				gl.glUniformMatrix4fv(mvLoc, 1, false, mvStack.get(vals));
-				gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-				gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
-				gl.glEnableVertexAttribArray(0);
-				gl.glDrawArrays(GL_TRIANGLES, 0, 36);
-				mvStack.popMatrix();  mvStack.popMatrix();  mvStack.popMatrix();
-				mvStack.popMatrix();
-
-		*/
+		
 		// ---------------------- sun
 		mvStack.pushMatrix();
 		mvStack.translate(0.0f, 0.0f, 0.0f);
@@ -208,10 +193,12 @@ public class Starter extends JFrame implements GLEventListener {
 	public void init(GLAutoDrawable drawable) {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 		renderingProgram = createShaderProgram("src/a2/vertShader.glsl", "src/a2/fragShader.glsl");
+		neptuneTex = loadTexture("assets/neptune.jpg");
 		//mugObj=new ImportedModel("assets/coin.obj");
 		//coinObj=new ImportedModel("assets/coin.obj");
 		//rocketObj=new ImportedModel("assets/shuttle.obj");
 		setupVertices();
+		
 		cameraX = 0.0f;
 		cameraY = 0.0f;
 		cameraZ = 12.0f;
@@ -448,5 +435,25 @@ public class Starter extends JFrame implements GLEventListener {
 			return null;
 		}
 		return program;
+	}
+	
+	private static int loadTexture(String textureFileName)
+	{	GL4 gl = (GL4) GLContext.getCurrentGL();
+		int finalTextureRef;
+		Texture tex = null;
+		try { tex = TextureIO.newTexture(new File(textureFileName), false); }
+		catch (Exception e) { e.printStackTrace(); }
+		finalTextureRef = tex.getTextureObject();
+
+		// building a mipmap and use anisotropic filtering
+		gl.glBindTexture(GL_TEXTURE_2D, finalTextureRef);
+		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		gl.glGenerateMipmap(GL.GL_TEXTURE_2D);
+		if (gl.isExtensionAvailable("GL_EXT_texture_filter_anisotropic"))
+		{	float anisoset[] = new float[1];
+			gl.glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, anisoset, 0);
+			gl.glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisoset[0]);
+		}
+		return finalTextureRef;
 	}
 }

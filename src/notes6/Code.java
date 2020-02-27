@@ -86,7 +86,7 @@ public class Code extends JFrame implements GLEventListener
 
 	public void init(GLAutoDrawable drawable)
 	{	GL4 gl = (GL4) GLContext.getCurrentGL();
-		myModel = new ImportedModel("assets/shuttle.obj");
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 		renderingProgram = Utils.createShaderProgram("src/notes6/vert.shader", "src/notes6/frag.shader");
 
 		float aspect = (float) myCanvas.getWidth() / (float) myCanvas.getHeight();
@@ -96,12 +96,17 @@ public class Code extends JFrame implements GLEventListener
 		cameraX = 0.0f; cameraY = 0.0f; cameraZ = 1.5f;
 		objLocX = 0.0f; objLocY = 0.0f; objLocZ = 0.0f;
 
+		myModel = new ImportedModel("assets/shuttle.obj");
 		shuttleTexture = Utils.loadTexture("assets/spstob_1.jpg");
 	}
 
 	private void setupVertices()
 	{	GL4 gl = (GL4) GLContext.getCurrentGL();
 	
+		gl.glGenVertexArrays(vao.length, vao, 0);
+		gl.glBindVertexArray(vao[0]);
+		gl.glGenBuffers(vbo.length, vbo, 0);
+		
 		numObjVertices = myModel.getNumVertices();
 		Vector3f[] vertices = myModel.getVertices();
 		Vector2f[] texCoords = myModel.getTexCoords();
@@ -122,9 +127,6 @@ public class Code extends JFrame implements GLEventListener
 			nvalues[i*3+2] = (float) (normals[i]).z();
 		}
 		
-		gl.glGenVertexArrays(vao.length, vao, 0);
-		gl.glBindVertexArray(vao[0]);
-		gl.glGenBuffers(vbo.length, vbo, 0);
 		
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 		FloatBuffer vertBuf = Buffers.newDirectFloatBuffer(pvalues);
