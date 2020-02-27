@@ -21,6 +21,8 @@ import javax.swing.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.Scanner;
 import java.util.Vector;
 
@@ -82,6 +84,7 @@ public class Starter extends JFrame implements GLEventListener {
 	private ImportedModel coinObj;
 	private ImportedModel rocketObj;
 	private int neptuneTex;
+	private Dictionary<String, Integer> vboDict;
 
 	public Starter() {
 		setTitle("Assignment 2");
@@ -108,20 +111,24 @@ public class Starter extends JFrame implements GLEventListener {
 		aspect = (float) myCanvas.getWidth() / (float) myCanvas.getHeight();
 		pMat.identity().setPerspective((float) Math.toRadians(60.0f), aspect, 0.1f, 1000.0f);
 		gl.glUniformMatrix4fv(projLoc, 1, false, pMat.get(vals));
+		int rainbowLoc = gl.glGetUniformLocation(renderingProgram, "rainbow"); // retrieve pointer to "rainbow"
 
 		// push view matrix onto the stack
 		mvStack.pushMatrix();
 		mvStack.translate(-cameraX, -cameraY, -cameraZ);
 
 		tf = elapsedTime / 1000.0; // time factor
-		
+
+
+		//use texture shader
+		gl.glProgramUniform1f(renderingProgram, rainbowLoc, 0);
 		// ---------------------- sun
 		mvStack.pushMatrix();
 		mvStack.translate(0.0f, 0.0f, 0.0f);
 		mvStack.pushMatrix();
 		//mvStack.rotate((float) tf, 1.0f, 0.0f, 0.0f);
 		gl.glUniformMatrix4fv(mvLoc, 1, false, mvStack.get(vals));
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("spherePositions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
 		gl.glEnableVertexAttribArray(0);
 		gl.glEnable(GL_DEPTH_TEST);
@@ -133,19 +140,21 @@ public class Starter extends JFrame implements GLEventListener {
 		mvStack.translate((float) Math.sin(tf) * 4.0f, 0.0f, (float) Math.cos(tf) * 4.0f);
 		mvStack.pushMatrix();
 		gl.glUniformMatrix4fv(mvLoc, 1, false, mvStack.get(vals));
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("cubePositions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
 		gl.glEnableVertexAttribArray(0);
 		gl.glDrawArrays(GL_TRIANGLES, 0, 36);
 		mvStack.popMatrix();	//print planet 1
 
 
+		//use rainbow shader
+		gl.glProgramUniform1f(renderingProgram, rainbowLoc, 1);
 		// ----------------------- gem == moon
 		mvStack.pushMatrix();
 		mvStack.translate(0.0f, (float) Math.sin(tf) * 2.0f, (float) Math.cos(tf) * 2.0f);
 		mvStack.scale(0.25f, 0.25f, 0.25f);
 		gl.glUniformMatrix4fv(mvLoc, 1, false, mvStack.get(vals));
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("gemPositions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
 		gl.glEnableVertexAttribArray(0);
 		gl.glDrawArrays(GL_TRIANGLES, 0, 287);
@@ -158,7 +167,7 @@ public class Starter extends JFrame implements GLEventListener {
 		mvStack.translate(0.0f, (float) Math.sin(tf) * -2.0f, (float) Math.cos(tf) * -2.0f);
 		mvStack.scale(0.25f, 0.25f, 0.25f);
 		gl.glUniformMatrix4fv(mvLoc, 1, false, mvStack.get(vals));
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("gemPositions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
 		gl.glEnableVertexAttribArray(0);
 		gl.glDrawArrays(GL_TRIANGLES, 0, 287);
@@ -194,6 +203,7 @@ public class Starter extends JFrame implements GLEventListener {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 		renderingProgram = createShaderProgram("src/a2/vertShader.glsl", "src/a2/fragShader.glsl");
 		neptuneTex = loadTexture("assets/neptune.jpg");
+		vboDict=new Hashtable<String, Integer>();
 		//mugObj=new ImportedModel("assets/coin.obj");
 		//coinObj=new ImportedModel("assets/coin.obj");
 		//rocketObj=new ImportedModel("assets/shuttle.obj");
@@ -206,14 +216,122 @@ public class Starter extends JFrame implements GLEventListener {
 
 	private void setupVertices() {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
-		float[] cubePositions = { -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f,
-				1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f,
-				1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-				-1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f,
-				1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f,
-				1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f,
-				-1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f };
+		float[] cubePositions = { 
+				//back face
+				-1.0f, 1.0f, -1.0f, //upper right
+				-1.0f, -1.0f, -1.0f, //bottom right
+				1.0f, -1.0f, -1.0f, //bottom left
+				
+				1.0f, -1.0f, -1.0f, //bottom left
+				1.0f, 1.0f, -1.0f,  //upper left
+				-1.0f, 1.0f, -1.0f,  //upper right
+				
+				//right face
+				1.0f, -1.0f, -1.0f, //bottom right
+				1.0f, -1.0f, 1.0f,  //bottom left
+				1.0f, 1.0f, -1.0f, //upper right
+				
+				1.0f, -1.0f, 1.0f, //bottom left
+				1.0f, 1.0f, 1.0f, //upper left
+				1.0f, 1.0f, -1.0f, //upper right
+				
+				//front face
+				1.0f, -1.0f, 1.0f, //lower right
+				-1.0f, -1.0f, 1.0f, //lower left
+				1.0f, 1.0f, 1.0f, //upper right
+				
+				-1.0f, -1.0f, 1.0f,  //lower left
+				-1.0f, 1.0f, 1.0f, //upper left
+				1.0f, 1.0f, 1.0f,  //upper right
+				
+				//left face
+				-1.0f, -1.0f, 1.0f, //lower right
+				-1.0f, -1.0f, -1.0f, //lower left
+				-1.0f,	1.0f, 1.0f,  //upper right
+				
+				-1.0f, -1.0f, -1.0f,  //lower left
+				-1.0f, 1.0f, -1.0f,  //upper left
+				-1.0f, 1.0f, 1.0f,  //upper right
+				
+				//bottom face
+				-1.0f, -1.0f, 1.0f, //upper left
+				1.0f, -1.0f, 1.0f, //upper right
+				1.0f, -1.0f, -1.0f, //lower left
+				
+				1.0f, -1.0f, -1.0f,  //lower left
+				-1.0f, -1.0f, -1.0f, //lower right
+				-1.0f, -1.0f, 1.0f,  //upper left
+				
+				//top face
+				-1.0f, 1.0f, -1.0f,   //upper left
+				1.0f, 1.0f, -1.0f, //upper right
+				1.0f, 1.0f, 1.0f, //lower right
+				
+				1.0f, 1.0f, 1.0f,  //lower right
+				-1.0f, 1.0f, 1.0f, //lower left
+				-1.0f, 1.0f, -1.0f //upper left
+			}; 
 
+		float[] cubeTextureCoordinates= {
+				//back face
+				1.0f, 1.0f, //upper right
+				1.0f, 0.0f, //bottom right
+				0.0f, 0.0f, //bottom left
+				
+				0.0f, 0.0f, //bottom left
+				0.0f, 1.0f, //upper left
+				1.0f, 1.0f, //upper right
+
+				//right face
+				1.0f, 0.0f, //bottom right
+				0.0f, 0.0f, //bottom left
+				1.0f, 1.0f, //upper right
+
+				0.0f, 0.0f, //bottom left
+				0.0f, 1.0f, //upper left
+				1.0f, 1.0f, //upper right
+
+				//front face
+				1.0f, 0.0f, //bottom right
+				0.0f, 0.0f, //bottom left
+				1.0f, 1.0f, //upper right
+
+				0.0f, 0.0f, //bottom left
+				0.0f, 1.0f, //upper left
+				1.0f, 1.0f, //upper right
+				
+				//left face
+				1.0f, 0.0f, //bottom right
+				0.0f, 0.0f, //bottom left
+				1.0f, 1.0f, //upper right
+
+				0.0f, 0.0f, //bottom left
+				0.0f, 1.0f, //upper left
+				1.0f, 1.0f, //upper right
+				
+				//bottom face
+				0.0f, 1.0f, //upper left
+				1.0f, 1.0f, //upper right
+				0.0f, 0.0f, //bottom left
+
+				0.0f, 0.0f, //bottom left
+				1.0f, 0.0f, //bottom right
+				0.0f, 1.0f, //upper left
+				
+				//top face
+				0.0f, 1.0f, //upper left
+				1.0f, 1.0f, //upper right
+				0.0f, 0.0f, //bottom left
+				
+				0.0f, 0.0f, //bottom left
+				1.0f, 0.0f, //bottom right
+				0.0f, 1.0f, //upper left
+
+				
+				
+		};
+		
+		
 		float[] pyramidPositions = { -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 1.0f, 0.0f, // front
 				1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 0.0f, 1.0f, 0.0f, // right
 				1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 0.0f, 1.0f, 0.0f, // back
@@ -222,6 +340,15 @@ public class Starter extends JFrame implements GLEventListener {
 				1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f // RR
 		};
 
+		float[] pyrTextureCoordinates =
+			{	0.0f, 0.0f, 1.0f, 0.0f, 0.5f, 1.0f,
+				0.0f, 0.0f, 1.0f, 0.0f, 0.5f, 1.0f,
+				0.0f, 0.0f, 1.0f, 0.0f, 0.5f, 1.0f,
+				0.0f, 0.0f, 1.0f, 0.0f, 0.5f, 1.0f,
+				0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f,
+				1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f
+			};
+		
 		float[] gemPositions = {
 				// top
 				1, 1, 3, 0, 1.3f, 0, -1, 1, 3, -1, 1, 3, 0, 1.3f, 0, -3, 1, 1, -3, 1, 1, 0, 1.3f, 0, -3, 1, -1, -3, 1,
@@ -282,34 +409,54 @@ public class Starter extends JFrame implements GLEventListener {
 		gl.glBindVertexArray(vao[0]);
 		gl.glGenBuffers(vbo.length, vbo, 0);
 
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+		vboDict.put("cubePositions", 0);
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("cubePositions")]);
 		FloatBuffer cubeBuf = Buffers.newDirectFloatBuffer(cubePositions);
 		gl.glBufferData(GL_ARRAY_BUFFER, cubeBuf.limit() * 4, cubeBuf, GL_STATIC_DRAW);
 
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+		vboDict.put("cubeTextures", 1);
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("cubeTextures")]);
+		FloatBuffer cubeTexBuf = Buffers.newDirectFloatBuffer(cubeTextureCoordinates);
+		gl.glBufferData(GL_ARRAY_BUFFER, cubeTexBuf.limit() * 4, cubeTexBuf, GL_STATIC_DRAW);
+		
+		vboDict.put("pyramidPositions", 2);
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("pyramidPositions")]);
 		FloatBuffer pyrBuf = Buffers.newDirectFloatBuffer(pyramidPositions);
 		gl.glBufferData(GL_ARRAY_BUFFER, pyrBuf.limit() * 4, pyrBuf, GL_STATIC_DRAW);
+		
+		vboDict.put("pyramidTextures", 3);
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("pyramidTextures")]);
+		FloatBuffer pyrTexBuf = Buffers.newDirectFloatBuffer(pyrTextureCoordinates);
+		gl.glBufferData(GL_ARRAY_BUFFER, pyrTexBuf.limit() * 4, pyrTexBuf, GL_STATIC_DRAW);
 
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+		vboDict.put("gemPositions", 4);
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("gemPositions")]);
 		FloatBuffer gemBuf = Buffers.newDirectFloatBuffer(gemPositions);
 		gl.glBufferData(GL_ARRAY_BUFFER, gemBuf.limit() * 4, gemBuf, GL_STATIC_DRAW);
 
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
+		vboDict.put("spherePositions", 5);
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("spherePositions")]);
 		FloatBuffer vertSphereBuf = Buffers.newDirectFloatBuffer(pvaluesSphere);
 		gl.glBufferData(GL_ARRAY_BUFFER, vertSphereBuf.limit()*4, vertSphereBuf, GL_STATIC_DRAW);
 
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[4]);
+		vboDict.put("sphereTextures", 6);
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("sphereTextures")]);
 		FloatBuffer texSphereBuf = Buffers.newDirectFloatBuffer(tvaluesSphere);
 		gl.glBufferData(GL_ARRAY_BUFFER, texSphereBuf.limit()*4, texSphereBuf, GL_STATIC_DRAW);
+		
 		/*
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[5]);
+		vboDict.put("mugPositions",7);
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vbo.get("mugPositions")]);
 		FloatBuffer vertBuf = Buffers.newDirectFloatBuffer(pvaluesMug);
 		gl.glBufferData(GL_ARRAY_BUFFER, vertBuf.limit()*4, vertBuf, GL_STATIC_DRAW);
 
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[6]);
+		vboDict.put("mugTextures",8);
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vbo.get("mugTextures")]);
 		FloatBuffer texBuf = Buffers.newDirectFloatBuffer(tvaluesMug);
 		gl.glBufferData(GL_ARRAY_BUFFER, texBuf.limit()*4, texBuf, GL_STATIC_DRAW); */
-
+		System.out.println("initialized vbo");
+		System.out.println(vboDict);
+		
 	}
 
 	public static void main(String[] args) {
