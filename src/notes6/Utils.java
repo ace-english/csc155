@@ -1,4 +1,4 @@
-package notes6;
+package code;
 
 import java.io.*;
 import java.nio.*;
