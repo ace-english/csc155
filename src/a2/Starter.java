@@ -178,17 +178,17 @@ public class Starter extends JFrame implements GLEventListener {
 
 		// use texture shader
 		gl.glProgramUniform1f(renderingProgram, rainbowLoc, 0);
-		
-		  // ----------------------- second planet - mug 
+
+		// ----------------------- second planet - mug
 		mvStack.pushMatrix();
-		mvStack.translate((float) Math.sin(tf) * -7.0f, 0.0f, (float) Math.cos(tf) *-7.0f); 
-		//mvStack.scale(10f, 10f, 10f);
-		//mvStack.rotateXYZ(0, -.5f * (float) tf, 1f * (float) tf);
-		mvStack.pushMatrix(); 
-		gl.glUniformMatrix4fv(mvLoc, 1, false, mvStack.get(vals)); 
+		mvStack.translate((float) Math.sin(tf) * -7.0f, 0.0f, (float) Math.cos(tf) * -7.0f);
+		// mvStack.scale(10f, 10f, 10f);
+		// mvStack.rotateXYZ(0, -.5f * (float) tf, 1f * (float) tf);
+		mvStack.pushMatrix();
+		gl.glUniformMatrix4fv(mvLoc, 1, false, mvStack.get(vals));
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("mugPositions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
-		gl.glEnableVertexAttribArray(0); 
+		gl.glEnableVertexAttribArray(0);
 		// pull up texture coords
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("mugTextures")]);
 		gl.glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0);
@@ -196,19 +196,18 @@ public class Starter extends JFrame implements GLEventListener {
 		// activate texture object
 		gl.glActiveTexture(GL_TEXTURE0);
 		gl.glBindTexture(GL_TEXTURE_2D, mugTex);
-		gl.glDrawArrays(GL_TRIANGLES, 0,mugObj.getNumVertices());
-		mvStack.popMatrix(); //print planet 2
-	
-		  
-		  // ----------------------- moon - shuttle
+		gl.glDrawArrays(GL_TRIANGLES, 0, mugObj.getNumVertices());
+		mvStack.popMatrix(); // print planet 2
+
+		// ----------------------- moon - shuttle
 		mvStack.pushMatrix();
-		mvStack.translate((float) Math.sin(tf) * 1.0f, (float) Math.cos(tf) * 1.0f, (float) Math.cos(tf) * 1.0f); 
-		mvStack.rotateXYZ(0f,0f,0f);
-		mvStack.pushMatrix(); 
-		gl.glUniformMatrix4fv(mvLoc, 1, false, mvStack.get(vals)); 
+		mvStack.translate((float) Math.sin(tf) * 1.0f, (float) Math.cos(tf) * 1.0f, (float) Math.cos(tf) * 1.0f);
+		mvStack.rotateXYZ(0f, 0f, 0f);
+		mvStack.pushMatrix();
+		gl.glUniformMatrix4fv(mvLoc, 1, false, mvStack.get(vals));
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("shuttlePositions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
-		gl.glEnableVertexAttribArray(0); 
+		gl.glEnableVertexAttribArray(0);
 		// pull up texture coords
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("shuttleTextures")]);
 		gl.glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0);
@@ -216,15 +215,13 @@ public class Starter extends JFrame implements GLEventListener {
 		// activate texture object
 		gl.glActiveTexture(GL_TEXTURE0);
 		gl.glBindTexture(GL_TEXTURE_2D, shuttleTex);
-		gl.glDrawArrays(GL_TRIANGLES, 0,shuttleObj.getNumVertices());
-		mvStack.popMatrix(); //print shuttle
-		  
-		  // ----------------------- Satellite - coin
-		  
-		  
-		  mvStack.popMatrix(); //leave planet orbital
-		  mvStack.popMatrix(); //leave planet orbital
-		 
+		gl.glDrawArrays(GL_TRIANGLES, 0, shuttleObj.getNumVertices());
+		mvStack.popMatrix(); // print shuttle
+
+		// ----------------------- Satellite - coin
+
+		mvStack.popMatrix(); // leave planet orbital
+		mvStack.popMatrix(); // leave planet orbital
 
 		mvStack.popMatrix(); // final pop
 
@@ -235,7 +232,8 @@ public class Starter extends JFrame implements GLEventListener {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 		vboDict = new Hashtable<String, Integer>();
-		//renderingProgram = Utils.createShaderProgram("src/notes6/vert.shader", "src/notes6/frag.shader");
+		// renderingProgram = Utils.createShaderProgram("src/notes6/vert.shader",
+		// "src/notes6/frag.shader");
 		renderingProgram = createShaderProgram("src/a2/vertShader.glsl", "src/a2/fragShader.glsl");
 		neptuneTex = loadTexture("assets/neptune.jpg");
 		brickTex = loadTexture("assets/brick1.jpg");
@@ -243,8 +241,8 @@ public class Starter extends JFrame implements GLEventListener {
 		coinTex = loadTexture("assets/coin.png");
 		shuttleTex = loadTexture("assets/shuttle.jpg");
 		mugObj = new ImportedModel("assets/mug.obj");
-		//coinObj=new ImportedModel("assets/coin.obj");
-		shuttleObj=new ImportedModel("assets/shuttle.obj");
+		// coinObj=new ImportedModel("assets/coin.obj");
+		shuttleObj = new ImportedModel("assets/shuttle.obj");
 		setupVertices();
 
 		cameraX = 0.0f;
@@ -416,52 +414,52 @@ public class Starter extends JFrame implements GLEventListener {
 			nvaluesSphere[i * 3 + 2] = (float) (mySphere.getNormals()[indicesSphere[i]]).z;
 		}
 
-		
-		float[] pvaluesMug = new float[mugObj.getNumVertices()*3]; 
-		float[] tvaluesMug = new float[mugObj.getNumVertices()*2]; 
-		float[] nvaluesMug = new float[mugObj.getNumVertices()*3];
-		  
-		 for (int i=0; i<mugObj.getNumVertices(); i++) { pvaluesMug[i*3] = (float)
-		 (mugObj.getVertices()[i]).x(); pvaluesMug[i*3+1] = (float)
-		 (mugObj.getVertices()[i]).y(); pvaluesMug[i*3+2] = (float)
-		 (mugObj.getVertices()[i]).z(); tvaluesMug[i*2] = (float)
-		 (mugObj.getTexCoords()[i]).x(); tvaluesMug[i*2+1] = (float)
-		 (mugObj.getTexCoords()[i]).y(); nvaluesMug[i*3] = (float)
-		 (mugObj.getNormals()[i]).x(); nvaluesMug[i*3+1] = (float)
-		 (mugObj.getNormals()[i]).y(); nvaluesMug[i*3+2] = (float)
-		 (mugObj.getNormals()[i]).z(); }
-		 
-		 /*
-		 float[] pvaluesCoin = new float[coinObj.getNumVertices()*3]; 
-			float[] tvaluesCoin = new float[coinObj.getNumVertices()*2]; 
-			float[] nvaluesCoin = new float[coinObj.getNumVertices()*3];
-			  
-			 for (int i=0; i<coinObj.getNumVertices(); i++) { pvaluesMug[i*3] = (float)
-			 (coinObj.getVertices()[i]).x(); pvaluesMug[i*3+1] = (float)
-			 (coinObj.getVertices()[i]).y(); pvaluesMug[i*3+2] = (float)
-			 (coinObj.getVertices()[i]).z(); tvaluesMug[i*2] = (float)
-			 (coinObj.getTexCoords()[i]).x(); tvaluesMug[i*2+1] = (float)
-			 (coinObj.getTexCoords()[i]).y(); nvaluesMug[i*3] = (float)
-			 (coinObj.getNormals()[i]).x(); nvaluesMug[i*3+1] = (float)
-			 (coinObj.getNormals()[i]).y(); nvaluesMug[i*3+2] = (float)
-			 (coinObj.getNormals()[i]).z(); }
-			 
-		*/
-			 float[] pvaluesShuttle = new float[shuttleObj.getNumVertices()*3]; 
-				float[] tvaluesShuttle = new float[shuttleObj.getNumVertices()*2]; 
-				float[] nvaluesShuttle = new float[shuttleObj.getNumVertices()*3];
-				  
-				 for (int i=0; i<shuttleObj.getNumVertices(); i++) { pvaluesShuttle[i*3] = (float)
-				 (shuttleObj.getVertices()[i]).x(); pvaluesShuttle[i*3+1] = (float)
-				 (shuttleObj.getVertices()[i]).y(); pvaluesShuttle[i*3+2] = (float)
-				 (shuttleObj.getVertices()[i]).z(); tvaluesShuttle[i*2] = (float)
-				 (shuttleObj.getTexCoords()[i]).x(); tvaluesShuttle[i*2+1] = (float)
-				 (shuttleObj.getTexCoords()[i]).y(); nvaluesShuttle[i*3] = (float)
-				 (shuttleObj.getNormals()[i]).x(); nvaluesShuttle[i*3+1] = (float)
-				 (shuttleObj.getNormals()[i]).y(); nvaluesShuttle[i*3+2] = (float)
-				 (shuttleObj.getNormals()[i]).z(); }
-		 
-		 
+		float[] pvaluesMug = new float[mugObj.getNumVertices() * 3];
+		float[] tvaluesMug = new float[mugObj.getNumVertices() * 2];
+		float[] nvaluesMug = new float[mugObj.getNumVertices() * 3];
+
+		for (int i = 0; i < mugObj.getNumVertices(); i++) {
+			pvaluesMug[i * 3] = (float) (mugObj.getVertices()[i]).x();
+			pvaluesMug[i * 3 + 1] = (float) (mugObj.getVertices()[i]).y();
+			pvaluesMug[i * 3 + 2] = (float) (mugObj.getVertices()[i]).z();
+			tvaluesMug[i * 2] = (float) (mugObj.getTexCoords()[i]).x();
+			tvaluesMug[i * 2 + 1] = (float) (mugObj.getTexCoords()[i]).y();
+			nvaluesMug[i * 3] = (float) (mugObj.getNormals()[i]).x();
+			nvaluesMug[i * 3 + 1] = (float) (mugObj.getNormals()[i]).y();
+			nvaluesMug[i * 3 + 2] = (float) (mugObj.getNormals()[i]).z();
+		}
+
+		/*
+		 * float[] pvaluesCoin = new float[coinObj.getNumVertices()*3]; float[]
+		 * tvaluesCoin = new float[coinObj.getNumVertices()*2]; float[] nvaluesCoin =
+		 * new float[coinObj.getNumVertices()*3];
+		 * 
+		 * for (int i=0; i<coinObj.getNumVertices(); i++) { pvaluesMug[i*3] = (float)
+		 * (coinObj.getVertices()[i]).x(); pvaluesMug[i*3+1] = (float)
+		 * (coinObj.getVertices()[i]).y(); pvaluesMug[i*3+2] = (float)
+		 * (coinObj.getVertices()[i]).z(); tvaluesMug[i*2] = (float)
+		 * (coinObj.getTexCoords()[i]).x(); tvaluesMug[i*2+1] = (float)
+		 * (coinObj.getTexCoords()[i]).y(); nvaluesMug[i*3] = (float)
+		 * (coinObj.getNormals()[i]).x(); nvaluesMug[i*3+1] = (float)
+		 * (coinObj.getNormals()[i]).y(); nvaluesMug[i*3+2] = (float)
+		 * (coinObj.getNormals()[i]).z(); }
+		 * 
+		 */
+		float[] pvaluesShuttle = new float[shuttleObj.getNumVertices() * 3];
+		float[] tvaluesShuttle = new float[shuttleObj.getNumVertices() * 2];
+		float[] nvaluesShuttle = new float[shuttleObj.getNumVertices() * 3];
+
+		for (int i = 0; i < shuttleObj.getNumVertices(); i++) {
+			pvaluesShuttle[i * 3] = (float) (shuttleObj.getVertices()[i]).x();
+			pvaluesShuttle[i * 3 + 1] = (float) (shuttleObj.getVertices()[i]).y();
+			pvaluesShuttle[i * 3 + 2] = (float) (shuttleObj.getVertices()[i]).z();
+			tvaluesShuttle[i * 2] = (float) (shuttleObj.getTexCoords()[i]).x();
+			tvaluesShuttle[i * 2 + 1] = (float) (shuttleObj.getTexCoords()[i]).y();
+			nvaluesShuttle[i * 3] = (float) (shuttleObj.getNormals()[i]).x();
+			nvaluesShuttle[i * 3 + 1] = (float) (shuttleObj.getNormals()[i]).y();
+			nvaluesShuttle[i * 3 + 2] = (float) (shuttleObj.getNormals()[i]).z();
+		}
+
 		gl.glGenVertexArrays(vao.length, vao, 0);
 		gl.glBindVertexArray(vao[0]);
 		gl.glGenBuffers(vbo.length, vbo, 0);
@@ -501,43 +499,37 @@ public class Starter extends JFrame implements GLEventListener {
 		FloatBuffer texSphereBuf = Buffers.newDirectFloatBuffer(tvaluesSphere);
 		gl.glBufferData(GL_ARRAY_BUFFER, texSphereBuf.limit() * 4, texSphereBuf, GL_STATIC_DRAW);
 
-		
-		vboDict.put("mugPositions",7); 
+		vboDict.put("mugPositions", 7);
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("mugPositions")]);
-		FloatBuffer vertBuf = Buffers.newDirectFloatBuffer(pvaluesMug); 
-		gl.glBufferData(GL_ARRAY_BUFFER, vertBuf.limit()*4, vertBuf, GL_STATIC_DRAW);
-		
-		vboDict.put("mugTextures",8); 
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("mugTextures")]); 
-		FloatBuffer texBuf = Buffers.newDirectFloatBuffer(tvaluesMug); 
-		gl.glBufferData(GL_ARRAY_BUFFER,
-		texBuf.limit()*4, texBuf, GL_STATIC_DRAW);
+		FloatBuffer vertBuf = Buffers.newDirectFloatBuffer(pvaluesMug);
+		gl.glBufferData(GL_ARRAY_BUFFER, vertBuf.limit() * 4, vertBuf, GL_STATIC_DRAW);
 
-		
-		vboDict.put("shuttlePositions",9); 
+		vboDict.put("mugTextures", 8);
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("mugTextures")]);
+		FloatBuffer texBuf = Buffers.newDirectFloatBuffer(tvaluesMug);
+		gl.glBufferData(GL_ARRAY_BUFFER, texBuf.limit() * 4, texBuf, GL_STATIC_DRAW);
+
+		vboDict.put("shuttlePositions", 9);
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("shuttlePositions")]);
-		FloatBuffer vertBufShuttle = Buffers.newDirectFloatBuffer(pvaluesShuttle); 
-		gl.glBufferData(GL_ARRAY_BUFFER, vertBufShuttle.limit()*4, vertBufShuttle, GL_STATIC_DRAW);
-		
-		vboDict.put("shuttleTextures",10); 
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("shuttleTextures")]); 
-		FloatBuffer texBufShuttle = Buffers.newDirectFloatBuffer(tvaluesMug); 
-		gl.glBufferData(GL_ARRAY_BUFFER,
-		texBuf.limit()*4, texBufShuttle, GL_STATIC_DRAW);
-		
+		FloatBuffer vertBufShuttle = Buffers.newDirectFloatBuffer(pvaluesShuttle);
+		gl.glBufferData(GL_ARRAY_BUFFER, vertBufShuttle.limit() * 4, vertBufShuttle, GL_STATIC_DRAW);
+
+		vboDict.put("shuttleTextures", 10);
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("shuttleTextures")]);
+		FloatBuffer texBufShuttle = Buffers.newDirectFloatBuffer(tvaluesMug);
+		gl.glBufferData(GL_ARRAY_BUFFER, texBuf.limit() * 4, texBufShuttle, GL_STATIC_DRAW);
 
 		/*
-		vboDict.put("coinPositions",11); 
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("coinPositions")]);
-		FloatBuffer vertBufCoin = Buffers.newDirectFloatBuffer(pvaluesCoin); 
-		gl.glBufferData(GL_ARRAY_BUFFER, vertBuf.limit()*4, vertBuf, GL_STATIC_DRAW);
-		
-		vboDict.put("coinTextures",12); 
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("coinTextures")]); 
-		FloatBuffer texBufCoin = Buffers.newDirectFloatBuffer(tvaluesCoin); 
-		gl.glBufferData(GL_ARRAY_BUFFER,
-		texBuf.limit()*4, texBuf, GL_STATIC_DRAW);
-		*/
+		 * vboDict.put("coinPositions",11); gl.glBindBuffer(GL_ARRAY_BUFFER,
+		 * vbo[vboDict.get("coinPositions")]); FloatBuffer vertBufCoin =
+		 * Buffers.newDirectFloatBuffer(pvaluesCoin); gl.glBufferData(GL_ARRAY_BUFFER,
+		 * vertBuf.limit()*4, vertBuf, GL_STATIC_DRAW);
+		 * 
+		 * vboDict.put("coinTextures",12); gl.glBindBuffer(GL_ARRAY_BUFFER,
+		 * vbo[vboDict.get("coinTextures")]); FloatBuffer texBufCoin =
+		 * Buffers.newDirectFloatBuffer(tvaluesCoin); gl.glBufferData(GL_ARRAY_BUFFER,
+		 * texBuf.limit()*4, texBuf, GL_STATIC_DRAW);
+		 */
 
 	}
 
