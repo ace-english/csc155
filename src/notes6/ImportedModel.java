@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 import org.joml.Vector2f;
@@ -68,8 +70,9 @@ public class ImportedModel {
 		private ArrayList<Float> normVals = new ArrayList<Float>();
 
 		public void parseOBJ(String filename) throws IOException {
-			InputStream input = ModelImporter.class.getResourceAsStream(filename);
-			BufferedReader br = new BufferedReader(new InputStreamReader(input));
+			//InputStream input = ModelImporter.class.getResourceAsStream(filename);
+			//BufferedReader br = new BufferedReader(new InputStreamReader(input));
+			BufferedReader br = Files.newBufferedReader(Paths.get(filename));
 			String line;
 			while ((line = br.readLine()) != null) {
 				if (line.startsWith("v ")) // vertex position ("v" case)
@@ -111,7 +114,7 @@ public class ImportedModel {
 					}
 				}
 			}
-			input.close();
+			//input.close();
 		}
 
 		public int getNumVertices() {

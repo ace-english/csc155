@@ -115,7 +115,7 @@ public class Code extends JFrame implements GLEventListener {
 		objLocY = 0.0f;
 		objLocZ = 0.0f;
 
-		shuttleTexture = Utils.loadTexture("assets/spstob_1.jpg");
+		shuttleTexture = Utils.loadTexture("assets/shuttle.jpg");
 	}
 
 	private void setupVertices() {
