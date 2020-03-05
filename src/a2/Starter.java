@@ -66,10 +66,11 @@ public class Starter extends JFrame implements GLEventListener {
 	private int numSphereVerts;
 	private ImportedModel mugObj;
 	private ImportedModel coinObj;
-	private ImportedModel rocketObj;
+	private ImportedModel shuttleObj;
 	private int neptuneTex;
 	private int mugTex;
 	private int brickTex;
+	private int coinTex;
 	private int shuttleTex;
 	private Dictionary<String, Integer> vboDict;
 
@@ -181,8 +182,8 @@ public class Starter extends JFrame implements GLEventListener {
 		  // ----------------------- second planet - mug 
 		mvStack.pushMatrix();
 		mvStack.translate((float) Math.sin(tf) * -7.0f, 0.0f, (float) Math.cos(tf) *-7.0f); 
-		mvStack.scale(10f, 10f, 10f);
-		mvStack.rotateXYZ(0, -.5f * (float) tf, 1f * (float) tf);
+		//mvStack.scale(10f, 10f, 10f);
+		//mvStack.rotateXYZ(0, -.5f * (float) tf, 1f * (float) tf);
 		mvStack.pushMatrix(); 
 		gl.glUniformMatrix4fv(mvLoc, 1, false, mvStack.get(vals)); 
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("mugPositions")]);
@@ -196,14 +197,32 @@ public class Starter extends JFrame implements GLEventListener {
 		gl.glActiveTexture(GL_TEXTURE0);
 		gl.glBindTexture(GL_TEXTURE_2D, mugTex);
 		gl.glDrawArrays(GL_TRIANGLES, 0,mugObj.getNumVertices());
-		mvStack.popMatrix(); //print planet 1
+		mvStack.popMatrix(); //print planet 2
 	
 		  
 		  // ----------------------- moon - shuttle
+		mvStack.pushMatrix();
+		mvStack.translate((float) Math.sin(tf) * 1.0f, (float) Math.cos(tf) * 1.0f, (float) Math.cos(tf) * 1.0f); 
+		mvStack.rotateXYZ(0f,0f,0f);
+		mvStack.pushMatrix(); 
+		gl.glUniformMatrix4fv(mvLoc, 1, false, mvStack.get(vals)); 
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("shuttlePositions")]);
+		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(0); 
+		// pull up texture coords
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("shuttleTextures")]);
+		gl.glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(1);
+		// activate texture object
+		gl.glActiveTexture(GL_TEXTURE0);
+		gl.glBindTexture(GL_TEXTURE_2D, shuttleTex);
+		gl.glDrawArrays(GL_TRIANGLES, 0,shuttleObj.getNumVertices());
+		mvStack.popMatrix(); //print shuttle
 		  
 		  // ----------------------- Satellite - coin
 		  
 		  
+		  mvStack.popMatrix(); //leave planet orbital
 		  mvStack.popMatrix(); //leave planet orbital
 		 
 
@@ -221,10 +240,11 @@ public class Starter extends JFrame implements GLEventListener {
 		neptuneTex = loadTexture("assets/neptune.jpg");
 		brickTex = loadTexture("assets/brick1.jpg");
 		mugTex = loadTexture("assets/mug.png");
+		coinTex = loadTexture("assets/coin.png");
 		shuttleTex = loadTexture("assets/shuttle.jpg");
 		mugObj = new ImportedModel("assets/mug.obj");
-		// coinObj=new ImportedModel("assets/coin.obj");
-		// rocketObj=new ImportedModel("assets/shuttle.obj");
+		//coinObj=new ImportedModel("assets/coin.obj");
+		shuttleObj=new ImportedModel("assets/shuttle.obj");
 		setupVertices();
 
 		cameraX = 0.0f;
@@ -397,9 +417,9 @@ public class Starter extends JFrame implements GLEventListener {
 		}
 
 		
-		 float[] pvaluesMug = new float[mugObj.getNumVertices()*3]; float[] tvaluesMug
-		 = new float[mugObj.getNumVertices()*2]; float[] nvaluesMug = new
-		 float[mugObj.getNumVertices()*3];
+		float[] pvaluesMug = new float[mugObj.getNumVertices()*3]; 
+		float[] tvaluesMug = new float[mugObj.getNumVertices()*2]; 
+		float[] nvaluesMug = new float[mugObj.getNumVertices()*3];
 		  
 		 for (int i=0; i<mugObj.getNumVertices(); i++) { pvaluesMug[i*3] = (float)
 		 (mugObj.getVertices()[i]).x(); pvaluesMug[i*3+1] = (float)
@@ -410,6 +430,37 @@ public class Starter extends JFrame implements GLEventListener {
 		 (mugObj.getNormals()[i]).x(); nvaluesMug[i*3+1] = (float)
 		 (mugObj.getNormals()[i]).y(); nvaluesMug[i*3+2] = (float)
 		 (mugObj.getNormals()[i]).z(); }
+		 
+		 /*
+		 float[] pvaluesCoin = new float[coinObj.getNumVertices()*3]; 
+			float[] tvaluesCoin = new float[coinObj.getNumVertices()*2]; 
+			float[] nvaluesCoin = new float[coinObj.getNumVertices()*3];
+			  
+			 for (int i=0; i<coinObj.getNumVertices(); i++) { pvaluesMug[i*3] = (float)
+			 (coinObj.getVertices()[i]).x(); pvaluesMug[i*3+1] = (float)
+			 (coinObj.getVertices()[i]).y(); pvaluesMug[i*3+2] = (float)
+			 (coinObj.getVertices()[i]).z(); tvaluesMug[i*2] = (float)
+			 (coinObj.getTexCoords()[i]).x(); tvaluesMug[i*2+1] = (float)
+			 (coinObj.getTexCoords()[i]).y(); nvaluesMug[i*3] = (float)
+			 (coinObj.getNormals()[i]).x(); nvaluesMug[i*3+1] = (float)
+			 (coinObj.getNormals()[i]).y(); nvaluesMug[i*3+2] = (float)
+			 (coinObj.getNormals()[i]).z(); }
+			 
+		*/
+			 float[] pvaluesShuttle = new float[shuttleObj.getNumVertices()*3]; 
+				float[] tvaluesShuttle = new float[shuttleObj.getNumVertices()*2]; 
+				float[] nvaluesShuttle = new float[shuttleObj.getNumVertices()*3];
+				  
+				 for (int i=0; i<shuttleObj.getNumVertices(); i++) { pvaluesShuttle[i*3] = (float)
+				 (shuttleObj.getVertices()[i]).x(); pvaluesShuttle[i*3+1] = (float)
+				 (shuttleObj.getVertices()[i]).y(); pvaluesShuttle[i*3+2] = (float)
+				 (shuttleObj.getVertices()[i]).z(); tvaluesShuttle[i*2] = (float)
+				 (shuttleObj.getTexCoords()[i]).x(); tvaluesShuttle[i*2+1] = (float)
+				 (shuttleObj.getTexCoords()[i]).y(); nvaluesShuttle[i*3] = (float)
+				 (shuttleObj.getNormals()[i]).x(); nvaluesShuttle[i*3+1] = (float)
+				 (shuttleObj.getNormals()[i]).y(); nvaluesShuttle[i*3+2] = (float)
+				 (shuttleObj.getNormals()[i]).z(); }
+		 
 		 
 		gl.glGenVertexArrays(vao.length, vao, 0);
 		gl.glBindVertexArray(vao[0]);
@@ -461,7 +512,32 @@ public class Starter extends JFrame implements GLEventListener {
 		FloatBuffer texBuf = Buffers.newDirectFloatBuffer(tvaluesMug); 
 		gl.glBufferData(GL_ARRAY_BUFFER,
 		texBuf.limit()*4, texBuf, GL_STATIC_DRAW);
+
 		
+		vboDict.put("shuttlePositions",9); 
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("shuttlePositions")]);
+		FloatBuffer vertBufShuttle = Buffers.newDirectFloatBuffer(pvaluesShuttle); 
+		gl.glBufferData(GL_ARRAY_BUFFER, vertBufShuttle.limit()*4, vertBufShuttle, GL_STATIC_DRAW);
+		
+		vboDict.put("shuttleTextures",10); 
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("shuttleTextures")]); 
+		FloatBuffer texBufShuttle = Buffers.newDirectFloatBuffer(tvaluesMug); 
+		gl.glBufferData(GL_ARRAY_BUFFER,
+		texBuf.limit()*4, texBufShuttle, GL_STATIC_DRAW);
+		
+
+		/*
+		vboDict.put("coinPositions",11); 
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("coinPositions")]);
+		FloatBuffer vertBufCoin = Buffers.newDirectFloatBuffer(pvaluesCoin); 
+		gl.glBufferData(GL_ARRAY_BUFFER, vertBuf.limit()*4, vertBuf, GL_STATIC_DRAW);
+		
+		vboDict.put("coinTextures",12); 
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("coinTextures")]); 
+		FloatBuffer texBufCoin = Buffers.newDirectFloatBuffer(tvaluesCoin); 
+		gl.glBufferData(GL_ARRAY_BUFFER,
+		texBuf.limit()*4, texBuf, GL_STATIC_DRAW);
+		*/
 
 	}
 
@@ -473,51 +549,6 @@ public class Starter extends JFrame implements GLEventListener {
 	}
 
 	public void dispose(GLAutoDrawable drawable) {
-	}
-
-	private static int createShaderProgram(String vS, String tCS, String tES, String gS, String fS) {
-		GL4 gl = (GL4) GLContext.getCurrentGL();
-		int vShader = prepareShader(GL_VERTEX_SHADER, vS);
-		int tcShader = prepareShader(GL_TESS_CONTROL_SHADER, tCS);
-		int teShader = prepareShader(GL_TESS_EVALUATION_SHADER, tES);
-		int gShader = prepareShader(GL_GEOMETRY_SHADER, gS);
-		int fShader = prepareShader(GL_FRAGMENT_SHADER, fS);
-		int vtgfprogram = gl.glCreateProgram();
-		gl.glAttachShader(vtgfprogram, vShader);
-		gl.glAttachShader(vtgfprogram, tcShader);
-		gl.glAttachShader(vtgfprogram, teShader);
-		gl.glAttachShader(vtgfprogram, gShader);
-		gl.glAttachShader(vtgfprogram, fShader);
-		finalizeProgram(vtgfprogram);
-		return vtgfprogram;
-	}
-
-	private static int createShaderProgram(String vS, String tCS, String tES, String fS) {
-		GL4 gl = (GL4) GLContext.getCurrentGL();
-		int vShader = prepareShader(GL_VERTEX_SHADER, vS);
-		int tcShader = prepareShader(GL_TESS_CONTROL_SHADER, tCS);
-		int teShader = prepareShader(GL_TESS_EVALUATION_SHADER, tES);
-		int fShader = prepareShader(GL_FRAGMENT_SHADER, fS);
-		int vtfprogram = gl.glCreateProgram();
-		gl.glAttachShader(vtfprogram, vShader);
-		gl.glAttachShader(vtfprogram, tcShader);
-		gl.glAttachShader(vtfprogram, teShader);
-		gl.glAttachShader(vtfprogram, fShader);
-		finalizeProgram(vtfprogram);
-		return vtfprogram;
-	}
-
-	private static int createShaderProgram(String vS, String gS, String fS) {
-		GL4 gl = (GL4) GLContext.getCurrentGL();
-		int vShader = prepareShader(GL_VERTEX_SHADER, vS);
-		int gShader = prepareShader(GL_GEOMETRY_SHADER, gS);
-		int fShader = prepareShader(GL_FRAGMENT_SHADER, fS);
-		int vgfprogram = gl.glCreateProgram();
-		gl.glAttachShader(vgfprogram, vShader);
-		gl.glAttachShader(vgfprogram, gShader);
-		gl.glAttachShader(vgfprogram, fShader);
-		finalizeProgram(vgfprogram);
-		return vgfprogram;
 	}
 
 	private static int createShaderProgram(String vS, String fS) {
