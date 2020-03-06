@@ -182,8 +182,6 @@ public class Starter extends JFrame implements GLEventListener {
 		// ----------------------- second planet - mug
 		mvStack.pushMatrix();
 		mvStack.translate((float) Math.sin(tf) * -7.0f, 0.0f, (float) Math.cos(tf) * -7.0f);
-		// mvStack.scale(10f, 10f, 10f);
-		// mvStack.rotateXYZ(0, -.5f * (float) tf, 1f * (float) tf);
 		mvStack.pushMatrix();
 		gl.glUniformMatrix4fv(mvLoc, 1, false, mvStack.get(vals));
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("mugPositions")]);
@@ -201,8 +199,7 @@ public class Starter extends JFrame implements GLEventListener {
 
 		// ----------------------- moon - shuttle
 		mvStack.pushMatrix();
-		mvStack.translate((float) Math.sin(tf) * 1.0f, (float) Math.cos(tf) * 1.0f, (float) Math.cos(tf) * 1.0f);
-		mvStack.rotateXYZ(0f, 0f, 0f);
+		mvStack.translate((float) Math.sin(tf) * 3.0f, (float) Math.cos(tf) * 3.0f, (float) Math.cos(tf) * 3.0f);
 		mvStack.pushMatrix();
 		gl.glUniformMatrix4fv(mvLoc, 1, false, mvStack.get(vals));
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("shuttlePositions")]);
@@ -217,8 +214,21 @@ public class Starter extends JFrame implements GLEventListener {
 		gl.glBindTexture(GL_TEXTURE_2D, shuttleTex);
 		gl.glDrawArrays(GL_TRIANGLES, 0, shuttleObj.getNumVertices());
 		mvStack.popMatrix(); // print shuttle
-
-		// ----------------------- Satellite - coin
+		/*
+		 * // ----------------------- Satellite - coin mvStack.pushMatrix();
+		 * mvStack.translate((float) Math.sin(tf) * 1.0f, (float) Math.cos(tf) * 1.0f,
+		 * (float) Math.cos(tf) * 1.0f); mvStack.scale(.5f, .5f, .5f);
+		 * mvStack.pushMatrix(); gl.glUniformMatrix4fv(mvLoc, 1, false,
+		 * mvStack.get(vals)); gl.glBindBuffer(GL_ARRAY_BUFFER,
+		 * vbo[vboDict.get("spherePositions")]); gl.glVertexAttribPointer(0, 3,
+		 * GL_FLOAT, false, 0, 0); gl.glEnableVertexAttribArray(0); // pull up texture
+		 * coords gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("sphereTextures")]);
+		 * gl.glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0);
+		 * gl.glEnableVertexAttribArray(1); // activate texture object
+		 * gl.glActiveTexture(GL_TEXTURE0); gl.glBindTexture(GL_TEXTURE_2D, neptuneTex);
+		 * gl.glDrawArrays(GL_TRIANGLES, 0, numSphereVerts); mvStack.popMatrix(); //
+		 * print shuttle
+		 */
 
 		mvStack.popMatrix(); // leave planet orbital
 		mvStack.popMatrix(); // leave planet orbital
