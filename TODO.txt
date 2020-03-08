@@ -1,0 +1,41 @@
+Structures
+[x] one 'sun' fixed object at 0,0
+[ ] 2+ 'planets' orbiting sun
+[ ] orbiting 'moons' for at least two planets
+[ ] something orbiting a moon
+[ ] colored XYZ axes
+[x] at least one object built by vertices
+[ ] at least one object from an obj
+[x] at least one sphere or torus
+[x] Matrix4fStack
+[x] JOGL animator
+Textures
+[ ] At least one texture by me
+[x] At least one texture from the book
+[x] At least one open source texture
+Controls
+[ ] w – move the camera forward a small amount (i.e. in the positive-N direction).
+s – move the camera backward a small amount (i.e. in the negative-N direction).
+[ ] a – move the camera a small amount in the negative-U direction (also called “strafe left”).
+[ ] d – move the camera a small amount in the positive-U direction (also called “strafe right”).
+[ ] e – move the camera a small amount in the negative-V direction (“move down”).
+[ ] q – move the camera a small amount in the positive-V direction (“move up”).
+[ ] left and right arrow – rotate the camera by a small amount left/right around its V axis (“pan”).
+[ ] up and down arrow – rotate the camera by a small amount up/down around its U axis (“pitch).
+[ ] <space bar> - toggle the visibility of the world axes.
+Deliverables
+[ ] texture image files
+[ ] package
+	[ ] java src
+	[ ] glsl files
+	[ ] class files
+	[ ] "proper heirarchy" see demos
+[ ] Readme
+	[ ] Explain origin and permission of all textures, objs. Provide link to terms or public domain description
+	[ ] a description of the object that you created yourself
+		-Hand made gem from vertices - contains 287 vertices in classic diamond shape
+	[ ] source information for each texture and model you used
+	[ ] a description of anything that you did differently than what is described above
+		Added some tumble effects to the moons (gems)
+	[ ] a screen capture (.jpg) of your program running
+	[ ] which campus workstation you successfully tested your program on
