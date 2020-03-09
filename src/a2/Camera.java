@@ -11,6 +11,18 @@ public class Camera {
 	// u is right
 	private Matrix4f uvn;
 
+	public Vector3f getU() {
+		return u;
+	}
+
+	public Vector3f getV() {
+		return v;
+	}
+
+	public Vector3f getN() {
+		return n;
+	}
+
 	public Camera() {
 		this.location = new Vector3f(0f, 0f, 12f);
 		this.target = new Vector3f(0f, 0f, 0f);
@@ -37,6 +49,7 @@ public class Camera {
 		v = n.cross(new Vector3f(0, 1, 0).cross(n));
 		u = n.cross(v);
 		uvn = new Matrix4f(u.x, u.y, u.z, 0, v.x, v.y, v.z, 0, n.x, n.y, n.z, 0, 0, 0, 0, 1);
+		System.out.printf("(%.1f,%.1f,%.1f)\n", location.x, location.y, location.z);
 	}
 
 	public void moveTo(Vector3f location) {
@@ -56,15 +69,25 @@ public class Camera {
 	}
 
 	public void moveHorizontal(float dx) {
-		location.add(dx, 0f, 0f);
-	}
-
-	public void moveVertical(float dy) {
-		location.add(0f, dy, 0f);
+		location = location.add(dx, 0f, 0f);
+		calculateUVN();
 	}
 
 	public void moveDepth(float dz) {
-		location.add(0f, 0f, dz);
+		location = location.add(0f, 0f, dz);
 	}
 
+	public void pan() {
+
+		calculateUVN();
+	}
+
+	public void moveUp() {
+		location = location.add(0f, 0.1f, 0f);
+	}
+
+	public void moveDown() {
+		location = location.add(0f, -0.1f, 0f);
+
+	}
 }

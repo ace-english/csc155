@@ -21,7 +21,6 @@ import static com.jogamp.opengl.GL3ES3.GL_GEOMETRY_SHADER;
 import static com.jogamp.opengl.GL3ES3.GL_TESS_CONTROL_SHADER;
 import static com.jogamp.opengl.GL3ES3.GL_TESS_EVALUATION_SHADER;
 
-import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -77,9 +76,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private int shuttleTex;
 	private Dictionary<String, Integer> vboDict;
 
-	ActionListener moveUpCmd, moveDownCommand, strafeLeftCommand, strafeRightCommand, moveForwardCmd, moveBackwardCmd,
-			pitchUpCmd, pitchDownCmd, panLeftCmd, panRightCmd, toggleAxesCmd;
-
 	public Starter() {
 		setTitle("Assignment 2");
 		setSize(1000, 600);
@@ -90,6 +86,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		Animator animator = new Animator(myCanvas);
 		animator.start();
 		this.addKeyListener(this);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 
 	@Override
@@ -101,8 +98,12 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 			System.out.println("Pitch");
 			break;
 		case KeyEvent.VK_W:
-			System.out.println("Up");
+			camera.moveUp();
 			break;
+		case KeyEvent.VK_S:
+			camera.moveDown();
+			break;
+
 		}
 
 	}
@@ -136,8 +137,10 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		// push view matrix onto the stack
 		mvStack.pushMatrix();
-		// mvStack.translate(-cameraX, -cameraY, -cameraZ);
-		mvStack.translate(camera.getLocation());
+		mvStack.translate(camera.getLocation().x * -1, camera.getLocation().y * -1, camera.getLocation().z * -1);
+		mvStack.rotateXYZ(camera.getU());
+		mvStack.rotateXYZ(camera.getV());
+		mvStack.rotateXYZ(camera.getN());
 
 		tf = elapsedTime / 1000.0; // time factor
 
@@ -278,10 +281,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 		vboDict = new Hashtable<String, Integer>();
-		camera = new Camera(0, 0, -12);
-
-		// add commands
-		moveUpCmd = new MoveUpCommand(camera);
+		camera = new Camera();
 
 		// load assets
 		renderingProgram = createShaderProgram("src/a2/vertShader.glsl", "src/a2/fragShader.glsl");
