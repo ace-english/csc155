@@ -87,20 +87,33 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		animator.start();
 		this.addKeyListener(this);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
 	}
 
 	@Override
 	public void keyPressed(KeyEvent event) {
 		int e = event.getKeyCode();
+		System.out.println(e);
 		switch (e) {
 		case KeyEvent.VK_KP_UP:
 		case KeyEvent.VK_UP:
-			System.out.println("Pitch");
 			break;
 		case KeyEvent.VK_W:
-			camera.moveUp();
+			camera.moveIn();
 			break;
 		case KeyEvent.VK_S:
+			camera.moveOut();
+			break;
+		case KeyEvent.VK_A:
+			camera.moveLeft();
+			break;
+		case KeyEvent.VK_D:
+			camera.moveRight();
+			break;
+		case KeyEvent.VK_E:
+			camera.moveUp();
+			break;
+		case KeyEvent.VK_Q:
 			camera.moveDown();
 			break;
 
@@ -138,9 +151,9 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		// push view matrix onto the stack
 		mvStack.pushMatrix();
 		mvStack.translate(camera.getLocation().x * -1, camera.getLocation().y * -1, camera.getLocation().z * -1);
-		mvStack.rotateXYZ(camera.getU());
-		mvStack.rotateXYZ(camera.getV());
-		mvStack.rotateXYZ(camera.getN());
+		// mvStack.rotateXYZ(camera.getU());
+		// mvStack.rotateXYZ(camera.getV());
+		// mvStack.rotateXYZ(camera.getN());
 
 		tf = elapsedTime / 1000.0; // time factor
 
