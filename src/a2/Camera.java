@@ -1,5 +1,6 @@
 package a2;
 
+import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 public class Camera {
@@ -81,34 +82,67 @@ public class Camera {
 	}
 
 	public void moveUp() {
-		move(1, v);
+		translate(1, v);
 	}
 
 	public void moveDown() {
-		move(-1, v);
+		translate(-1, v);
 	}
 
 	public void moveLeft() {
-		move(1, u);
+		translate(-1, u);
 	}
 
 	public void moveRight() {
-		move(-1, u);
+		translate(1, u);
 	}
 
 	public void moveIn() {
-		move(1, n);
+		translate(1, n);
 	}
 
 	public void moveOut() {
-		move(-1, n);
+		translate(-1, n);
 	}
 
-	public void move(int direction, Vector3f vec) {
+	public void panLeft() {
+		rotate(-1, v);
+	}
+
+	public void panRight() {
+		rotate(1, v);
+	}
+
+	public void pitchUp() {
+		rotate(1, u);
+	}
+
+	public void pitchDown() {
+		rotate(-1, u);
+	}
+
+	public void translate(int direction, Vector3f vec) {
 		System.out.printf("(%.1f,%.1f,%.1f)\n", vec.x, vec.y, vec.z);
 		// add 0.1 times current v to location
 		Vector3f delta = new Vector3f(vec);
 		delta.mul(0.1f * direction);
 		location = location.add(delta);
+	}
+
+	public void rotate(int direction, Vector3f axis) {
+		Vector3f[] vectors = { u, v, n };
+		for (int i = 0; i < 3; i++) {
+			v = vectors[i];
+			if (!(v == axis)) {
+				v.rotateAxis(0.261799f, axis.x, axis.y, axis.z);
+			}
+		}
+		System.out.printf("u: (%.1f,%.1f,%.1f)\n", u.x, u.y, u.z);
+		System.out.printf("v: (%.1f,%.1f,%.1f)\n", v.x, v.y, v.z);
+		System.out.printf("n: (%.1f,%.1f,%.1f)\n", n.x, n.y, n.z);
+	}
+
+	public Matrix4f getUVM() {
+		return new Matrix4f(u.x, u.y, u.z, 0, v.x, v.y, v.z, 0, n.x, n.y, n.z, 0, 0, 0, 0, 1);
 	}
 }

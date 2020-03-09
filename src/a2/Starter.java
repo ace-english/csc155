@@ -55,9 +55,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private int renderingProgram;
 	private int vao[] = new int[1];
 	private int vbo[] = new int[13];
-	// private float cameraX, cameraY, cameraZ;
 	private Camera camera;
-	// allocate variables for display() function
 	private FloatBuffer vals = Buffers.newDirectFloatBuffer(16);
 	private Matrix4fStack mvStack = new Matrix4fStack(5);
 	private Matrix4f pMat = new Matrix4f();
@@ -95,9 +93,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		int e = event.getKeyCode();
 		System.out.println(e);
 		switch (e) {
-		case KeyEvent.VK_KP_UP:
-		case KeyEvent.VK_UP:
-			break;
 		case KeyEvent.VK_W:
 			camera.moveIn();
 			break;
@@ -111,10 +106,29 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 			camera.moveRight();
 			break;
 		case KeyEvent.VK_E:
-			camera.moveUp();
+			camera.moveDown();
 			break;
 		case KeyEvent.VK_Q:
-			camera.moveDown();
+			camera.moveUp();
+			break;
+		case KeyEvent.VK_KP_UP:
+		case KeyEvent.VK_UP:
+			camera.pitchUp();
+			break;
+		case KeyEvent.VK_KP_DOWN:
+		case KeyEvent.VK_DOWN:
+			camera.pitchDown();
+			break;
+		case KeyEvent.VK_KP_LEFT:
+		case KeyEvent.VK_LEFT:
+			camera.panLeft();
+			break;
+		case KeyEvent.VK_KP_RIGHT:
+		case KeyEvent.VK_RIGHT:
+			camera.panRight();
+			break;
+		case KeyEvent.VK_SPACE:
+			toggleAxes();
 			break;
 
 		}
@@ -129,6 +143,11 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 	@Override
 	public void keyTyped(KeyEvent event) {
+
+	}
+
+	private void toggleAxes() {
+		// TODO Auto-generated method stub
 
 	}
 
@@ -151,9 +170,8 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		// push view matrix onto the stack
 		mvStack.pushMatrix();
 		mvStack.translate(camera.getLocation().x * -1, camera.getLocation().y * -1, camera.getLocation().z * -1);
-		// mvStack.rotateXYZ(camera.getU());
-		// mvStack.rotateXYZ(camera.getV());
-		// mvStack.rotateXYZ(camera.getN());
+		// get UVM from camera
+		mvStack.invertPerspective(camera.getUVM());
 
 		tf = elapsedTime / 1000.0; // time factor
 
@@ -264,24 +282,25 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glBindTexture(GL_TEXTURE_2D, shuttleTex);
 		gl.glDrawArrays(GL_TRIANGLES, 0, shuttleObj.getNumVertices());
 		mvStack.popMatrix(); // print shuttle
-		/*
-		 * // ----------------------- Satellite - coin mvStack.pushMatrix();
-		 * mvStack.translate((float) Math.sin(tf) * 1.0f, (float) Math.cos(tf) * 1.0f,
-		 * (float) Math.cos(tf) * 1.0f); mvStack.scale(.5f, .5f, .5f);
-		 * mvStack.pushMatrix(); gl.glUniformMatrix4fv(mvLoc, 1, false,
-		 * mvStack.get(vals)); gl.glBindBuffer(GL_ARRAY_BUFFER,
-		 * vbo[vboDict.get("spherePositions")]); gl.glVertexAttribPointer(0, 3,
-		 * GL_FLOAT, false, 0, 0); gl.glEnableVertexAttribArray(0); // pull up texture
-		 * coords gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("sphereTextures")]);
-		 * gl.glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0);
-		 * gl.glEnableVertexAttribArray(1); // activate texture object
-		 * gl.glActiveTexture(GL_TEXTURE0); gl.glBindTexture(GL_TEXTURE_2D, neptuneTex);
-		 * gl.glDrawArrays(GL_TRIANGLES, 0, numSphereVerts); mvStack.popMatrix(); //
-		 * print shuttle
-		 */
+
+		// ----------------------- Satellite - coin mvStack.pushMatrix();
+		mvStack.translate((float) Math.sin(tf) * 1.0f, (float) Math.cos(tf) * 1.0f, (float) Math.cos(tf) * 1.0f);
+		mvStack.scale(.2f, .2f, .2f);
+		mvStack.pushMatrix();
+		gl.glUniformMatrix4fv(mvLoc, 1, false, mvStack.get(vals));
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("spherePositions")]);
+		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(0); // pull up texture coords
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("sphereTextures")]);
+		gl.glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(1); // activate texture object
+		gl.glActiveTexture(GL_TEXTURE0);
+		gl.glBindTexture(GL_TEXTURE_2D, coinTex);
+		gl.glDrawArrays(GL_TRIANGLES, 0, numSphereVerts);
+		mvStack.popMatrix(); // print coin
 
 		mvStack.popMatrix(); // leave planet orbital
-		mvStack.popMatrix(); // leave planet orbital
+		mvStack.popMatrix(); // leave sun orbital
 
 		mvStack.popMatrix(); // final pop
 
@@ -304,6 +323,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		coinTex = loadTexture("assets/coin.png");
 		shuttleTex = loadTexture("assets/shuttle.jpg");
 		mugObj = new ImportedModel("assets/mug.obj");
+		// coinObj = new ImportedModel("assets/coin.obj");
 		shuttleObj = new ImportedModel("assets/shuttle.obj");
 		setupVertices();
 
@@ -489,21 +509,21 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		}
 
 		/*
-		 * float[] pvaluesCoin = new float[coinObj.getNumVertices()*3]; float[]
-		 * tvaluesCoin = new float[coinObj.getNumVertices()*2]; float[] nvaluesCoin =
-		 * new float[coinObj.getNumVertices()*3];
+		 * float[] pvaluesCoin = new float[coinObj.getNumVertices() * 3]; float[]
+		 * tvaluesCoin = new float[coinObj.getNumVertices() * 2]; float[] nvaluesCoin =
+		 * new float[coinObj.getNumVertices() * 3];
 		 * 
-		 * for (int i=0; i<coinObj.getNumVertices(); i++) { pvaluesMug[i*3] = (float)
-		 * (coinObj.getVertices()[i]).x(); pvaluesMug[i*3+1] = (float)
-		 * (coinObj.getVertices()[i]).y(); pvaluesMug[i*3+2] = (float)
-		 * (coinObj.getVertices()[i]).z(); tvaluesMug[i*2] = (float)
-		 * (coinObj.getTexCoords()[i]).x(); tvaluesMug[i*2+1] = (float)
-		 * (coinObj.getTexCoords()[i]).y(); nvaluesMug[i*3] = (float)
-		 * (coinObj.getNormals()[i]).x(); nvaluesMug[i*3+1] = (float)
-		 * (coinObj.getNormals()[i]).y(); nvaluesMug[i*3+2] = (float)
+		 * for (int i = 0; i < coinObj.getNumVertices(); i++) { pvaluesCoin[i * 3] =
+		 * (float) (coinObj.getVertices()[i]).x(); pvaluesCoin[i * 3 + 1] = (float)
+		 * (coinObj.getVertices()[i]).y(); pvaluesCoin[i * 3 + 2] = (float)
+		 * (coinObj.getVertices()[i]).z(); tvaluesCoin[i * 2] = (float)
+		 * (coinObj.getTexCoords()[i]).x(); tvaluesCoin[i * 2 + 1] = (float)
+		 * (coinObj.getTexCoords()[i]).y(); nvaluesCoin[i * 3] = (float)
+		 * (coinObj.getNormals()[i]).x(); nvaluesCoin[i * 3 + 1] = (float)
+		 * (coinObj.getNormals()[i]).y(); nvaluesCoin[i * 3 + 2] = (float)
 		 * (coinObj.getNormals()[i]).z(); }
-		 * 
 		 */
+
 		float[] pvaluesShuttle = new float[shuttleObj.getNumVertices() * 3];
 		float[] tvaluesShuttle = new float[shuttleObj.getNumVertices() * 2];
 		float[] nvaluesShuttle = new float[shuttleObj.getNumVertices() * 3];
@@ -577,19 +597,17 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("shuttleTextures")]);
 		FloatBuffer texBufShuttle = Buffers.newDirectFloatBuffer(tvaluesMug);
 		gl.glBufferData(GL_ARRAY_BUFFER, texBuf.limit() * 4, texBufShuttle, GL_STATIC_DRAW);
-
 		/*
-		 * vboDict.put("coinPositions",11); gl.glBindBuffer(GL_ARRAY_BUFFER,
+		 * vboDict.put("coinPositions", 11); gl.glBindBuffer(GL_ARRAY_BUFFER,
 		 * vbo[vboDict.get("coinPositions")]); FloatBuffer vertBufCoin =
 		 * Buffers.newDirectFloatBuffer(pvaluesCoin); gl.glBufferData(GL_ARRAY_BUFFER,
-		 * vertBuf.limit()*4, vertBuf, GL_STATIC_DRAW);
+		 * vertBuf.limit() * 4, vertBufCoin, GL_STATIC_DRAW);
 		 * 
-		 * vboDict.put("coinTextures",12); gl.glBindBuffer(GL_ARRAY_BUFFER,
+		 * vboDict.put("coinTextures", 12); gl.glBindBuffer(GL_ARRAY_BUFFER,
 		 * vbo[vboDict.get("coinTextures")]); FloatBuffer texBufCoin =
 		 * Buffers.newDirectFloatBuffer(tvaluesCoin); gl.glBufferData(GL_ARRAY_BUFFER,
-		 * texBuf.limit()*4, texBuf, GL_STATIC_DRAW);
+		 * texBuf.limit() * 4, texBufCoin, GL_STATIC_DRAW);
 		 */
-
 	}
 
 	public static void main(String[] args) {
