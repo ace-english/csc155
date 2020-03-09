@@ -1,25 +1,25 @@
 Structures
 [x] one 'sun' fixed object at 0,0
-[ ] 2+ 'planets' orbiting sun
-[ ] orbiting 'moons' for at least two planets
-[ ] something orbiting a moon
+[x] 2+ 'planets' orbiting sun
+[x] orbiting 'moons' for at least two planets
+[x] something orbiting a moon
 [ ] colored XYZ axes
 [x] at least one object built by vertices
-[ ] at least one object from an obj
+[x] at least one object from an obj
 [x] at least one sphere or torus
 [x] Matrix4fStack
 [x] JOGL animator
 Textures
-[ ] At least one texture by me
+[x] At least one texture by me
 [x] At least one texture from the book
 [x] At least one open source texture
 Controls
-[ ] w – move the camera forward a small amount (i.e. in the positive-N direction).
+[x] w – move the camera forward a small amount (i.e. in the positive-N direction).
 s – move the camera backward a small amount (i.e. in the negative-N direction).
-[ ] a – move the camera a small amount in the negative-U direction (also called “strafe left”).
-[ ] d – move the camera a small amount in the positive-U direction (also called “strafe right”).
-[ ] e – move the camera a small amount in the negative-V direction (“move down”).
-[ ] q – move the camera a small amount in the positive-V direction (“move up”).
+[x] a – move the camera a small amount in the negative-U direction (also called “strafe left”).
+[x] d – move the camera a small amount in the positive-U direction (also called “strafe right”).
+[x] e – move the camera a small amount in the negative-V direction (“move down”).
+[x] q – move the camera a small amount in the positive-V direction (“move up”).
 [ ] left and right arrow – rotate the camera by a small amount left/right around its V axis (“pan”).
 [ ] up and down arrow – rotate the camera by a small amount up/down around its U axis (“pitch).
 [ ] <space bar> - toggle the visibility of the world axes.
