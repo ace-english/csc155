@@ -21,6 +21,10 @@ import static com.jogamp.opengl.GL3ES3.GL_GEOMETRY_SHADER;
 import static com.jogamp.opengl.GL3ES3.GL_TESS_CONTROL_SHADER;
 import static com.jogamp.opengl.GL3ES3.GL_TESS_EVALUATION_SHADER;
 
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.File;
 import java.io.IOException;
 import java.nio.FloatBuffer;
@@ -45,17 +49,15 @@ import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureIO;
 
-public class Starter extends JFrame implements GLEventListener {
+public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private GLCanvas myCanvas;
 	private double startTime = 0.0;
 	private double elapsedTime;
 	private int renderingProgram;
 	private int vao[] = new int[1];
 	private int vbo[] = new int[13];
-	private float cameraX, cameraY, cameraZ;
-	private float cubeLocX, cubeLocY, cubeLocZ;
-	private float pyrLocX, pyrLocY, pyrLocZ;
-
+	// private float cameraX, cameraY, cameraZ;
+	private Camera camera;
 	// allocate variables for display() function
 	private FloatBuffer vals = Buffers.newDirectFloatBuffer(16);
 	private Matrix4fStack mvStack = new Matrix4fStack(5);
@@ -63,6 +65,7 @@ public class Starter extends JFrame implements GLEventListener {
 	private int mvLoc, projLoc;
 	private float aspect;
 	private double tf;
+
 	private int numSphereVerts;
 	private ImportedModel mugObj;
 	private ImportedModel coinObj;
@@ -74,6 +77,9 @@ public class Starter extends JFrame implements GLEventListener {
 	private int shuttleTex;
 	private Dictionary<String, Integer> vboDict;
 
+	ActionListener moveUpCmd, moveDownCommand, strafeLeftCommand, strafeRightCommand, moveForwardCmd, moveBackwardCmd,
+			pitchUpCmd, pitchDownCmd, panLeftCmd, panRightCmd, toggleAxesCmd;
+
 	public Starter() {
 		setTitle("Assignment 2");
 		setSize(1000, 600);
@@ -83,6 +89,33 @@ public class Starter extends JFrame implements GLEventListener {
 		this.setVisible(true);
 		Animator animator = new Animator(myCanvas);
 		animator.start();
+		this.addKeyListener(this);
+	}
+
+	@Override
+	public void keyPressed(KeyEvent event) {
+		int e = event.getKeyCode();
+		switch (e) {
+		case KeyEvent.VK_KP_UP:
+		case KeyEvent.VK_UP:
+			System.out.println("Pitch");
+			break;
+		case KeyEvent.VK_W:
+			System.out.println("Up");
+			break;
+		}
+
+	}
+
+	@Override
+	public void keyReleased(KeyEvent event) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void keyTyped(KeyEvent event) {
+
 	}
 
 	public void display(GLAutoDrawable drawable) {
@@ -103,7 +136,8 @@ public class Starter extends JFrame implements GLEventListener {
 
 		// push view matrix onto the stack
 		mvStack.pushMatrix();
-		mvStack.translate(-cameraX, -cameraY, -cameraZ);
+		// mvStack.translate(-cameraX, -cameraY, -cameraZ);
+		mvStack.translate(camera.getLocation());
 
 		tf = elapsedTime / 1000.0; // time factor
 
@@ -238,12 +272,18 @@ public class Starter extends JFrame implements GLEventListener {
 	}
 
 	public void init(GLAutoDrawable drawable) {
+
+		// initialize objects
 		startTime = System.currentTimeMillis();
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 		vboDict = new Hashtable<String, Integer>();
-		// renderingProgram = Utils.createShaderProgram("src/notes6/vert.shader",
-		// "src/notes6/frag.shader");
+		camera = new Camera(0, 0, -12);
+
+		// add commands
+		moveUpCmd = new MoveUpCommand(camera);
+
+		// load assets
 		renderingProgram = createShaderProgram("src/a2/vertShader.glsl", "src/a2/fragShader.glsl");
 		neptuneTex = loadTexture("assets/neptune.jpg");
 		brickTex = loadTexture("assets/brick1.jpg");
@@ -251,13 +291,9 @@ public class Starter extends JFrame implements GLEventListener {
 		coinTex = loadTexture("assets/coin.png");
 		shuttleTex = loadTexture("assets/shuttle.jpg");
 		mugObj = new ImportedModel("assets/mug.obj");
-		// coinObj=new ImportedModel("assets/coin.obj");
 		shuttleObj = new ImportedModel("assets/shuttle.obj");
 		setupVertices();
 
-		cameraX = 0.0f;
-		cameraY = 0.0f;
-		cameraZ = 12.0f;
 	}
 
 	private void setupVertices() {
@@ -645,4 +681,7 @@ public class Starter extends JFrame implements GLEventListener {
 		}
 		return finalTextureRef;
 	}
+}
+
+class MyKeyListener extends KeyAdapter {
 }
