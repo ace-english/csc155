@@ -6,6 +6,7 @@ import static com.jogamp.opengl.GL.GL_DEPTH_BUFFER_BIT;
 import static com.jogamp.opengl.GL.GL_DEPTH_TEST;
 import static com.jogamp.opengl.GL.GL_FLOAT;
 import static com.jogamp.opengl.GL.GL_LINEAR_MIPMAP_LINEAR;
+import static com.jogamp.opengl.GL.GL_LINES;
 import static com.jogamp.opengl.GL.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT;
 import static com.jogamp.opengl.GL.GL_STATIC_DRAW;
 import static com.jogamp.opengl.GL.GL_TEXTURE0;
@@ -173,6 +174,18 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		mvStack.invertPerspective(camera.getUVM());
 
 		tf = elapsedTime / 1000.0; // time factor
+
+		// ---------------------- axis
+		// use texture shader
+		gl.glUseProgram(rainbowShader);
+		mvStack.pushMatrix();
+		mvStack.scale(10f, 10f, 10f);
+		gl.glUniformMatrix4fv(mvLocRainbow, 1, false, mvStack.get(vals));
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("axisPositions")]);
+		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(0);
+		gl.glDrawArrays(GL_LINES, 0, 287);
+		mvStack.popMatrix(); // print moon 1
 
 		// use texture shader
 		gl.glUseProgram(texShader);
@@ -462,6 +475,9 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 				0.0f, 1.0f, 0.0f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f,
 				1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f };
 
+		float[] axisPositions = { 1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+				1.0f, 0.0f, 0.0f, -1.0f };
+
 		float[] gemPositions = {
 				// top
 				1, 1, 3, 0, 1.3f, 0, -1, 1, 3, -1, 1, 3, 0, 1.3f, 0, -3, 1, 1, -3, 1, 1, 0, 1.3f, 0, -3, 1, -1, -3, 1,
@@ -513,22 +529,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 			nvaluesMug[i * 3 + 1] = (float) (mugObj.getNormals()[i]).y();
 			nvaluesMug[i * 3 + 2] = (float) (mugObj.getNormals()[i]).z();
 		}
-
-		/*
-		 * float[] pvaluesCoin = new float[coinObj.getNumVertices() * 3]; float[]
-		 * tvaluesCoin = new float[coinObj.getNumVertices() * 2]; float[] nvaluesCoin =
-		 * new float[coinObj.getNumVertices() * 3];
-		 * 
-		 * for (int i = 0; i < coinObj.getNumVertices(); i++) { pvaluesCoin[i * 3] =
-		 * (float) (coinObj.getVertices()[i]).x(); pvaluesCoin[i * 3 + 1] = (float)
-		 * (coinObj.getVertices()[i]).y(); pvaluesCoin[i * 3 + 2] = (float)
-		 * (coinObj.getVertices()[i]).z(); tvaluesCoin[i * 2] = (float)
-		 * (coinObj.getTexCoords()[i]).x(); tvaluesCoin[i * 2 + 1] = (float)
-		 * (coinObj.getTexCoords()[i]).y(); nvaluesCoin[i * 3] = (float)
-		 * (coinObj.getNormals()[i]).x(); nvaluesCoin[i * 3 + 1] = (float)
-		 * (coinObj.getNormals()[i]).y(); nvaluesCoin[i * 3 + 2] = (float)
-		 * (coinObj.getNormals()[i]).z(); }
-		 */
 
 		float[] pvaluesShuttle = new float[shuttleObj.getNumVertices() * 3];
 		float[] tvaluesShuttle = new float[shuttleObj.getNumVertices() * 2];
@@ -603,17 +603,11 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("shuttleTextures")]);
 		FloatBuffer texBufShuttle = Buffers.newDirectFloatBuffer(tvaluesMug);
 		gl.glBufferData(GL_ARRAY_BUFFER, texBuf.limit() * 4, texBufShuttle, GL_STATIC_DRAW);
-		/*
-		 * vboDict.put("coinPositions", 11); gl.glBindBuffer(GL_ARRAY_BUFFER,
-		 * vbo[vboDict.get("coinPositions")]); FloatBuffer vertBufCoin =
-		 * Buffers.newDirectFloatBuffer(pvaluesCoin); gl.glBufferData(GL_ARRAY_BUFFER,
-		 * vertBuf.limit() * 4, vertBufCoin, GL_STATIC_DRAW);
-		 * 
-		 * vboDict.put("coinTextures", 12); gl.glBindBuffer(GL_ARRAY_BUFFER,
-		 * vbo[vboDict.get("coinTextures")]); FloatBuffer texBufCoin =
-		 * Buffers.newDirectFloatBuffer(tvaluesCoin); gl.glBufferData(GL_ARRAY_BUFFER,
-		 * texBuf.limit() * 4, texBufCoin, GL_STATIC_DRAW);
-		 */
+
+		vboDict.put("axisPositions", 11);
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("axisPositions")]);
+		FloatBuffer axisBufShuttle = Buffers.newDirectFloatBuffer(axisPositions);
+		gl.glBufferData(GL_ARRAY_BUFFER, axisBufShuttle.limit() * 4, axisBufShuttle, GL_STATIC_DRAW);
 	}
 
 	public static void main(String[] args) {
