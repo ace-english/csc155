@@ -63,10 +63,10 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private int mvLocTex, projLocTex, mvLocRainbow, projLocRainbow, mvLocAxis, projLocAxis;
 	private float aspect;
 	private double tf;
+	private boolean showAxes;
 
 	private int numSphereVerts;
 	private ImportedModel mugObj;
-	private ImportedModel coinObj;
 	private ImportedModel shuttleObj;
 	private int neptuneTex;
 	private int mugTex;
@@ -148,7 +148,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	}
 
 	private void toggleAxes() {
-		// TODO Auto-generated method stub
+		showAxes = !showAxes;
 
 	}
 
@@ -175,22 +175,28 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		tf = elapsedTime / 1000.0; // time factor
 
-		// ---------------------- axis
-		// use texture shader
-		gl.glUseProgram(rainbowShader);
 		mvStack.pushMatrix();
-		mvStack.scale(10f, 10f, 10f);
-		gl.glUniformMatrix4fv(mvLocRainbow, 1, false, mvStack.get(vals));
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("axisPositions")]);
-		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
-		gl.glEnableVertexAttribArray(0);
-		gl.glDrawArrays(GL_LINES, 0, 287);
-		mvStack.popMatrix(); // print moon 1
+		// ---------------------- axis
+		if (showAxes) {
+
+			gl.glUseProgram(axisShader);
+			mvLocAxis = gl.glGetUniformLocation(axisShader, "mv_matrix");
+			projLocAxis = gl.glGetUniformLocation(axisShader, "proj_matrix");
+			gl.glUniformMatrix4fv(projLocAxis, 1, false, pMat.get(vals));
+
+			mvStack.pushMatrix();
+			mvStack.scale(10f, 10f, 10f);
+			gl.glUniformMatrix4fv(mvLocAxis, 1, false, mvStack.get(vals));
+			gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("axisPositions")]);
+			gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+			gl.glEnableVertexAttribArray(0);
+			gl.glDrawArrays(GL_LINES, 0, 287);
+			mvStack.popMatrix(); // print axes
+		}
 
 		// use texture shader
 		gl.glUseProgram(texShader);
 		// ---------------------- sun
-		mvStack.pushMatrix();
 		mvStack.translate(0.0f, 0.0f, 0.0f);
 		mvStack.pushMatrix();
 		// mvStack.rotate((float) tf, 1.0f, 0.0f, 0.0f);
@@ -228,13 +234,13 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glDrawArrays(GL_TRIANGLES, 0, 36);
 		mvStack.popMatrix(); // print planet 1
 
+		// use rainbow shader
 		gl.glUseProgram(rainbowShader);
 
 		mvLocRainbow = gl.glGetUniformLocation(rainbowShader, "mv_matrix");
 		projLocRainbow = gl.glGetUniformLocation(rainbowShader, "proj_matrix");
 		gl.glUniformMatrix4fv(projLocRainbow, 1, false, pMat.get(vals));
 
-		// use rainbow shader gl.glProgramUniform1f(renderingProgram, rainbowLoc, 1);
 		// ----------------------- gem == moon
 		mvStack.pushMatrix();
 		mvStack.translate(0.0f, (float) Math.sin(tf) * 2.0f, (float) Math.cos(tf) * 2.0f);
@@ -332,10 +338,13 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 		vboDict = new Hashtable<String, Integer>();
 		camera = new Camera();
+		showAxes = false;
 
 		// load assets
 		texShader = createShaderProgram("src/a2/texVertShader.glsl", "src/a2/texFragShader.glsl");
 		rainbowShader = createShaderProgram("src/a2/rainbowVertShader.glsl", "src/a2/rainbowFragShader.glsl");
+		axisShader = createShaderProgram("src/a2/axisVertShader.glsl", "src/a2/axisFragShader.glsl");
+
 		neptuneTex = loadTexture("assets/neptune.jpg");
 		brickTex = loadTexture("assets/brick1.jpg");
 		mugTex = loadTexture("assets/mug.png");
