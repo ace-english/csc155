@@ -1,3 +1,5 @@
+-Xss1m -Dsun.java2d.d3d=false -Djogl.debug.DebugGL -Djogl.debug.TraceGL
+
 Structures
 [x] one 'sun' fixed object at 0,0
 [x] 2+ 'planets' orbiting sun
@@ -22,7 +24,7 @@ s – move the camera backward a small amount (i.e. in the negative-N direction)
 [x] q – move the camera a small amount in the positive-V direction (“move up”).
 [ ] left and right arrow – rotate the camera by a small amount left/right around its V axis (“pan”).
 [ ] up and down arrow – rotate the camera by a small amount up/down around its U axis (“pitch).
-[ ] <space bar> - toggle the visibility of the world axes.
+[x] <space bar> - toggle the visibility of the world axes.
 Deliverables
 [ ] texture image files
 [ ] package
@@ -39,3 +41,5 @@ Deliverables
 		Added some tumble effects to the moons (gems)
 	[ ] a screen capture (.jpg) of your program running
 	[ ] which campus workstation you successfully tested your program on
+	[ ] known issues
+		don't click away form the screen
