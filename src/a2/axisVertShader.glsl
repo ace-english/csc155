@@ -6,11 +6,12 @@ layout (location=1) in vec2 texCoord;
 uniform mat4 mv_matrix;
 uniform mat4 proj_matrix;
 
-out vec4 color;
+out vec4 varyingColor;
 
 void main(void){
 	gl_Position = proj_matrix * mv_matrix * vec4(position,1.0);
-	/*
+	varyingColor = vec4(position,1.0)*0.5 + vec4(0.5, 0.5, 0.5, 0.5);
+
 	int r=1;
 	int g=1;
 	int b=1;
@@ -22,7 +23,7 @@ void main(void){
 		b=0;
 	}
 	varyingColor = vec4(r,g,b,1.0);
-	*/
-	
-	varyingColor = vec4(position,1.0)*0.5 + vec4(0.5, 0.5, 0.5, 0.5);
+
+
+	//varyingColor = vec4(position,1.0)*0.5 + vec4(0.5, 0.5, 0.5, 0.5);
 }

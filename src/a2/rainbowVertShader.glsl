@@ -5,7 +5,6 @@ layout (location=1) in vec2 texCoord;
 
 uniform mat4 mv_matrix;
 uniform mat4 proj_matrix;
-layout (binding=0) uniform sampler2D samp;
 
 out vec4 varyingColor;
 

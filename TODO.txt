@@ -5,7 +5,7 @@ Structures
 [x] 2+ 'planets' orbiting sun
 [x] orbiting 'moons' for at least two planets
 [x] something orbiting a moon
-[ ] colored XYZ axes
+[x] colored XYZ axes
 [x] at least one object built by vertices
 [x] at least one object from an obj
 [x] at least one sphere or torus

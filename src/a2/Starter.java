@@ -22,7 +22,6 @@ import static com.jogamp.opengl.GL3ES3.GL_GEOMETRY_SHADER;
 import static com.jogamp.opengl.GL3ES3.GL_TESS_CONTROL_SHADER;
 import static com.jogamp.opengl.GL3ES3.GL_TESS_EVALUATION_SHADER;
 
-import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.File;
@@ -721,7 +720,4 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		}
 		return finalTextureRef;
 	}
-}
-
-class MyKeyListener extends KeyAdapter {
 }
