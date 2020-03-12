@@ -76,11 +76,6 @@ public class Camera {
 		location = location.add(0f, 0f, dz);
 	}
 
-	public void pan() {
-
-		calculateUVN();
-	}
-
 	public void moveUp() {
 		translate(1, v);
 	}
@@ -106,19 +101,19 @@ public class Camera {
 	}
 
 	public void panLeft() {
-		rotate(-1, v);
+		pan(-1);
 	}
 
 	public void panRight() {
-		rotate(1, v);
+		pan(1);
 	}
 
 	public void pitchUp() {
-		rotate(1, u);
+		pitch(1);
 	}
 
 	public void pitchDown() {
-		rotate(-1, u);
+		pitch(-1);
 	}
 
 	public void translate(int direction, Vector3f vec) {
@@ -129,12 +124,14 @@ public class Camera {
 		location = location.add(delta);
 	}
 
+//holding down left should not move the up arrow
+//check calculations
 	public void rotate(int direction, Vector3f axis) {
 		Vector3f[] vectors = { u, v, n };
 		for (int i = 0; i < 3; i++) {
 			v = vectors[i];
 			if (!(v == axis)) {
-				v.rotateAxis(0.261799f, axis.x, axis.y, axis.z);
+				v.rotateAxis(0.05f, axis.x, axis.y, axis.z);
 			}
 		}
 		System.out.printf("u: (%.1f,%.1f,%.1f)\n", u.x, u.y, u.z);
@@ -142,7 +139,36 @@ public class Camera {
 		System.out.printf("n: (%.1f,%.1f,%.1f)\n", n.x, n.y, n.z);
 	}
 
+	public void pan(int direction) {
+		n.rotateAxis(0.05f * direction, 0f, 1f, 0f);
+		u.rotateAxis(0.05f * direction, 0f, 1f, 0f);
+		// u.rotateAxis(0.5f * direction, v.x, v.y, v.z);
+		System.out.printf("u: (%.1f,%.1f,%.1f)\n", u.x, u.y, u.z);
+		System.out.printf("v: (%.1f,%.1f,%.1f)\n", v.x, v.y, v.z);
+		System.out.printf("n: (%.1f,%.1f,%.1f)\n", n.x, n.y, n.z);
+	}
+
+	public void pitch(int direction) {
+		// n.rotateAxis(0.5f * direction, v.x, v.y, v.z);
+		v.rotateAxis(0.05f * direction, 1f, 0f, 0f);
+		n.rotateAxis(0.05f * direction, 1f, 0f, 0f);
+		// n.rotateAxis(0.5f * direction, 0f, 1f, 0f);
+		System.out.printf("u: (%.1f,%.1f,%.1f)\n", u.x, u.y, u.z);
+		System.out.printf("v: (%.1f,%.1f,%.1f)\n", v.x, v.y, v.z);
+		System.out.printf("n: (%.1f,%.1f,%.1f)\n", n.x, n.y, n.z);
+	}
+
 	public Matrix4f getUVM() {
 		return new Matrix4f(u.x, u.y, u.z, 0, v.x, v.y, v.z, 0, n.x, n.y, n.z, 0, 0, 0, 0, 1);
+	}
+
+	public Matrix4f getC() {
+		return new Matrix4f(1.0f, 0.0f, 0.0f, -location.x, 0.0f, 1.0f, 0.0f, -location.y, 0.0f, 0.0f, 1.0f, -location.z,
+				0.0f, 0.0f, 0.0f, 1.0f);
+	}
+
+	public Matrix4f getMV() {
+		return new Matrix4f(getUVM().mul(new Matrix4f(1.0f, 0.0f, 0.0f, -location.x, 0.0f, 1.0f, 0.0f, -location.y,
+				0.0f, 0.0f, 1.0f, -location.z, 0.0f, 0.0f, 0.0f, 1.0f)));
 	}
 }

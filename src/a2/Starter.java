@@ -36,6 +36,7 @@ import javax.swing.JFrame;
 
 import org.joml.Matrix4f;
 import org.joml.Matrix4fStack;
+import org.joml.Vector3f;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.GL;
@@ -59,7 +60,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private FloatBuffer vals = Buffers.newDirectFloatBuffer(16);
 	private Matrix4fStack mvStack = new Matrix4fStack(5);
 	private Matrix4f pMat = new Matrix4f();
-	private int mvLocTex, projLocTex, mvLocRainbow, projLocRainbow, mvLocAxis, projLocAxis;
+	private int mvLocTex, projLocTex, mvLocAxis, projLocAxis;
 	private float aspect;
 	private double tf;
 	private boolean showAxes;
@@ -168,21 +169,25 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		// push view matrix onto the stack
 		mvStack.pushMatrix();
-		mvStack.translate(camera.getLocation().x * -1, camera.getLocation().y * -1, camera.getLocation().z * -1);
+		// mvStack.mul(camera.getUVM());
+		mvStack.lookAlong(camera.getN(), camera.getV());
+		;
+		mvStack.translate(new Vector3f(camera.getLocation()).negate());
+		// System.out.println(mvStack);
 		// get UVM from camera
-		mvStack.invertPerspective(camera.getUVM());
 
 		tf = elapsedTime / 1000.0; // time factor
 
 		mvStack.pushMatrix();
+
+		gl.glUseProgram(axisShader);
+		mvLocAxis = gl.glGetUniformLocation(axisShader, "mv_matrix");
+		projLocAxis = gl.glGetUniformLocation(axisShader, "proj_matrix");
+		gl.glUniformMatrix4fv(projLocAxis, 1, false, pMat.get(vals));
 		// ---------------------- axis
 		if (showAxes) {
 
 			gl.glUseProgram(axisShader);
-			mvLocAxis = gl.glGetUniformLocation(axisShader, "mv_matrix");
-			projLocAxis = gl.glGetUniformLocation(axisShader, "proj_matrix");
-			gl.glUniformMatrix4fv(projLocAxis, 1, false, pMat.get(vals));
-
 			mvStack.pushMatrix();
 			mvStack.scale(10f, 10f, 10f);
 			gl.glUniformMatrix4fv(mvLocAxis, 1, false, mvStack.get(vals));
@@ -233,19 +238,21 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glDrawArrays(GL_TRIANGLES, 0, 36);
 		mvStack.popMatrix(); // print planet 1
 
-		// use rainbow shader
-		gl.glUseProgram(rainbowShader);
+		// use axis shader - looks cool
+		gl.glUseProgram(axisShader);
 
-		mvLocRainbow = gl.glGetUniformLocation(rainbowShader, "mv_matrix");
-		projLocRainbow = gl.glGetUniformLocation(rainbowShader, "proj_matrix");
-		gl.glUniformMatrix4fv(projLocRainbow, 1, false, pMat.get(vals));
+		/*
+		 * mvLocRainbow = gl.glGetUniformLocation(rainbowShader, "mv_matrix");
+		 * projLocRainbow = gl.glGetUniformLocation(rainbowShader, "proj_matrix");
+		 * gl.glUniformMatrix4fv(projLocRainbow, 1, false, pMat.get(vals));
+		 */
 
 		// ----------------------- gem == moon
 		mvStack.pushMatrix();
 		mvStack.translate(0.0f, (float) Math.sin(tf) * 2.0f, (float) Math.cos(tf) * 2.0f);
 		mvStack.scale(0.1f, 0.1f, 0.1f);
 		mvStack.rotateXYZ(0, 1.5f * (float) tf, 3f * (float) tf);
-		gl.glUniformMatrix4fv(mvLocRainbow, 1, false, mvStack.get(vals));
+		gl.glUniformMatrix4fv(mvLocAxis, 1, false, mvStack.get(vals));
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("gemPositions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
 		gl.glEnableVertexAttribArray(0);
@@ -257,7 +264,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		mvStack.translate(0.0f, (float) Math.sin(tf) * -2.0f, (float) Math.cos(tf) * -2.0f);
 		mvStack.scale(0.1f, 0.1f, 0.1f);
 		mvStack.rotateXYZ(0, -1.5f * (float) tf, 3f * (float) tf);
-		gl.glUniformMatrix4fv(mvLocRainbow, 1, false, mvStack.get(vals));
+		gl.glUniformMatrix4fv(mvLocAxis, 1, false, mvStack.get(vals));
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("gemPositions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
 		gl.glEnableVertexAttribArray(0);
