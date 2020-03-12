@@ -22,8 +22,8 @@ s – move the camera backward a small amount (i.e. in the negative-N direction)
 [x] d – move the camera a small amount in the positive-U direction (also called “strafe right”).
 [x] e – move the camera a small amount in the negative-V direction (“move down”).
 [x] q – move the camera a small amount in the positive-V direction (“move up”).
-[ ] left and right arrow – rotate the camera by a small amount left/right around its V axis (“pan”).
-[ ] up and down arrow – rotate the camera by a small amount up/down around its U axis (“pitch).
+[x] left and right arrow – rotate the camera by a small amount left/right around its V axis (“pan”).
+[x] up and down arrow – rotate the camera by a small amount up/down around its U axis (“pitch).
 [x] <space bar> - toggle the visibility of the world axes.
 Deliverables
 [ ] texture image files

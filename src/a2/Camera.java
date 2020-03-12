@@ -140,8 +140,8 @@ public class Camera {
 	}
 
 	public void pan(int direction) {
-		n.rotateAxis(0.05f * direction, 0f, 1f, 0f);
-		u.rotateAxis(0.05f * direction, 0f, 1f, 0f);
+		n.rotateAxis(0.05f * direction, v.x, v.y, v.z);
+		u.rotateAxis(0.05f * direction, v.x, v.y, v.z);
 		// u.rotateAxis(0.5f * direction, v.x, v.y, v.z);
 		System.out.printf("u: (%.1f,%.1f,%.1f)\n", u.x, u.y, u.z);
 		System.out.printf("v: (%.1f,%.1f,%.1f)\n", v.x, v.y, v.z);
@@ -149,9 +149,8 @@ public class Camera {
 	}
 
 	public void pitch(int direction) {
-		// n.rotateAxis(0.5f * direction, v.x, v.y, v.z);
-		v.rotateAxis(0.05f * direction, 1f, 0f, 0f);
-		n.rotateAxis(0.05f * direction, 1f, 0f, 0f);
+		n.rotateAxis(0.05f * direction, u.x, u.y, u.z);
+		v.rotateAxis(0.05f * direction, u.x, u.y, u.z);
 		// n.rotateAxis(0.5f * direction, 0f, 1f, 0f);
 		System.out.printf("u: (%.1f,%.1f,%.1f)\n", u.x, u.y, u.z);
 		System.out.printf("v: (%.1f,%.1f,%.1f)\n", v.x, v.y, v.z);
