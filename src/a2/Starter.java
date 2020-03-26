@@ -201,8 +201,8 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		// use texture shader
 		gl.glUseProgram(texShader);
 		// ---------------------- sun
+		// mvStack.pushMatrix();
 		mvStack.translate(0.0f, 0.0f, 0.0f);
-		mvStack.pushMatrix();
 		// mvStack.rotate((float) tf, 1.0f, 0.0f, 0.0f);
 		gl.glUniformMatrix4fv(mvLocTex, 1, false, mvStack.get(vals));
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("spherePositions")]);
@@ -218,12 +218,10 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		gl.glEnable(GL_DEPTH_TEST);
 		gl.glDrawArrays(GL_TRIANGLES, 0, numSphereVerts);
-		mvStack.popMatrix(); // print sun
 
 		// ----------------------- cube == planet
 		mvStack.pushMatrix();
 		mvStack.translate((float) Math.sin(tf) * 4.0f, 0.0f, (float) Math.cos(tf) * 4.0f);
-		mvStack.pushMatrix();
 		gl.glUniformMatrix4fv(mvLocTex, 1, false, mvStack.get(vals));
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("cubePositions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
@@ -236,7 +234,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glActiveTexture(GL_TEXTURE0);
 		gl.glBindTexture(GL_TEXTURE_2D, brickTex);
 		gl.glDrawArrays(GL_TRIANGLES, 0, 36);
-		mvStack.popMatrix(); // print planet 1
+		// mvStack.popMatrix(); // print planet 1
 
 		// use axis shader - looks cool
 		gl.glUseProgram(axisShader);
@@ -280,7 +278,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		// ----------------------- second planet - mug
 		mvStack.pushMatrix();
 		mvStack.translate((float) Math.sin(tf) * -7.0f, 0.0f, (float) Math.cos(tf) * -7.0f);
-		mvStack.pushMatrix();
 		gl.glUniformMatrix4fv(mvLocTex, 1, false, mvStack.get(vals));
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("mugPositions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
@@ -293,12 +290,10 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glActiveTexture(GL_TEXTURE0);
 		gl.glBindTexture(GL_TEXTURE_2D, mugTex);
 		gl.glDrawArrays(GL_TRIANGLES, 0, mugObj.getNumVertices());
-		mvStack.popMatrix(); // print planet 2
 
 		// ----------------------- moon - shuttle
 		mvStack.pushMatrix();
 		mvStack.translate((float) Math.sin(tf) * 3.0f, (float) Math.cos(tf) * 3.0f, (float) Math.cos(tf) * 3.0f);
-		mvStack.pushMatrix();
 		gl.glUniformMatrix4fv(mvLocTex, 1, false, mvStack.get(vals));
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("shuttlePositions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
@@ -311,12 +306,11 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glActiveTexture(GL_TEXTURE0);
 		gl.glBindTexture(GL_TEXTURE_2D, shuttleTex);
 		gl.glDrawArrays(GL_TRIANGLES, 0, shuttleObj.getNumVertices());
-		mvStack.popMatrix(); // print shuttle
 
-		// ----------------------- Satellite - coin mvStack.pushMatrix();
+		// ----------------------- Satellite - coin
+		mvStack.pushMatrix();
 		mvStack.translate((float) Math.sin(tf) * 1.0f, (float) Math.cos(tf) * 1.0f, (float) Math.cos(tf) * 1.0f);
 		mvStack.scale(.2f, .2f, .2f);
-		mvStack.pushMatrix();
 		gl.glUniformMatrix4fv(mvLocTex, 1, false, mvStack.get(vals));
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("spherePositions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
@@ -327,11 +321,11 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glActiveTexture(GL_TEXTURE0);
 		gl.glBindTexture(GL_TEXTURE_2D, coinTex);
 		gl.glDrawArrays(GL_TRIANGLES, 0, numSphereVerts);
-		mvStack.popMatrix(); // print coin
 
-		mvStack.popMatrix(); // leave planet orbital
-		mvStack.popMatrix(); // leave sun orbital
+		mvStack.popMatrix(); // print shuttle
+		mvStack.popMatrix(); // print planet 2
 
+		mvStack.popMatrix(); // print sun
 		mvStack.popMatrix(); // final pop
 
 	}
