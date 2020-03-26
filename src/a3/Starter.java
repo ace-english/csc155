@@ -246,39 +246,44 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		float[] axisPositions = { 1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f,
 				1.0f, 0.0f, 0.0f, -1.0f };
 
-		float[] pvaluesTable = new float[tableObj.getNumVertices() * 3];
-		float[] tvaluesTable = new float[tableObj.getNumVertices() * 2];
-		float[] nvaluesTable = new float[tableObj.getNumVertices() * 3];
-
-		for (int i = 0; i < tableObj.getNumVertices(); i++) {
-			pvaluesTable[i * 3] = (float) (tableObj.getVertices()[i]).x();
-			pvaluesTable[i * 3 + 1] = (float) (tableObj.getVertices()[i]).y();
-			pvaluesTable[i * 3 + 2] = (float) (tableObj.getVertices()[i]).z();
-			tvaluesTable[i * 2] = (float) (tableObj.getTexCoords()[i]).x();
-			tvaluesTable[i * 2 + 1] = (float) (tableObj.getTexCoords()[i]).y();
-			nvaluesTable[i * 3] = (float) (tableObj.getNormals()[i]).x();
-			nvaluesTable[i * 3 + 1] = (float) (tableObj.getNormals()[i]).y();
-			nvaluesTable[i * 3 + 2] = (float) (tableObj.getNormals()[i]).z();
-		}
-
 		gl.glGenVertexArrays(vao.length, vao, 0);
 		gl.glBindVertexArray(vao[0]);
 		gl.glGenBuffers(vbo.length, vbo, 0);
 
-		vboDict.put("tablePositions", vboDict.size());
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("tablePositions")]);
-		FloatBuffer vertBuf = Buffers.newDirectFloatBuffer(pvaluesTable);
-		gl.glBufferData(GL_ARRAY_BUFFER, vertBuf.limit() * 4, vertBuf, GL_STATIC_DRAW);
-
-		vboDict.put("tableTextures", vboDict.size());
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("tableTextures")]);
-		FloatBuffer texBufTable = Buffers.newDirectFloatBuffer(tvaluesTable);
-		gl.glBufferData(GL_ARRAY_BUFFER, texBufTable.limit() * 4, texBufTable, GL_STATIC_DRAW);
+		addToVbo(gl, tableObj, "table");
 
 		vboDict.put("axisPositions", vboDict.size());
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("axisPositions")]);
 		FloatBuffer axisBufShuttle = Buffers.newDirectFloatBuffer(axisPositions);
 		gl.glBufferData(GL_ARRAY_BUFFER, axisBufShuttle.limit() * 4, axisBufShuttle, GL_STATIC_DRAW);
+	}
+
+	private void addToVbo(GL4 gl, ImportedModel obj, String name) {
+		float[] pvalues = new float[obj.getNumVertices() * 3];
+		float[] tvalues = new float[obj.getNumVertices() * 2];
+		float[] nvalues = new float[obj.getNumVertices() * 3];
+
+		for (int i = 0; i < obj.getNumVertices(); i++) {
+			pvalues[i * 3] = (float) (obj.getVertices()[i]).x();
+			pvalues[i * 3 + 1] = (float) (obj.getVertices()[i]).y();
+			pvalues[i * 3 + 2] = (float) (obj.getVertices()[i]).z();
+			tvalues[i * 2] = (float) (obj.getTexCoords()[i]).x();
+			tvalues[i * 2 + 1] = (float) (obj.getTexCoords()[i]).y();
+			nvalues[i * 3] = (float) (obj.getNormals()[i]).x();
+			nvalues[i * 3 + 1] = (float) (obj.getNormals()[i]).y();
+			nvalues[i * 3 + 2] = (float) (obj.getNormals()[i]).z();
+		}
+
+		vboDict.put(name + "Positions", vboDict.size());
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Positions")]);
+		FloatBuffer vertBuf = Buffers.newDirectFloatBuffer(pvalues);
+		gl.glBufferData(GL_ARRAY_BUFFER, vertBuf.limit() * 4, vertBuf, GL_STATIC_DRAW);
+
+		vboDict.put(name + "Textures", vboDict.size());
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Textures")]);
+		FloatBuffer texBuf = Buffers.newDirectFloatBuffer(tvalues);
+		gl.glBufferData(GL_ARRAY_BUFFER, texBuf.limit() * 4, texBuf, GL_STATIC_DRAW);
+
 	}
 
 	public static void main(String[] args) {
