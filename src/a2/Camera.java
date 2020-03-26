@@ -47,12 +47,6 @@ public class Camera {
 		v.cross(new Vector3f(0, 1, 0).cross(v));
 		u = new Vector3f(n);
 		u.cross(v);
-		// uvn = new Matrix4f(u.x, u.y, u.z, 0, v.x, v.y, v.z, 0, n.x, n.y, n.z, 0, 0,
-		// 0, 0, 1);
-		// System.out.printf("(%.1f,%.1f,%.1f)\n", location.x, location.y, location.z);
-		System.out.printf("u: (%.1f,%.1f,%.1f)\n", u.x, u.y, u.z);
-		System.out.printf("v: (%.1f,%.1f,%.1f)\n", v.x, v.y, v.z);
-		System.out.printf("n: (%.1f,%.1f,%.1f)\n", n.x, n.y, n.z);
 	}
 
 	public void moveTo(Vector3f location) {
@@ -117,7 +111,6 @@ public class Camera {
 	}
 
 	public void translate(int direction, Vector3f vec) {
-		System.out.printf("(%.1f,%.1f,%.1f)\n", vec.x, vec.y, vec.z);
 		// add 0.1 times current v to location
 		Vector3f delta = new Vector3f(vec);
 		delta.mul(0.1f * direction);
@@ -134,27 +127,16 @@ public class Camera {
 				v.rotateAxis(0.05f, axis.x, axis.y, axis.z);
 			}
 		}
-		System.out.printf("u: (%.1f,%.1f,%.1f)\n", u.x, u.y, u.z);
-		System.out.printf("v: (%.1f,%.1f,%.1f)\n", v.x, v.y, v.z);
-		System.out.printf("n: (%.1f,%.1f,%.1f)\n", n.x, n.y, n.z);
 	}
 
 	public void pan(int direction) {
 		n.rotateAxis(0.05f * direction, v.x, v.y, v.z);
 		u.rotateAxis(0.05f * direction, v.x, v.y, v.z);
-		// u.rotateAxis(0.5f * direction, v.x, v.y, v.z);
-		System.out.printf("u: (%.1f,%.1f,%.1f)\n", u.x, u.y, u.z);
-		System.out.printf("v: (%.1f,%.1f,%.1f)\n", v.x, v.y, v.z);
-		System.out.printf("n: (%.1f,%.1f,%.1f)\n", n.x, n.y, n.z);
 	}
 
 	public void pitch(int direction) {
 		n.rotateAxis(0.05f * direction, u.x, u.y, u.z);
 		v.rotateAxis(0.05f * direction, u.x, u.y, u.z);
-		// n.rotateAxis(0.5f * direction, 0f, 1f, 0f);
-		System.out.printf("u: (%.1f,%.1f,%.1f)\n", u.x, u.y, u.z);
-		System.out.printf("v: (%.1f,%.1f,%.1f)\n", v.x, v.y, v.z);
-		System.out.printf("n: (%.1f,%.1f,%.1f)\n", n.x, n.y, n.z);
 	}
 
 	public Matrix4f getUVM() {
