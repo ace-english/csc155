@@ -69,7 +69,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 	private ImportedModel tableObj;
 	private ImportedModel scrollObj;
-	private ImportedModel pouchObj;
+	private ImportedModel bagObj;
 	private ImportedModel keyObj;
 	private int woodTex;
 	private int scrollTex;
@@ -204,67 +204,29 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		// use texture shader
 		gl.glUseProgram(texShader);
 
-		// ---------table-------------------
-		gl.glUniformMatrix4fv(mvLocTex, 1, false, mvStack.get(vals));
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("tablePositions")]);
-		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
-		gl.glEnableVertexAttribArray(0);
-		// pull up texture coords
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("tableTextures")]);
-		gl.glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0);
-		gl.glEnableVertexAttribArray(1);
-		// activate texture object
-		gl.glActiveTexture(GL_TEXTURE0);
-		gl.glBindTexture(GL_TEXTURE_2D, woodTex);
-		gl.glEnable(GL_DEPTH_TEST);
-		gl.glDrawArrays(GL_TRIANGLES, 0, tableObj.getNumVertices());
-
-		// ---------scroll-------------------
-		gl.glUniformMatrix4fv(mvLocTex, 1, false, mvStack.get(vals));
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("scrollPositions")]);
-		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
-		gl.glEnableVertexAttribArray(0);
-		// pull up texture coords
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("scrollTextures")]);
-		gl.glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0);
-		gl.glEnableVertexAttribArray(1);
-		// activate texture object
-		gl.glActiveTexture(GL_TEXTURE0);
-		gl.glBindTexture(GL_TEXTURE_2D, scrollTex);
-		gl.glEnable(GL_DEPTH_TEST);
-		gl.glDrawArrays(GL_TRIANGLES, 0, scrollObj.getNumVertices());
-
-		// ---------pouch-------------------
-		gl.glUniformMatrix4fv(mvLocTex, 1, false, mvStack.get(vals));
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("pouchPositions")]);
-		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
-		gl.glEnableVertexAttribArray(0);
-		// pull up texture coords
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("pouchTextures")]);
-		gl.glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0);
-		gl.glEnableVertexAttribArray(1);
-		// activate texture object
-		gl.glActiveTexture(GL_TEXTURE0);
-		gl.glBindTexture(GL_TEXTURE_2D, burlapTex);
-		gl.glEnable(GL_DEPTH_TEST);
-		gl.glDrawArrays(GL_TRIANGLES, 0, pouchObj.getNumVertices());
-
-		// ---------key-------------------
-		gl.glUniformMatrix4fv(mvLocTex, 1, false, mvStack.get(vals));
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("keyPositions")]);
-		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
-		gl.glEnableVertexAttribArray(0);
-		// pull up texture coords
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("keyTextures")]);
-		gl.glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0);
-		gl.glEnableVertexAttribArray(1);
-		// activate texture object
-		gl.glActiveTexture(GL_TEXTURE0);
-		gl.glBindTexture(GL_TEXTURE_2D, metalTex);
-		gl.glEnable(GL_DEPTH_TEST);
-		gl.glDrawArrays(GL_TRIANGLES, 0, keyObj.getNumVertices());
+		addToDisplay(gl, "table", woodTex, tableObj);
+		addToDisplay(gl, "key", metalTex, keyObj);
+		addToDisplay(gl, "bag", burlapTex, bagObj);
+		addToDisplay(gl, "scroll", scrollTex, scrollObj);
 
 		mvStack.popMatrix(); // final pop
+
+	}
+
+	private void addToDisplay(GL4 gl, String name, int texture, ImportedModel obj) {
+		gl.glUniformMatrix4fv(mvLocTex, 1, false, mvStack.get(vals));
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Positions")]);
+		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(0);
+		// pull up texture coords
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Textures")]);
+		gl.glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(1);
+		// activate texture object
+		gl.glActiveTexture(GL_TEXTURE0);
+		gl.glBindTexture(GL_TEXTURE_2D, texture);
+		gl.glEnable(GL_DEPTH_TEST);
+		gl.glDrawArrays(GL_TRIANGLES, 0, obj.getNumVertices());
 
 	}
 
@@ -288,7 +250,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		burlapTex = loadTexture("assets/burlap.png");
 		scrollObj = new ImportedModel("assets/scroll.obj");
 		tableObj = new ImportedModel("assets/table.obj");
-		pouchObj = new ImportedModel("assets/pouch.obj");
+		bagObj = new ImportedModel("assets/bag.obj");
 		keyObj = new ImportedModel("assets/key.obj");
 		setupVertices();
 
@@ -307,7 +269,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		addToVbo(gl, tableObj, "table");
 		addToVbo(gl, scrollObj, "scroll");
 		addToVbo(gl, keyObj, "key");
-		addToVbo(gl, pouchObj, "pouch");
+		addToVbo(gl, bagObj, "bag");
 
 		vboDict.put("axisPositions", vboDict.size());
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("axisPositions")]);
