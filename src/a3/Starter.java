@@ -53,7 +53,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private GLCanvas myCanvas;
 	private double startTime = 0.0;
 	private double elapsedTime;
-	private int texShader, axisShader;
+	private int texShader, axisShader, phongShader;
 	private int vao[] = new int[1];
 	private int vbo[] = new int[20];
 	private Camera camera;
@@ -62,19 +62,13 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private FloatBuffer vals = Buffers.newDirectFloatBuffer(16);
 	private Matrix4fStack mvStack = new Matrix4fStack(5);
 	private Matrix4f pMat = new Matrix4f();
-	private int mvLocTex, projLocTex, mvLocAxis, projLocAxis;
+	private int mvLocTex, projLocTex, mvLocAxis, projLocAxis, mvLocPhong, projLocPhong;
 	private float aspect;
 	private double tf;
 	private boolean showAxes;
 
-	private ImportedModel tableObj;
-	private ImportedModel scrollObj;
-	private ImportedModel bagObj;
-	private ImportedModel keyObj;
-	private int woodTex;
-	private int scrollTex;
-	private int burlapTex;
-	private int metalTex;
+	private ImportedModel tableObj, scrollObj, bagObj, keyObj, coinObj, bookObj;
+	private int woodTex, scrollTex, burlapTex, metalTex;
 	private Dictionary<String, Integer> vboDict;
 
 	public Starter() {
@@ -243,15 +237,18 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		// load assets
 		texShader = createShaderProgram("src/a3/texVertShader.glsl", "src/a3/texFragShader.glsl");
 		axisShader = createShaderProgram("src/a3/axisVertShader.glsl", "src/a3/axisFragShader.glsl");
+		phongShader = createShaderProgram("src/a3/phongVertShader.glsl", "src/a3/phongFragShader.glsl");
 
 		woodTex = loadTexture("assets/wood.jpg");
 		scrollTex = loadTexture("assets/scroll.png");
 		metalTex = loadTexture("assets/metal.jpg");
 		burlapTex = loadTexture("assets/burlap.png");
+
 		scrollObj = new ImportedModel("assets/scroll.obj");
 		tableObj = new ImportedModel("assets/table.obj");
 		bagObj = new ImportedModel("assets/bag.obj");
 		keyObj = new ImportedModel("assets/key.obj");
+		coinObj = new ImportedModel("assets/coin.obj");
 		setupVertices();
 
 	}
@@ -270,6 +267,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		addToVbo(gl, scrollObj, "scroll");
 		addToVbo(gl, keyObj, "key");
 		addToVbo(gl, bagObj, "bag");
+		addToVbo(gl, coinObj, "coin");
 
 		vboDict.put("axisPositions", vboDict.size());
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("axisPositions")]);
@@ -302,6 +300,11 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Textures")]);
 		FloatBuffer texBuf = Buffers.newDirectFloatBuffer(tvalues);
 		gl.glBufferData(GL_ARRAY_BUFFER, texBuf.limit() * 4, texBuf, GL_STATIC_DRAW);
+
+		vboDict.put(name + "Normals", vboDict.size());
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Normals")]);
+		FloatBuffer norBuf = Buffers.newDirectFloatBuffer(nvalues);
+		gl.glBufferData(GL_ARRAY_BUFFER, norBuf.limit() * 4, norBuf, GL_STATIC_DRAW);
 
 	}
 
