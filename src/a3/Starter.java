@@ -25,6 +25,8 @@ import static com.jogamp.opengl.GL3ES3.GL_TESS_EVALUATION_SHADER;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.io.File;
 import java.io.IOException;
 import java.nio.FloatBuffer;
@@ -50,29 +52,28 @@ import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureIO;
 
-public class Starter extends JFrame implements GLEventListener, KeyListener, MouseMotionListener {
+public class Starter extends JFrame implements GLEventListener, KeyListener, MouseMotionListener, MouseWheelListener {
 	private GLCanvas myCanvas;
 	private double startTime = 0.0;
 	private double elapsedTime;
 	private int texShader, axisShader, phongShader;
 	private int vao[] = new int[1];
-	private int vbo[] = new int[20];
+	private int vbo[] = new int[40];
 	private Camera camera;
-	private Vector3f currentLightPos = new Vector3f();
-	private float[] lightPos = new float[3];
 	private FloatBuffer vals = Buffers.newDirectFloatBuffer(16);
 	private Matrix4fStack mvStack = new Matrix4fStack(5);
 	private Matrix4f pMat = new Matrix4f();
 	private int mvLocTex, projLocTex, nLocTex, mvLocAxis, projLocAxis, mvLocPhong, projLocPhong, nLocPhong;
 	private float aspect;
 	private double tf;
-	private boolean showAxes;
-	private Vector3f initialLightLoc = new Vector3f(5.0f, 2.0f, 2.0f);
+	private boolean showAxes, showLight;
 
 	private ImportedModel tableObj, scrollObj, bagObj, keyObj, coinObj, bookObj;
+	private Sphere lightObj;
 	private int woodTex, scrollTex, burlapTex, metalTex;
 	private Material goldMat, pewterMat;
-	private Light globalAmbientLight, mouseLight;
+	private Light globalAmbientLight;
+	private PositionalLight mouseLight;
 	private Dictionary<String, Integer> vboDict;
 
 	public Starter() {
@@ -88,6 +89,8 @@ public class Starter extends JFrame implements GLEventListener, KeyListener, Mou
 		myCanvas.addKeyListener(this);
 		this.addMouseMotionListener(this);
 		myCanvas.addMouseMotionListener(this);
+		this.addMouseWheelListener(this);
+		myCanvas.addMouseWheelListener(this);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 	}
@@ -143,7 +146,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener, Mou
 
 	@Override
 	public void keyReleased(KeyEvent event) {
-		// TODO Auto-generated method stub
 
 	}
 
@@ -160,7 +162,12 @@ public class Starter extends JFrame implements GLEventListener, KeyListener, Mou
 
 	@Override
 	public void mouseMoved(java.awt.event.MouseEvent event) {
-		System.out.println("mouseMoved: (" + event.getX() + "," + event.getY() + ")");
+
+	}
+
+	@Override
+	public void mouseWheelMoved(MouseWheelEvent event) {
+		System.out.println("scroll: " + event.getWheelRotation());
 
 	}
 
@@ -170,7 +177,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener, Mou
 	}
 
 	private void toggleLight() {
-		// TODO Auto-generated method stub
+		showLight = !showLight;
 
 	}
 
@@ -196,20 +203,21 @@ public class Starter extends JFrame implements GLEventListener, KeyListener, Mou
 		mvStack.pushMatrix();
 		mvStack.lookAlong(camera.getN(), camera.getV());
 		mvStack.translate(new Vector3f(camera.getLocation()).negate());
-		mvStack.pushMatrix();
-		currentLightPos.set(initialLightLoc);
-		installLights(mvStack.popMatrix());
+		// currentLightPos.set(initialLightLoc);
+		if (showLight) {
+			mvStack.pushMatrix();
+			installLights(mvStack.popMatrix());
+		}
 
 		tf = elapsedTime / 1000.0; // time factor
 
-		gl.glUseProgram(axisShader);
-		mvLocAxis = gl.glGetUniformLocation(axisShader, "mv_matrix");
-		projLocAxis = gl.glGetUniformLocation(axisShader, "proj_matrix");
-		gl.glUniformMatrix4fv(projLocAxis, 1, false, pMat.get(vals));
 		// ---------------------- axis
 		if (showAxes) {
 
 			gl.glUseProgram(axisShader);
+			mvLocAxis = gl.glGetUniformLocation(axisShader, "mv_matrix");
+			projLocAxis = gl.glGetUniformLocation(axisShader, "proj_matrix");
+			gl.glUniformMatrix4fv(projLocAxis, 1, false, pMat.get(vals));
 			mvStack.pushMatrix();
 			mvStack.scale(10f, 10f, 10f);
 			gl.glUniformMatrix4fv(mvLocAxis, 1, false, mvStack.get(vals));
@@ -237,6 +245,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener, Mou
 		 * gl.glUniformMatrix4fv(projLocPhong, 1, false, pMat.get(vals));
 		 */
 		addToDisplay(gl, "coin", metalTex, coinObj);
+		addToDisplay(gl, "light", metalTex, lightObj);
 
 		mvStack.popMatrix(); // final pop
 
@@ -244,8 +253,9 @@ public class Starter extends JFrame implements GLEventListener, KeyListener, Mou
 
 	private void installLights(Matrix4f vMatrix) {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
-
+		Vector3f currentLightPos = mouseLight.getPosition();
 		currentLightPos.mulPosition(vMatrix);
+		float[] lightPos = new float[3];
 		lightPos[0] = currentLightPos.x();
 		lightPos[1] = currentLightPos.y();
 		lightPos[2] = currentLightPos.z();
@@ -273,7 +283,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener, Mou
 		gl.glProgramUniform1f(texShader, mshiLoc, goldMat.getShininess());
 	}
 
-	private void addToDisplay(GL4 gl, String name, int texture, ImportedModel obj) {
+	private void addToDisplay(GL4 gl, String name, int texture, WorldObject obj) {
 		gl.glUniformMatrix4fv(mvLocTex, 1, false, mvStack.get(vals));
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Positions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
@@ -299,6 +309,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener, Mou
 		vboDict = new Hashtable<String, Integer>();
 		camera = new Camera();
 		showAxes = false;
+		showLight = true;
 
 		goldMat = new Material(new float[] { 0.24725f, 0.1995f, 0.0745f, 1.0f },
 				new float[] { 0.75164f, 0.60648f, 0.22648f, 1.0f }, new float[] { 0.62828f, 0.5558f, 0.36607f, 1.0f },
@@ -308,7 +319,8 @@ public class Starter extends JFrame implements GLEventListener, KeyListener, Mou
 				new float[] { .33f, .33f, .52f, 1.0f }, 9.85f);
 
 		globalAmbientLight = new GlobalAmbientLight();
-		mouseLight = new PositionalLight();
+		mouseLight = new PositionalLight(new float[] { 0.1f, 0.1f, 0.1f, 1.0f }, new float[] { 1.0f, 1.0f, 1.0f, 1.0f },
+				new float[] { 1.0f, 1.0f, 1.0f, 1.0f }, new Vector3f(5.0f, 2.0f, 2.0f));
 
 		// load assets
 		// texShader = createShaderProgram("src/a3/texVertShader.glsl",
@@ -322,6 +334,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener, Mou
 		metalTex = loadTexture("assets/metal.jpg");
 		burlapTex = loadTexture("assets/burlap.png");
 
+		lightObj = new Sphere();
 		scrollObj = new ImportedModel("assets/scroll.obj");
 		tableObj = new ImportedModel("assets/table.obj");
 		bagObj = new ImportedModel("assets/bag.obj");
@@ -346,6 +359,41 @@ public class Starter extends JFrame implements GLEventListener, KeyListener, Mou
 		addToVbo(gl, keyObj, "key");
 		addToVbo(gl, bagObj, "bag");
 		addToVbo(gl, coinObj, "coin");
+		// addToVbo(gl, lightObj, "light");
+
+		int numSphereVerts = lightObj.getIndices().length;
+
+		int[] indicesSphere = lightObj.getIndices();
+
+		float[] pvaluesSphere = new float[indicesSphere.length * 3];
+		float[] tvaluesSphere = new float[indicesSphere.length * 2];
+		float[] nvaluesSphere = new float[indicesSphere.length * 3];
+
+		for (int i = 0; i < indicesSphere.length; i++) {
+			pvaluesSphere[i * 3] = (float) (lightObj.getVertices()[indicesSphere[i]]).x;
+			pvaluesSphere[i * 3 + 1] = (float) (lightObj.getVertices()[indicesSphere[i]]).y;
+			pvaluesSphere[i * 3 + 2] = (float) (lightObj.getVertices()[indicesSphere[i]]).z;
+			tvaluesSphere[i * 2] = (float) (lightObj.getTexCoords()[indicesSphere[i]]).x;
+			tvaluesSphere[i * 2 + 1] = (float) (lightObj.getTexCoords()[indicesSphere[i]]).y;
+			nvaluesSphere[i * 3] = (float) (lightObj.getNormals()[indicesSphere[i]]).x;
+			nvaluesSphere[i * 3 + 1] = (float) (lightObj.getNormals()[indicesSphere[i]]).y;
+			nvaluesSphere[i * 3 + 2] = (float) (lightObj.getNormals()[indicesSphere[i]]).z;
+		}
+
+		vboDict.put("lightPositions", vboDict.size());
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("lightPositions")]);
+		FloatBuffer vertBuf = Buffers.newDirectFloatBuffer(pvaluesSphere);
+		gl.glBufferData(GL_ARRAY_BUFFER, vertBuf.limit() * 4, vertBuf, GL_STATIC_DRAW);
+
+		vboDict.put("lightTextures", vboDict.size());
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("lightTextures")]);
+		FloatBuffer texBuf = Buffers.newDirectFloatBuffer(tvaluesSphere);
+		gl.glBufferData(GL_ARRAY_BUFFER, texBuf.limit() * 4, texBuf, GL_STATIC_DRAW);
+
+		vboDict.put("lightNormals", vboDict.size());
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("lightNormals")]);
+		FloatBuffer norBuf = Buffers.newDirectFloatBuffer(nvaluesSphere);
+		gl.glBufferData(GL_ARRAY_BUFFER, norBuf.limit() * 4, norBuf, GL_STATIC_DRAW);
 
 		vboDict.put("axisPositions", vboDict.size());
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("axisPositions")]);
@@ -353,7 +401,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener, Mou
 		gl.glBufferData(GL_ARRAY_BUFFER, axisBufShuttle.limit() * 4, axisBufShuttle, GL_STATIC_DRAW);
 	}
 
-	private void addToVbo(GL4 gl, ImportedModel obj, String name) {
+	private void addToVbo(GL4 gl, WorldObject obj, String name) {
 		float[] pvalues = new float[obj.getNumVertices() * 3];
 		float[] tvalues = new float[obj.getNumVertices() * 2];
 		float[] nvalues = new float[obj.getNumVertices() * 3];

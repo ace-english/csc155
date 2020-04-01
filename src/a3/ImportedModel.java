@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 
-public class ImportedModel {
+public class ImportedModel implements WorldObject {
 	private Vector3f[] vertices;
 	private Vector2f[] texCoords;
 	private Vector3f[] normals;
