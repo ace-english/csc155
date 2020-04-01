@@ -85,6 +85,9 @@ public class Starter extends JFrame implements GLEventListener, KeyListener, Mou
 		Animator animator = new Animator(myCanvas);
 		animator.start();
 		this.addKeyListener(this);
+		myCanvas.addKeyListener(this);
+		this.addMouseMotionListener(this);
+		myCanvas.addMouseMotionListener(this);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 	}
