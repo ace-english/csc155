@@ -24,6 +24,7 @@ import static com.jogamp.opengl.GL3ES3.GL_TESS_EVALUATION_SHADER;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseMotionListener;
 import java.io.File;
 import java.io.IOException;
 import java.nio.FloatBuffer;
@@ -49,7 +50,7 @@ import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureIO;
 
-public class Starter extends JFrame implements GLEventListener, KeyListener {
+public class Starter extends JFrame implements GLEventListener, KeyListener, MouseMotionListener {
 	private GLCanvas myCanvas;
 	private double startTime = 0.0;
 	private double elapsedTime;
@@ -148,6 +149,18 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 	}
 
+	@Override
+	public void mouseDragged(java.awt.event.MouseEvent event) {
+		System.out.println("mouseDragged: (" + event.getX() + "," + event.getY() + ")");
+
+	}
+
+	@Override
+	public void mouseMoved(java.awt.event.MouseEvent event) {
+		System.out.println("mouseMoved: (" + event.getX() + "," + event.getY() + ")");
+
+	}
+
 	private void toggleAxes() {
 		showAxes = !showAxes;
 
@@ -180,7 +193,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		mvStack.pushMatrix();
 		mvStack.lookAlong(camera.getN(), camera.getV());
 		mvStack.translate(new Vector3f(camera.getLocation()).negate());
-
+		mvStack.pushMatrix();
 		currentLightPos.set(initialLightLoc);
 		installLights(mvStack.popMatrix());
 
@@ -213,13 +226,13 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		addToDisplay(gl, "scroll", scrollTex, scrollObj);
 
 		// use phong shader
-
-		gl.glUseProgram(phongShader);
-		mvLocPhong = gl.glGetUniformLocation(phongShader, "mv_matrix");
-		projLocPhong = gl.glGetUniformLocation(phongShader, "proj_matrix");
-		nLocPhong = gl.glGetUniformLocation(phongShader, "norm_matrix");
-		gl.glUniformMatrix4fv(projLocPhong, 1, false, pMat.get(vals));
-
+		/*
+		 * gl.glUseProgram(phongShader); mvLocPhong =
+		 * gl.glGetUniformLocation(phongShader, "mv_matrix"); projLocPhong =
+		 * gl.glGetUniformLocation(phongShader, "proj_matrix"); nLocPhong =
+		 * gl.glGetUniformLocation(phongShader, "norm_matrix");
+		 * gl.glUniformMatrix4fv(projLocPhong, 1, false, pMat.get(vals));
+		 */
 		addToDisplay(gl, "coin", metalTex, coinObj);
 
 		mvStack.popMatrix(); // final pop
@@ -235,26 +248,26 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		lightPos[2] = currentLightPos.z();
 
 		// get the locations of the light and material fields in the shader
-		int globalAmbLoc = gl.glGetUniformLocation(phongShader, "globalAmbient");
-		int ambLoc = gl.glGetUniformLocation(phongShader, "light.ambient");
-		int diffLoc = gl.glGetUniformLocation(phongShader, "light.diffuse");
-		int specLoc = gl.glGetUniformLocation(phongShader, "light.specular");
-		int posLoc = gl.glGetUniformLocation(phongShader, "light.position");
-		int mambLoc = gl.glGetUniformLocation(phongShader, "material.ambient");
-		int mdiffLoc = gl.glGetUniformLocation(phongShader, "material.diffuse");
-		int mspecLoc = gl.glGetUniformLocation(phongShader, "material.specular");
-		int mshiLoc = gl.glGetUniformLocation(phongShader, "material.shininess");
+		int globalAmbLoc = gl.glGetUniformLocation(texShader, "globalAmbient");
+		int ambLoc = gl.glGetUniformLocation(texShader, "light.ambient");
+		int diffLoc = gl.glGetUniformLocation(texShader, "light.diffuse");
+		int specLoc = gl.glGetUniformLocation(texShader, "light.specular");
+		int posLoc = gl.glGetUniformLocation(texShader, "light.position");
+		int mambLoc = gl.glGetUniformLocation(texShader, "material.ambient");
+		int mdiffLoc = gl.glGetUniformLocation(texShader, "material.diffuse");
+		int mspecLoc = gl.glGetUniformLocation(texShader, "material.specular");
+		int mshiLoc = gl.glGetUniformLocation(texShader, "material.shininess");
 
 		// set the uniform light and material values in the shader
-		gl.glProgramUniform4fv(phongShader, globalAmbLoc, 1, globalAmbientLight.getAmbient(), 0);
-		gl.glProgramUniform4fv(phongShader, ambLoc, 1, mouseLight.getAmbient(), 0);
-		gl.glProgramUniform4fv(phongShader, diffLoc, 1, mouseLight.getDiffuse(), 0);
-		gl.glProgramUniform4fv(phongShader, specLoc, 1, mouseLight.getSpecular(), 0);
-		gl.glProgramUniform3fv(phongShader, posLoc, 1, lightPos, 0);
-		gl.glProgramUniform4fv(phongShader, mambLoc, 1, goldMat.getAmbient(), 0);
-		gl.glProgramUniform4fv(phongShader, mdiffLoc, 1, goldMat.getDiffuse(), 0);
-		gl.glProgramUniform4fv(phongShader, mspecLoc, 1, goldMat.getSpecular(), 0);
-		gl.glProgramUniform1f(phongShader, mshiLoc, goldMat.getShininess());
+		gl.glProgramUniform4fv(texShader, globalAmbLoc, 1, globalAmbientLight.getAmbient(), 0);
+		gl.glProgramUniform4fv(texShader, ambLoc, 1, mouseLight.getAmbient(), 0);
+		gl.glProgramUniform4fv(texShader, diffLoc, 1, mouseLight.getDiffuse(), 0);
+		gl.glProgramUniform4fv(texShader, specLoc, 1, mouseLight.getSpecular(), 0);
+		gl.glProgramUniform3fv(texShader, posLoc, 1, lightPos, 0);
+		gl.glProgramUniform4fv(texShader, mambLoc, 1, goldMat.getAmbient(), 0);
+		gl.glProgramUniform4fv(texShader, mdiffLoc, 1, goldMat.getDiffuse(), 0);
+		gl.glProgramUniform4fv(texShader, mspecLoc, 1, goldMat.getSpecular(), 0);
+		gl.glProgramUniform1f(texShader, mshiLoc, goldMat.getShininess());
 	}
 
 	private void addToDisplay(GL4 gl, String name, int texture, ImportedModel obj) {
@@ -295,7 +308,9 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		mouseLight = new PositionalLight();
 
 		// load assets
-		texShader = createShaderProgram("src/a3/texVertShader.glsl", "src/a3/texFragShader.glsl");
+		// texShader = createShaderProgram("src/a3/texVertShader.glsl",
+		// "src/a3/texFragShader.glsl");
+		texShader = createShaderProgram("src/a3/phongVertShader.glsl", "src/a3/phongFragShader.glsl");
 		axisShader = createShaderProgram("src/a3/axisVertShader.glsl", "src/a3/axisFragShader.glsl");
 		phongShader = createShaderProgram("src/a3/phongVertShader.glsl", "src/a3/phongFragShader.glsl");
 
