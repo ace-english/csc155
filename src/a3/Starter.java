@@ -62,13 +62,16 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private FloatBuffer vals = Buffers.newDirectFloatBuffer(16);
 	private Matrix4fStack mvStack = new Matrix4fStack(5);
 	private Matrix4f pMat = new Matrix4f();
-	private int mvLocTex, projLocTex, mvLocAxis, projLocAxis, mvLocPhong, projLocPhong;
+	private int mvLocTex, projLocTex, nLocTex, mvLocAxis, projLocAxis, mvLocPhong, projLocPhong, nLocPhong;
 	private float aspect;
 	private double tf;
 	private boolean showAxes;
+	private Vector3f initialLightLoc = new Vector3f(5.0f, 2.0f, 2.0f);
 
 	private ImportedModel tableObj, scrollObj, bagObj, keyObj, coinObj, bookObj;
 	private int woodTex, scrollTex, burlapTex, metalTex;
+	private Material goldMat, pewterMat;
+	private Light globalAmbientLight, mouseLight;
 	private Dictionary<String, Integer> vboDict;
 
 	public Starter() {
@@ -165,15 +168,21 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		mvLocTex = gl.glGetUniformLocation(texShader, "mv_matrix");
 		projLocTex = gl.glGetUniformLocation(texShader, "proj_matrix");
+		nLocTex = gl.glGetUniformLocation(texShader, "norm_matrix");
 
 		aspect = (float) myCanvas.getWidth() / (float) myCanvas.getHeight();
 		pMat.identity().setPerspective((float) Math.toRadians(60.0f), aspect, 0.1f, 1000.0f);
 		gl.glUniformMatrix4fv(projLocTex, 1, false, pMat.get(vals));
 
+		// set up lights
+
 		// push view matrix onto the stack
 		mvStack.pushMatrix();
 		mvStack.lookAlong(camera.getN(), camera.getV());
 		mvStack.translate(new Vector3f(camera.getLocation()).negate());
+
+		currentLightPos.set(initialLightLoc);
+		installLights(mvStack.popMatrix());
 
 		tf = elapsedTime / 1000.0; // time factor
 
@@ -203,8 +212,49 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		addToDisplay(gl, "bag", burlapTex, bagObj);
 		addToDisplay(gl, "scroll", scrollTex, scrollObj);
 
+		// use phong shader
+
+		gl.glUseProgram(phongShader);
+		mvLocPhong = gl.glGetUniformLocation(phongShader, "mv_matrix");
+		projLocPhong = gl.glGetUniformLocation(phongShader, "proj_matrix");
+		nLocPhong = gl.glGetUniformLocation(phongShader, "norm_matrix");
+		gl.glUniformMatrix4fv(projLocPhong, 1, false, pMat.get(vals));
+
+		addToDisplay(gl, "coin", metalTex, coinObj);
+
 		mvStack.popMatrix(); // final pop
 
+	}
+
+	private void installLights(Matrix4f vMatrix) {
+		GL4 gl = (GL4) GLContext.getCurrentGL();
+
+		currentLightPos.mulPosition(vMatrix);
+		lightPos[0] = currentLightPos.x();
+		lightPos[1] = currentLightPos.y();
+		lightPos[2] = currentLightPos.z();
+
+		// get the locations of the light and material fields in the shader
+		int globalAmbLoc = gl.glGetUniformLocation(phongShader, "globalAmbient");
+		int ambLoc = gl.glGetUniformLocation(phongShader, "light.ambient");
+		int diffLoc = gl.glGetUniformLocation(phongShader, "light.diffuse");
+		int specLoc = gl.glGetUniformLocation(phongShader, "light.specular");
+		int posLoc = gl.glGetUniformLocation(phongShader, "light.position");
+		int mambLoc = gl.glGetUniformLocation(phongShader, "material.ambient");
+		int mdiffLoc = gl.glGetUniformLocation(phongShader, "material.diffuse");
+		int mspecLoc = gl.glGetUniformLocation(phongShader, "material.specular");
+		int mshiLoc = gl.glGetUniformLocation(phongShader, "material.shininess");
+
+		// set the uniform light and material values in the shader
+		gl.glProgramUniform4fv(phongShader, globalAmbLoc, 1, globalAmbientLight.getAmbient(), 0);
+		gl.glProgramUniform4fv(phongShader, ambLoc, 1, mouseLight.getAmbient(), 0);
+		gl.glProgramUniform4fv(phongShader, diffLoc, 1, mouseLight.getDiffuse(), 0);
+		gl.glProgramUniform4fv(phongShader, specLoc, 1, mouseLight.getSpecular(), 0);
+		gl.glProgramUniform3fv(phongShader, posLoc, 1, lightPos, 0);
+		gl.glProgramUniform4fv(phongShader, mambLoc, 1, goldMat.getAmbient(), 0);
+		gl.glProgramUniform4fv(phongShader, mdiffLoc, 1, goldMat.getDiffuse(), 0);
+		gl.glProgramUniform4fv(phongShader, mspecLoc, 1, goldMat.getSpecular(), 0);
+		gl.glProgramUniform1f(phongShader, mshiLoc, goldMat.getShininess());
 	}
 
 	private void addToDisplay(GL4 gl, String name, int texture, ImportedModel obj) {
@@ -233,6 +283,16 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		vboDict = new Hashtable<String, Integer>();
 		camera = new Camera();
 		showAxes = false;
+
+		goldMat = new Material(new float[] { 0.24725f, 0.1995f, 0.0745f, 1.0f },
+				new float[] { 0.75164f, 0.60648f, 0.22648f, 1.0f }, new float[] { 0.62828f, 0.5558f, 0.36607f, 1.0f },
+				51.2f);
+
+		pewterMat = new Material(new float[] { .11f, .06f, .11f, 1.0f }, new float[] { .43f, .47f, .54f, 1.0f },
+				new float[] { .33f, .33f, .52f, 1.0f }, 9.85f);
+
+		globalAmbientLight = new GlobalAmbientLight();
+		mouseLight = new PositionalLight();
 
 		// load assets
 		texShader = createShaderProgram("src/a3/texVertShader.glsl", "src/a3/texFragShader.glsl");
