@@ -197,17 +197,16 @@ public class Starter extends JFrame implements GLEventListener, KeyListener, Mou
 		pMat.identity().setPerspective((float) Math.toRadians(60.0f), aspect, 0.1f, 1000.0f);
 		gl.glUniformMatrix4fv(projLocTex, 1, false, pMat.get(vals));
 
-		// set up lights
+		gl.glUseProgram(phongShader);
+		mvLocPhong = gl.glGetUniformLocation(phongShader, "mv_matrix");
+		projLocPhong = gl.glGetUniformLocation(phongShader, "proj_matrix");
+		nLocPhong = gl.glGetUniformLocation(phongShader, "norm_matrix");
+		gl.glUniformMatrix4fv(projLocPhong, 1, false, pMat.get(vals));
 
 		// push view matrix onto the stack
 		mvStack.pushMatrix();
 		mvStack.lookAlong(camera.getN(), camera.getV());
 		mvStack.translate(new Vector3f(camera.getLocation()).negate());
-		// currentLightPos.set(initialLightLoc);
-		if (showLight) {
-			mvStack.pushMatrix();
-			installLights(mvStack.popMatrix());
-		}
 
 		tf = elapsedTime / 1000.0; // time factor
 
@@ -224,7 +223,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener, Mou
 			gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("axisPositions")]);
 			gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
 			gl.glEnableVertexAttribArray(0);
-			gl.glDrawArrays(GL_LINES, 0, 287);
+			gl.glDrawArrays(GL_LINES, 0, 6);
 			mvStack.popMatrix(); // print axes
 		}
 
@@ -237,21 +236,26 @@ public class Starter extends JFrame implements GLEventListener, KeyListener, Mou
 		addToDisplay(gl, "scroll", scrollTex, scrollObj);
 
 		// use phong shader
-		/*
-		 * gl.glUseProgram(phongShader); mvLocPhong =
-		 * gl.glGetUniformLocation(phongShader, "mv_matrix"); projLocPhong =
-		 * gl.glGetUniformLocation(phongShader, "proj_matrix"); nLocPhong =
-		 * gl.glGetUniformLocation(phongShader, "norm_matrix");
-		 * gl.glUniformMatrix4fv(projLocPhong, 1, false, pMat.get(vals));
-		 */
+		gl.glUseProgram(phongShader);
 		addToDisplay(gl, "coin", metalTex, coinObj);
-		addToDisplay(gl, "light", metalTex, lightObj);
 
 		mvStack.popMatrix(); // final pop
+
+		// create light as child of camera
+		if (showLight) {
+			gl.glUseProgram(texShader);
+			mvStack.pushMatrix();
+			mvStack.translate(0f, 0f, -2.0f);
+			mvStack.scale(.01f, .01f, .01f);
+			addToDisplay(gl, "light", metalTex, lightObj);
+			mvStack.popMatrix();
+			// installLights(mvStack.popMatrix());
+		}
 
 	}
 
 	private void installLights(Matrix4f vMatrix) {
+		System.out.println("installing light at " + vMatrix);
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 		Vector3f currentLightPos = mouseLight.getPosition();
 		currentLightPos.mulPosition(vMatrix);
@@ -261,26 +265,26 @@ public class Starter extends JFrame implements GLEventListener, KeyListener, Mou
 		lightPos[2] = currentLightPos.z();
 
 		// get the locations of the light and material fields in the shader
-		int globalAmbLoc = gl.glGetUniformLocation(texShader, "globalAmbient");
-		int ambLoc = gl.glGetUniformLocation(texShader, "light.ambient");
-		int diffLoc = gl.glGetUniformLocation(texShader, "light.diffuse");
-		int specLoc = gl.glGetUniformLocation(texShader, "light.specular");
-		int posLoc = gl.glGetUniformLocation(texShader, "light.position");
-		int mambLoc = gl.glGetUniformLocation(texShader, "material.ambient");
-		int mdiffLoc = gl.glGetUniformLocation(texShader, "material.diffuse");
-		int mspecLoc = gl.glGetUniformLocation(texShader, "material.specular");
-		int mshiLoc = gl.glGetUniformLocation(texShader, "material.shininess");
+		int globalAmbLoc = gl.glGetUniformLocation(phongShader, "globalAmbient");
+		int ambLoc = gl.glGetUniformLocation(phongShader, "light.ambient");
+		int diffLoc = gl.glGetUniformLocation(phongShader, "light.diffuse");
+		int specLoc = gl.glGetUniformLocation(phongShader, "light.specular");
+		int posLoc = gl.glGetUniformLocation(phongShader, "light.position");
+		int mambLoc = gl.glGetUniformLocation(phongShader, "material.ambient");
+		int mdiffLoc = gl.glGetUniformLocation(phongShader, "material.diffuse");
+		int mspecLoc = gl.glGetUniformLocation(phongShader, "material.specular");
+		int mshiLoc = gl.glGetUniformLocation(phongShader, "material.shininess");
 
 		// set the uniform light and material values in the shader
-		gl.glProgramUniform4fv(texShader, globalAmbLoc, 1, globalAmbientLight.getAmbient(), 0);
-		gl.glProgramUniform4fv(texShader, ambLoc, 1, mouseLight.getAmbient(), 0);
-		gl.glProgramUniform4fv(texShader, diffLoc, 1, mouseLight.getDiffuse(), 0);
-		gl.glProgramUniform4fv(texShader, specLoc, 1, mouseLight.getSpecular(), 0);
-		gl.glProgramUniform3fv(texShader, posLoc, 1, lightPos, 0);
-		gl.glProgramUniform4fv(texShader, mambLoc, 1, goldMat.getAmbient(), 0);
-		gl.glProgramUniform4fv(texShader, mdiffLoc, 1, goldMat.getDiffuse(), 0);
-		gl.glProgramUniform4fv(texShader, mspecLoc, 1, goldMat.getSpecular(), 0);
-		gl.glProgramUniform1f(texShader, mshiLoc, goldMat.getShininess());
+		gl.glProgramUniform4fv(phongShader, globalAmbLoc, 1, globalAmbientLight.getAmbient(), 0);
+		gl.glProgramUniform4fv(phongShader, ambLoc, 1, mouseLight.getAmbient(), 0);
+		gl.glProgramUniform4fv(phongShader, diffLoc, 1, mouseLight.getDiffuse(), 0);
+		gl.glProgramUniform4fv(phongShader, specLoc, 1, mouseLight.getSpecular(), 0);
+		gl.glProgramUniform3fv(phongShader, posLoc, 1, lightPos, 0);
+		gl.glProgramUniform4fv(phongShader, mambLoc, 1, goldMat.getAmbient(), 0);
+		gl.glProgramUniform4fv(phongShader, mdiffLoc, 1, goldMat.getDiffuse(), 0);
+		gl.glProgramUniform4fv(phongShader, mspecLoc, 1, goldMat.getSpecular(), 0);
+		gl.glProgramUniform1f(phongShader, mshiLoc, goldMat.getShininess());
 	}
 
 	private void addToDisplay(GL4 gl, String name, int texture, WorldObject obj) {
@@ -323,9 +327,9 @@ public class Starter extends JFrame implements GLEventListener, KeyListener, Mou
 				new float[] { 1.0f, 1.0f, 1.0f, 1.0f }, new Vector3f(5.0f, 2.0f, 2.0f));
 
 		// load assets
-		// texShader = createShaderProgram("src/a3/texVertShader.glsl",
-		// "src/a3/texFragShader.glsl");
-		texShader = createShaderProgram("src/a3/phongVertShader.glsl", "src/a3/phongFragShader.glsl");
+		texShader = createShaderProgram("src/a3/texVertShader.glsl", "src/a3/texFragShader.glsl");
+		// texShader = createShaderProgram("src/a3/phongVertShader.glsl",
+		// "src/a3/phongFragShader.glsl");
 		axisShader = createShaderProgram("src/a3/axisVertShader.glsl", "src/a3/axisFragShader.glsl");
 		phongShader = createShaderProgram("src/a3/phongVertShader.glsl", "src/a3/phongFragShader.glsl");
 

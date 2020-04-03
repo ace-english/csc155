@@ -85,6 +85,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		Animator animator = new Animator(myCanvas);
 		animator.start();
 		this.addKeyListener(this);
+		myCanvas.addKeyListener(this);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 	}
@@ -176,9 +177,8 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		// System.out.println(mvStack);
 		// get UVM from camera
 
-		tf = elapsedTime / 1000.0; // time factor
-
 		mvStack.pushMatrix();
+		tf = elapsedTime / 1000.0; // time factor
 
 		gl.glUseProgram(axisShader);
 		mvLocAxis = gl.glGetUniformLocation(axisShader, "mv_matrix");
