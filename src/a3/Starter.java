@@ -24,9 +24,9 @@ import static com.jogamp.opengl.GL3ES3.GL_TESS_EVALUATION_SHADER;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
 import java.io.File;
 import java.io.IOException;
 import java.nio.FloatBuffer;
@@ -52,7 +52,7 @@ import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureIO;
 
-public class Starter extends JFrame implements GLEventListener, KeyListener, MouseMotionListener, MouseWheelListener {
+public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private GLCanvas myCanvas;
 	private double startTime = 0.0;
 	private double elapsedTime;
@@ -67,6 +67,8 @@ public class Starter extends JFrame implements GLEventListener, KeyListener, Mou
 	private float aspect;
 	private double tf;
 	private boolean showAxes, showLight;
+	private Vector3f relLightPos;
+	private int[] mouseDragCurrent;
 
 	private ImportedModel tableObj, scrollObj, bagObj, keyObj, coinObj, bookObj;
 	private Sphere lightObj;
@@ -75,6 +77,31 @@ public class Starter extends JFrame implements GLEventListener, KeyListener, Mou
 	private Light globalAmbientLight;
 	private PositionalLight mouseLight;
 	private Dictionary<String, Integer> vboDict;
+
+	MouseAdapter myMouseAdapter = new MouseAdapter() {
+
+		@Override
+		public void mousePressed(MouseEvent event) {
+			mouseDragCurrent = new int[] { event.getX(), event.getY() };
+			System.out.printf("initial: (%d,%d)\n", mouseDragCurrent[0], mouseDragCurrent[1]);
+		}
+
+		@Override
+		public void mouseDragged(MouseEvent event) {
+			System.out.println("mouseDragged: (" + event.getX() + "," + event.getY() + ")");
+			float[] vector = new float[] { event.getX() - mouseDragCurrent[0], event.getY() - mouseDragCurrent[1] };
+			System.out.printf("dragging: (%f,%f)\n", vector[0], vector[1]);
+			relLightPos.add(vector[0] * .0003f, vector[1] * -.0003f, 0f);
+		}
+
+		@Override
+		public void mouseWheelMoved(MouseWheelEvent event) {
+			System.out.println("scroll: " + event.getWheelRotation());
+			relLightPos.add(0f, 0f, event.getWheelRotation() * -.03f);
+
+		}
+
+	};
 
 	public Starter() {
 		setTitle("Assignment 3");
@@ -87,10 +114,12 @@ public class Starter extends JFrame implements GLEventListener, KeyListener, Mou
 		animator.start();
 		this.addKeyListener(this);
 		myCanvas.addKeyListener(this);
-		this.addMouseMotionListener(this);
-		myCanvas.addMouseMotionListener(this);
-		this.addMouseWheelListener(this);
-		myCanvas.addMouseWheelListener(this);
+		this.addMouseListener(myMouseAdapter);
+		myCanvas.addMouseListener(myMouseAdapter);
+		this.addMouseMotionListener(myMouseAdapter);
+		myCanvas.addMouseMotionListener(myMouseAdapter);
+		this.addMouseWheelListener(myMouseAdapter);
+		myCanvas.addMouseWheelListener(myMouseAdapter);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 	}
@@ -139,6 +168,9 @@ public class Starter extends JFrame implements GLEventListener, KeyListener, Mou
 		case KeyEvent.VK_L:
 			toggleLight();
 			break;
+		case KeyEvent.VK_NUMPAD0:
+			resetLight();
+			break;
 
 		}
 
@@ -154,23 +186,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener, Mou
 
 	}
 
-	@Override
-	public void mouseDragged(java.awt.event.MouseEvent event) {
-		System.out.println("mouseDragged: (" + event.getX() + "," + event.getY() + ")");
-
-	}
-
-	@Override
-	public void mouseMoved(java.awt.event.MouseEvent event) {
-
-	}
-
-	@Override
-	public void mouseWheelMoved(MouseWheelEvent event) {
-		System.out.println("scroll: " + event.getWheelRotation());
-
-	}
-
 	private void toggleAxes() {
 		showAxes = !showAxes;
 
@@ -178,6 +193,11 @@ public class Starter extends JFrame implements GLEventListener, KeyListener, Mou
 
 	private void toggleLight() {
 		showLight = !showLight;
+
+	}
+
+	private void resetLight() {
+		relLightPos = new Vector3f(0f, 1f, -2.5f);
 
 	}
 
@@ -245,7 +265,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener, Mou
 		if (showLight) {
 			gl.glUseProgram(texShader);
 			mvStack.pushMatrix();
-			mvStack.translate(0f, 0f, -2.0f);
+			mvStack.translate(relLightPos);
 			mvStack.scale(.01f, .01f, .01f);
 			addToDisplay(gl, "light", metalTex, lightObj);
 			mvStack.popMatrix();
@@ -314,6 +334,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener, Mou
 		camera = new Camera();
 		showAxes = false;
 		showLight = true;
+		resetLight();
 
 		goldMat = new Material(new float[] { 0.24725f, 0.1995f, 0.0745f, 1.0f },
 				new float[] { 0.75164f, 0.60648f, 0.22648f, 1.0f }, new float[] { 0.62828f, 0.5558f, 0.36607f, 1.0f },
@@ -540,4 +561,5 @@ public class Starter extends JFrame implements GLEventListener, KeyListener, Mou
 		}
 		return finalTextureRef;
 	}
+
 }
