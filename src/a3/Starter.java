@@ -63,11 +63,12 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private FloatBuffer vals = Buffers.newDirectFloatBuffer(16);
 	private Matrix4fStack mvStack = new Matrix4fStack(5);
 	private Matrix4f pMat = new Matrix4f();
+	private Matrix4f invTr = new Matrix4f();
+	private Matrix4f mv = new Matrix4f();
 	private int mvLocTex, projLocTex, nLocTex, mvLocAxis, projLocAxis, mvLocPhong, projLocPhong, nLocPhong;
 	private float aspect;
 	private double tf;
 	private boolean showAxes, showLight;
-	private Vector3f relLightPos;
 	private int[] mouseDragCurrent;
 
 	private ImportedModel tableObj, scrollObj, bagObj, keyObj, coinObj, bookObj;
@@ -91,13 +92,13 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 			System.out.println("mouseDragged: (" + event.getX() + "," + event.getY() + ")");
 			float[] vector = new float[] { event.getX() - mouseDragCurrent[0], event.getY() - mouseDragCurrent[1] };
 			System.out.printf("dragging: (%f,%f)\n", vector[0], vector[1]);
-			relLightPos.add(vector[0] * .0003f, vector[1] * -.0003f, 0f);
+			mouseLight.getPosition().add(vector[0] * .0003f, vector[1] * -.0003f, 0f);
 		}
 
 		@Override
 		public void mouseWheelMoved(MouseWheelEvent event) {
 			System.out.println("scroll: " + event.getWheelRotation());
-			relLightPos.add(0f, 0f, event.getWheelRotation() * -.03f);
+			mouseLight.getPosition().add(0f, 0f, event.getWheelRotation() * -.03f);
 
 		}
 
@@ -197,7 +198,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	}
 
 	private void resetLight() {
-		relLightPos = new Vector3f(0f, 1f, -2.5f);
+		mouseLight.setPosition(new Vector3f(0f, 1f, -2.5f));
 
 	}
 
@@ -207,6 +208,16 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glClear(GL_DEPTH_BUFFER_BIT);
 		elapsedTime = System.currentTimeMillis() - startTime;
 
+		// push view matrix onto the stack
+		mvStack.pushMatrix();
+		mvStack.lookAlong(camera.getN(), camera.getV());
+		mvStack.translate(new Vector3f(camera.getLocation()).negate());
+
+		mv = new Matrix4f();
+		mv = mv.mul(mvStack);
+		mv.invert(invTr);
+		invTr.transpose(invTr);
+
 		gl.glUseProgram(texShader);
 
 		mvLocTex = gl.glGetUniformLocation(texShader, "mv_matrix");
@@ -215,27 +226,18 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		aspect = (float) myCanvas.getWidth() / (float) myCanvas.getHeight();
 		pMat.identity().setPerspective((float) Math.toRadians(60.0f), aspect, 0.1f, 1000.0f);
+		gl.glUniformMatrix4fv(mvLocTex, 1, false, mv.get(vals));
 		gl.glUniformMatrix4fv(projLocTex, 1, false, pMat.get(vals));
+		gl.glUniformMatrix4fv(nLocTex, 1, false, invTr.get(vals));
 
 		gl.glUseProgram(phongShader);
 		mvLocPhong = gl.glGetUniformLocation(phongShader, "mv_matrix");
 		projLocPhong = gl.glGetUniformLocation(phongShader, "proj_matrix");
 		nLocPhong = gl.glGetUniformLocation(phongShader, "norm_matrix");
-		gl.glUniformMatrix4fv(projLocPhong, 1, false, pMat.get(vals));
-
-		// push view matrix onto the stack
-		mvStack.pushMatrix();
-		mvStack.lookAlong(camera.getN(), camera.getV());
-		mvStack.translate(new Vector3f(camera.getLocation()).negate());
-
-		Matrix4f mv = new Matrix4f();
-		mv = mv.mul(mvStack);
-		Matrix4f inverse = new Matrix4f(mv);
-		inverse.invert();
 
 		gl.glUniformMatrix4fv(mvLocPhong, 1, false, mv.get(vals));
 		gl.glUniformMatrix4fv(projLocPhong, 1, false, pMat.get(vals));
-		gl.glUniformMatrix4fv(nLocPhong, 1, false, inverse.get(vals));
+		gl.glUniformMatrix4fv(nLocPhong, 1, false, invTr.get(vals));
 
 		tf = elapsedTime / 1000.0; // time factor
 
@@ -274,7 +276,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		if (showLight) {
 			gl.glUseProgram(texShader);
 			mvStack.pushMatrix();
-			mvStack.translate(relLightPos);
+			mvStack.translate(mouseLight.getPosition());
 			mvStack.scale(.01f, .01f, .01f);
 			addToDisplay(gl, "light", metalTex, lightObj);
 			mvStack.popMatrix();
@@ -286,9 +288,8 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	}
 
 	private void installLights(Matrix4f vMatrix) {
-		System.out.println("installing light at " + vMatrix);
 		GL4 gl = (GL4) GLContext.getCurrentGL();
-		Vector3f currentLightPos = mouseLight.getPosition();
+		Vector3f currentLightPos = new Vector3f(mouseLight.getPosition());
 		currentLightPos.mulPosition(vMatrix);
 		float[] lightPos = new float[3];
 		lightPos[0] = currentLightPos.x();
@@ -379,7 +380,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		camera = new Camera();
 		showAxes = false;
 		showLight = true;
-		resetLight();
 
 		goldMat = new Material(new float[] { 0.24725f, 0.1995f, 0.0745f, 1.0f },
 				new float[] { 0.75164f, 0.60648f, 0.22648f, 1.0f }, new float[] { 0.62828f, 0.5558f, 0.36607f, 1.0f },
@@ -391,6 +391,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		globalAmbientLight = new GlobalAmbientLight();
 		mouseLight = new PositionalLight(new float[] { 0.1f, 0.1f, 0.1f, 1.0f }, new float[] { 1.0f, 1.0f, 1.0f, 1.0f },
 				new float[] { 1.0f, 1.0f, 1.0f, 1.0f }, new Vector3f(5.0f, 2.0f, 2.0f));
+		resetLight();
 
 		// load assets
 		texShader = createShaderProgram("src/a3/texVertShader.glsl", "src/a3/texFragShader.glsl");
@@ -429,7 +430,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		addToVbo(gl, keyObj, "key");
 		addToVbo(gl, bagObj, "bag");
 		addToVbo(gl, coinObj, "coin");
-		// addToVbo(gl, lightObj, "light");
 
 		int numSphereVerts = lightObj.getIndices().length;
 
