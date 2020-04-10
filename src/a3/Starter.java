@@ -228,6 +228,15 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		mvStack.lookAlong(camera.getN(), camera.getV());
 		mvStack.translate(new Vector3f(camera.getLocation()).negate());
 
+		Matrix4f mv = new Matrix4f();
+		mv = mv.mul(mvStack);
+		Matrix4f inverse = new Matrix4f(mv);
+		inverse.invert();
+
+		gl.glUniformMatrix4fv(mvLocPhong, 1, false, mv.get(vals));
+		gl.glUniformMatrix4fv(projLocPhong, 1, false, pMat.get(vals));
+		gl.glUniformMatrix4fv(nLocPhong, 1, false, inverse.get(vals));
+
 		tf = elapsedTime / 1000.0; // time factor
 
 		// ---------------------- axis
@@ -251,13 +260,13 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glUseProgram(texShader);
 
 		addToDisplay(gl, "table", woodTex, tableObj);
-		addToDisplay(gl, "key", metalTex, keyObj);
 		addToDisplay(gl, "bag", burlapTex, bagObj);
 		addToDisplay(gl, "scroll", scrollTex, scrollObj);
 
 		// use phong shader
 		gl.glUseProgram(phongShader);
 		addToDisplay(gl, "coin", metalTex, coinObj);
+		addToDisplay(gl, "key", metalTex, keyObj);
 
 		mvStack.popMatrix(); // final pop
 
@@ -269,7 +278,9 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 			mvStack.scale(.01f, .01f, .01f);
 			addToDisplay(gl, "light", metalTex, lightObj);
 			mvStack.popMatrix();
-			// installLights(mvStack.popMatrix());
+			installLights(mv);
+		} else {
+			uninstallLights(mv);
 		}
 
 	}
@@ -297,9 +308,43 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		// set the uniform light and material values in the shader
 		gl.glProgramUniform4fv(phongShader, globalAmbLoc, 1, globalAmbientLight.getAmbient(), 0);
-		gl.glProgramUniform4fv(phongShader, ambLoc, 1, mouseLight.getAmbient(), 0);
-		gl.glProgramUniform4fv(phongShader, diffLoc, 1, mouseLight.getDiffuse(), 0);
-		gl.glProgramUniform4fv(phongShader, specLoc, 1, mouseLight.getSpecular(), 0);
+		if (showLight) {
+			gl.glProgramUniform4fv(phongShader, ambLoc, 1, mouseLight.getAmbient(), 0);
+			gl.glProgramUniform4fv(phongShader, diffLoc, 1, mouseLight.getDiffuse(), 0);
+			gl.glProgramUniform4fv(phongShader, specLoc, 1, mouseLight.getSpecular(), 0);
+		}
+		gl.glProgramUniform3fv(phongShader, posLoc, 1, lightPos, 0);
+		gl.glProgramUniform4fv(phongShader, mambLoc, 1, goldMat.getAmbient(), 0);
+		gl.glProgramUniform4fv(phongShader, mdiffLoc, 1, goldMat.getDiffuse(), 0);
+		gl.glProgramUniform4fv(phongShader, mspecLoc, 1, goldMat.getSpecular(), 0);
+		gl.glProgramUniform1f(phongShader, mshiLoc, goldMat.getShininess());
+	}
+
+	private void uninstallLights(Matrix4f vMatrix) {
+		GL4 gl = (GL4) GLContext.getCurrentGL();
+		Vector3f currentLightPos = mouseLight.getPosition();
+		currentLightPos.mulPosition(vMatrix);
+		float[] lightPos = new float[3];
+		lightPos[0] = currentLightPos.x();
+		lightPos[1] = currentLightPos.y();
+		lightPos[2] = currentLightPos.z();
+
+		// get the locations of the light and material fields in the shader
+		int globalAmbLoc = gl.glGetUniformLocation(phongShader, "globalAmbient");
+		int ambLoc = gl.glGetUniformLocation(phongShader, "light.ambient");
+		int diffLoc = gl.glGetUniformLocation(phongShader, "light.diffuse");
+		int specLoc = gl.glGetUniformLocation(phongShader, "light.specular");
+		int posLoc = gl.glGetUniformLocation(phongShader, "light.position");
+		int mambLoc = gl.glGetUniformLocation(phongShader, "material.ambient");
+		int mdiffLoc = gl.glGetUniformLocation(phongShader, "material.diffuse");
+		int mspecLoc = gl.glGetUniformLocation(phongShader, "material.specular");
+		int mshiLoc = gl.glGetUniformLocation(phongShader, "material.shininess");
+
+		// set the uniform light and material values in the shader
+		gl.glProgramUniform4fv(phongShader, globalAmbLoc, 1, globalAmbientLight.getAmbient(), 0);
+		gl.glProgramUniform4fv(phongShader, ambLoc, 1, new float[] { 0f, 0f, 0f }, 0);
+		gl.glProgramUniform4fv(phongShader, diffLoc, 1, new float[] { 0f, 0f, 0f }, 0);
+		gl.glProgramUniform4fv(phongShader, specLoc, 1, new float[] { 0f, 0f, 0f }, 0);
 		gl.glProgramUniform3fv(phongShader, posLoc, 1, lightPos, 0);
 		gl.glProgramUniform4fv(phongShader, mambLoc, 1, goldMat.getAmbient(), 0);
 		gl.glProgramUniform4fv(phongShader, mdiffLoc, 1, goldMat.getDiffuse(), 0);
