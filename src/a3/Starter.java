@@ -62,21 +62,18 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private Camera camera;
 	private FloatBuffer vals = Buffers.newDirectFloatBuffer(16);
 	private Matrix4fStack mvStack = new Matrix4fStack(5);
-	private Matrix4f pMat = new Matrix4f(); // perspective matrix
-	private Matrix4f vMat = new Matrix4f(); // view matrix
-	private Matrix4f mMat = new Matrix4f(); // model matrix
-	private Matrix4f mvMat = new Matrix4f(); // model-view matrix
-	private Matrix4f invTrMat = new Matrix4f(); // inverse-transpose
+	private Matrix4f pMat = new Matrix4f();
 	private int mvLocTex, projLocTex, nLocTex, mvLocAxis, projLocAxis, mvLocPhong, projLocPhong, nLocPhong;
 	private float aspect;
 	private double tf;
 	private boolean showAxes, showLight;
+	private Vector3f relLightPos;
 	private int[] mouseDragCurrent;
 
-	private ImportedModel tableObj, scrollObj, bagObj, keyObj, coinObj, bookCoverObj, bookPagesObj;
+	private ImportedModel tableObj, scrollObj, bagObj, keyObj, coinObj, bookObj;
 	private Sphere lightObj;
 	private int woodTex, scrollTex, burlapTex, metalTex;
-	private Material goldMat, pewterMat, currentMat;
+	private Material goldMat, pewterMat;
 	private Light globalAmbientLight;
 	private PositionalLight mouseLight;
 	private Dictionary<String, Integer> vboDict;
@@ -94,13 +91,13 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 			System.out.println("mouseDragged: (" + event.getX() + "," + event.getY() + ")");
 			float[] vector = new float[] { event.getX() - mouseDragCurrent[0], event.getY() - mouseDragCurrent[1] };
 			System.out.printf("dragging: (%f,%f)\n", vector[0], vector[1]);
-			mouseLight.setPosition(mouseLight.getPosition().add(vector[0] * .0003f, vector[1] * -.0003f, 0f));
+			relLightPos.add(vector[0] * .0003f, vector[1] * -.0003f, 0f);
 		}
 
 		@Override
 		public void mouseWheelMoved(MouseWheelEvent event) {
 			System.out.println("scroll: " + event.getWheelRotation());
-			mouseLight.setPosition(mouseLight.getPosition().add(0f, 0f, event.getWheelRotation() * -.03f));
+			relLightPos.add(0f, 0f, event.getWheelRotation() * -.03f);
 
 		}
 
@@ -200,8 +197,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	}
 
 	private void resetLight() {
-		System.out.println("resetti");
-		mouseLight.setPosition(new Vector3f(0f, 1f, -2.5f));
+		relLightPos = new Vector3f(0f, 1f, -2.5f);
 
 	}
 
@@ -225,25 +221,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		mvLocPhong = gl.glGetUniformLocation(phongShader, "mv_matrix");
 		projLocPhong = gl.glGetUniformLocation(phongShader, "proj_matrix");
 		nLocPhong = gl.glGetUniformLocation(phongShader, "norm_matrix");
-
-		vMat.identity().setTranslation(-camera.getLocation().x(), -camera.getLocation().y(), -camera.getLocation().z());
-
-		mMat.identity();
-		// installLights(vMat);
-
-		System.out.printf("mouselight: (%.1f,%.1f,%.1f)\n", mouseLight.getPosition().x(), mouseLight.getPosition().y(),
-				mouseLight.getPosition().z());
-
-		mvMat.identity();
-		mvMat.mul(vMat);
-		mvMat.mul(mMat);
-
-		mvMat.invert(invTrMat);
-		invTrMat.transpose(invTrMat);
-
-		gl.glUniformMatrix4fv(mvLocPhong, 1, false, mvMat.get(vals));
 		gl.glUniformMatrix4fv(projLocPhong, 1, false, pMat.get(vals));
-		gl.glUniformMatrix4fv(nLocPhong, 1, false, invTrMat.get(vals));
 
 		// push view matrix onto the stack
 		mvStack.pushMatrix();
@@ -270,42 +248,36 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		}
 
 		// use texture shader
-		gl.glUseProgram(phongShader);
+		gl.glUseProgram(texShader);
 
-		currentMat = pewterMat;
 		addToDisplay(gl, "table", woodTex, tableObj);
-		currentMat = goldMat;
 		addToDisplay(gl, "key", metalTex, keyObj);
 		addToDisplay(gl, "bag", burlapTex, bagObj);
-		currentMat = pewterMat;
-		// addToDisplay(gl, "scroll", scrollTex, scrollObj);
-		// addToDisplay(gl, "book_pages", scrollTex, bookPagesObj);
-		// addToDisplay(gl, "book_cover", burlapTex, bookCoverObj);
+		addToDisplay(gl, "scroll", scrollTex, scrollObj);
 
 		// use phong shader
-		// gl.glUseProgram(phongShader);
-		currentMat = goldMat;
+		gl.glUseProgram(phongShader);
 		addToDisplay(gl, "coin", metalTex, coinObj);
 
 		mvStack.popMatrix(); // final pop
 
 		// create light as child of camera
 		if (showLight) {
-			gl.glUseProgram(phongShader);
-			addToDisplay(gl, "light", metalTex, lightObj);
-			mvStack.translate(mouseLight.getPosition());
-			mvStack.scale(.01f, .01f, .01f);
+			gl.glUseProgram(texShader);
 			mvStack.pushMatrix();
-			installLights(mvStack.popMatrix());
-		} else {
-			uninstallLights(vMat);
+			mvStack.translate(relLightPos);
+			mvStack.scale(.01f, .01f, .01f);
+			addToDisplay(gl, "light", metalTex, lightObj);
+			mvStack.popMatrix();
+			// installLights(mvStack.popMatrix());
 		}
 
 	}
 
 	private void installLights(Matrix4f vMatrix) {
+		System.out.println("installing light at " + vMatrix);
 		GL4 gl = (GL4) GLContext.getCurrentGL();
-		Vector3f currentLightPos = new Vector3f(mouseLight.getPosition());
+		Vector3f currentLightPos = mouseLight.getPosition();
 		currentLightPos.mulPosition(vMatrix);
 		float[] lightPos = new float[3];
 		lightPos[0] = currentLightPos.x();
@@ -329,42 +301,10 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glProgramUniform4fv(phongShader, diffLoc, 1, mouseLight.getDiffuse(), 0);
 		gl.glProgramUniform4fv(phongShader, specLoc, 1, mouseLight.getSpecular(), 0);
 		gl.glProgramUniform3fv(phongShader, posLoc, 1, lightPos, 0);
-		gl.glProgramUniform4fv(phongShader, mambLoc, 1, currentMat.getAmbient(), 0);
-		gl.glProgramUniform4fv(phongShader, mdiffLoc, 1, currentMat.getDiffuse(), 0);
-		gl.glProgramUniform4fv(phongShader, mspecLoc, 1, currentMat.getSpecular(), 0);
-		gl.glProgramUniform1f(phongShader, mshiLoc, currentMat.getShininess());
-	}
-
-	private void uninstallLights(Matrix4f vMatrix) {
-		GL4 gl = (GL4) GLContext.getCurrentGL();
-		Vector3f currentLightPos = new Vector3f(mouseLight.getPosition());
-		currentLightPos.mulPosition(vMatrix);
-		float[] lightPos = new float[3];
-		lightPos[0] = currentLightPos.x();
-		lightPos[1] = currentLightPos.y();
-		lightPos[2] = currentLightPos.z();
-
-		// get the locations of the light and material fields in the shader
-		int globalAmbLoc = gl.glGetUniformLocation(phongShader, "globalAmbient");
-		int ambLoc = gl.glGetUniformLocation(phongShader, "light.ambient");
-		int diffLoc = gl.glGetUniformLocation(phongShader, "light.diffuse");
-		int specLoc = gl.glGetUniformLocation(phongShader, "light.specular");
-		int posLoc = gl.glGetUniformLocation(phongShader, "light.position");
-		int mambLoc = gl.glGetUniformLocation(phongShader, "material.ambient");
-		int mdiffLoc = gl.glGetUniformLocation(phongShader, "material.diffuse");
-		int mspecLoc = gl.glGetUniformLocation(phongShader, "material.specular");
-		int mshiLoc = gl.glGetUniformLocation(phongShader, "material.shininess");
-
-		// set the uniform light and material values in the shader
-		gl.glProgramUniform4fv(phongShader, globalAmbLoc, 1, globalAmbientLight.getAmbient(), 0);
-		gl.glProgramUniform4fv(phongShader, ambLoc, 1, new float[] { 0f, 0f, 0f }, 0);
-		gl.glProgramUniform4fv(phongShader, diffLoc, 1, new float[] { 0f, 0f, 0f }, 0);
-		gl.glProgramUniform4fv(phongShader, specLoc, 1, new float[] { 0f, 0f, 0f }, 0);
-		gl.glProgramUniform3fv(phongShader, posLoc, 1, lightPos, 0);
-		gl.glProgramUniform4fv(phongShader, mambLoc, 1, currentMat.getAmbient(), 0);
-		gl.glProgramUniform4fv(phongShader, mdiffLoc, 1, currentMat.getDiffuse(), 0);
-		gl.glProgramUniform4fv(phongShader, mspecLoc, 1, currentMat.getSpecular(), 0);
-		gl.glProgramUniform1f(phongShader, mshiLoc, currentMat.getShininess());
+		gl.glProgramUniform4fv(phongShader, mambLoc, 1, goldMat.getAmbient(), 0);
+		gl.glProgramUniform4fv(phongShader, mdiffLoc, 1, goldMat.getDiffuse(), 0);
+		gl.glProgramUniform4fv(phongShader, mspecLoc, 1, goldMat.getSpecular(), 0);
+		gl.glProgramUniform1f(phongShader, mshiLoc, goldMat.getShininess());
 	}
 
 	private void addToDisplay(GL4 gl, String name, int texture, WorldObject obj) {
@@ -394,6 +334,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		camera = new Camera();
 		showAxes = false;
 		showLight = true;
+		resetLight();
 
 		goldMat = new Material(new float[] { 0.24725f, 0.1995f, 0.0745f, 1.0f },
 				new float[] { 0.75164f, 0.60648f, 0.22648f, 1.0f }, new float[] { 0.62828f, 0.5558f, 0.36607f, 1.0f },
@@ -408,6 +349,8 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		// load assets
 		texShader = createShaderProgram("src/a3/texVertShader.glsl", "src/a3/texFragShader.glsl");
+		// texShader = createShaderProgram("src/a3/phongVertShader.glsl",
+		// "src/a3/phongFragShader.glsl");
 		axisShader = createShaderProgram("src/a3/axisVertShader.glsl", "src/a3/axisFragShader.glsl");
 		phongShader = createShaderProgram("src/a3/phongVertShader.glsl", "src/a3/phongFragShader.glsl");
 
@@ -422,8 +365,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		bagObj = new ImportedModel("assets/bag.obj");
 		keyObj = new ImportedModel("assets/key.obj");
 		coinObj = new ImportedModel("assets/coin.obj");
-		bookCoverObj = new ImportedModel("assets/book_cover.obj");
-		bookPagesObj = new ImportedModel("assets/book_pages.obj");
 		setupVertices();
 
 	}
@@ -443,10 +384,8 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		addToVbo(gl, keyObj, "key");
 		addToVbo(gl, bagObj, "bag");
 		addToVbo(gl, coinObj, "coin");
-		addToVbo(gl, bookPagesObj, "book_pages");
-		addToVbo(gl, bookCoverObj, "book_cover");
+		// addToVbo(gl, lightObj, "light");
 
-		// add light to vbo
 		int numSphereVerts = lightObj.getIndices().length;
 
 		int[] indicesSphere = lightObj.getIndices();
@@ -481,7 +420,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		FloatBuffer norBuf = Buffers.newDirectFloatBuffer(nvaluesSphere);
 		gl.glBufferData(GL_ARRAY_BUFFER, norBuf.limit() * 4, norBuf, GL_STATIC_DRAW);
 
-		// add axis to vbo
 		vboDict.put("axisPositions", vboDict.size());
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("axisPositions")]);
 		FloatBuffer axisBufShuttle = Buffers.newDirectFloatBuffer(axisPositions);
