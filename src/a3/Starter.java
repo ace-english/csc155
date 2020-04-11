@@ -70,10 +70,11 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private double tf;
 	private boolean showAxes, showLight;
 	private int[] mouseDragCurrent;
+	private Vector3f absoluteLightPos;
 
 	private ImportedModel tableObj, scrollObj, bagObj, keyObj, coinObj, bookObj;
 	private Sphere lightObj;
-	private int woodTex, scrollTex, burlapTex, metalTex;
+	private int woodTex, scrollTex, burlapTex, metalTex, yellowTex;
 	private Material goldMat, pewterMat;
 	private Light globalAmbientLight;
 	private PositionalLight mouseLight;
@@ -198,7 +199,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	}
 
 	private void resetLight() {
-		mouseLight.setPosition(new Vector3f(0f, 1f, -2.5f));
+		mouseLight.setPosition(new Vector3f(0f, 3f, 0f));
 
 	}
 
@@ -270,20 +271,20 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		addToDisplay(gl, "coin", metalTex, coinObj);
 		addToDisplay(gl, "key", metalTex, keyObj);
 
-		mvStack.popMatrix(); // final pop
-
 		// create light as child of camera
 		if (showLight) {
 			gl.glUseProgram(texShader);
 			mvStack.pushMatrix();
 			mvStack.translate(mouseLight.getPosition());
-			mvStack.scale(.01f, .01f, .01f);
-			addToDisplay(gl, "light", metalTex, lightObj);
+			mvStack.scale(.05f, .05f, .05f);
+			addToDisplay(gl, "light", yellowTex, lightObj);
 			mvStack.popMatrix();
 			installLights(mv);
 		} else {
 			uninstallLights(mv);
+
 		}
+		mvStack.popMatrix(); // final pop
 
 	}
 
@@ -309,11 +310,9 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		// set the uniform light and material values in the shader
 		gl.glProgramUniform4fv(phongShader, globalAmbLoc, 1, globalAmbientLight.getAmbient(), 0);
-		if (showLight) {
-			gl.glProgramUniform4fv(phongShader, ambLoc, 1, mouseLight.getAmbient(), 0);
-			gl.glProgramUniform4fv(phongShader, diffLoc, 1, mouseLight.getDiffuse(), 0);
-			gl.glProgramUniform4fv(phongShader, specLoc, 1, mouseLight.getSpecular(), 0);
-		}
+		gl.glProgramUniform4fv(phongShader, ambLoc, 1, mouseLight.getAmbient(), 0);
+		gl.glProgramUniform4fv(phongShader, diffLoc, 1, mouseLight.getDiffuse(), 0);
+		gl.glProgramUniform4fv(phongShader, specLoc, 1, mouseLight.getSpecular(), 0);
 		gl.glProgramUniform3fv(phongShader, posLoc, 1, lightPos, 0);
 		gl.glProgramUniform4fv(phongShader, mambLoc, 1, goldMat.getAmbient(), 0);
 		gl.glProgramUniform4fv(phongShader, mdiffLoc, 1, goldMat.getDiffuse(), 0);
@@ -323,7 +322,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 	private void uninstallLights(Matrix4f vMatrix) {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
-		Vector3f currentLightPos = mouseLight.getPosition();
+		Vector3f currentLightPos = new Vector3f(mouseLight.getPosition());
 		currentLightPos.mulPosition(vMatrix);
 		float[] lightPos = new float[3];
 		lightPos[0] = currentLightPos.x();
@@ -390,7 +389,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		globalAmbientLight = new GlobalAmbientLight();
 		mouseLight = new PositionalLight(new float[] { 0.1f, 0.1f, 0.1f, 1.0f }, new float[] { 1.0f, 1.0f, 1.0f, 1.0f },
-				new float[] { 1.0f, 1.0f, 1.0f, 1.0f }, new Vector3f(5.0f, 2.0f, 2.0f));
+				new float[] { 1.0f, 1.0f, 1.0f, 1.0f }, new Vector3f(0f, 0f, 0f));
 		resetLight();
 
 		// load assets
@@ -403,6 +402,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		woodTex = loadTexture("assets/wood.jpg");
 		scrollTex = loadTexture("assets/scroll.png");
 		metalTex = loadTexture("assets/metal.jpg");
+		yellowTex = loadTexture("assets/coin.png");
 		burlapTex = loadTexture("assets/burlap.png");
 
 		lightObj = new Sphere();
