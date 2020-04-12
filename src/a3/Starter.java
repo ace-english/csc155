@@ -10,7 +10,6 @@ import static com.jogamp.opengl.GL.GL_LINES;
 import static com.jogamp.opengl.GL.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT;
 import static com.jogamp.opengl.GL.GL_STATIC_DRAW;
 import static com.jogamp.opengl.GL.GL_TEXTURE0;
-import static com.jogamp.opengl.GL.GL_TEXTURE1;
 import static com.jogamp.opengl.GL.GL_TEXTURE_2D;
 import static com.jogamp.opengl.GL.GL_TEXTURE_MAX_ANISOTROPY_EXT;
 import static com.jogamp.opengl.GL.GL_TEXTURE_MIN_FILTER;
@@ -73,10 +72,9 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private int[] mouseDragCurrent;
 	private Vector3f absoluteLightPos;
 
-	private ImportedModel tableObj, scrollObj, bagObj, keyObj, coinObj, bookPagesObj, bookCoverObj;
+	private ImportedModel tableObj, scrollObj, bagObj, keyObj, coinObj, bookObj;
 	private Sphere lightObj;
 	private int woodTex, scrollTex, burlapTex, metalTex, yellowTex;
-	private int woodNorm, blankNorm, burlapNorm, metalNorm;
 	private Material goldMat, pewterMat;
 	private Light globalAmbientLight;
 	private PositionalLight mouseLight;
@@ -264,14 +262,14 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		// use texture shader
 		gl.glUseProgram(texShader);
 
-		addToDisplay(gl, "table", woodTex, woodNorm, tableObj);
-		addToDisplay(gl, "bag", burlapTex, burlapNorm, bagObj);
-		addToDisplay(gl, "scroll", scrollTex, blankNorm, scrollObj);
+		addToDisplay(gl, "table", woodTex, tableObj);
+		addToDisplay(gl, "bag", burlapTex, bagObj);
+		addToDisplay(gl, "scroll", scrollTex, scrollObj);
 
 		// use phong shader
 		gl.glUseProgram(phongShader);
-		addToDisplay(gl, "coin", metalTex, metalNorm, coinObj);
-		addToDisplay(gl, "key", metalTex, metalNorm, keyObj);
+		addToDisplay(gl, "coin", metalTex, coinObj);
+		addToDisplay(gl, "key", metalTex, keyObj);
 
 		// create light as child of camera
 		if (showLight) {
@@ -279,20 +277,18 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 			mvStack.pushMatrix();
 			mvStack.translate(mouseLight.getPosition());
 			mvStack.scale(.05f, .05f, .05f);
-			addToDisplay(gl, "light", yellowTex, blankNorm, lightObj);
+			addToDisplay(gl, "light", yellowTex, lightObj);
 			mvStack.popMatrix();
-			installLights(mv, phongShader);
-			installLights(mv, texShader);
+			installLights(mv);
 		} else {
-			uninstallLights(mv, phongShader);
-			uninstallLights(mv, texShader);
+			uninstallLights(mv);
 
 		}
 		mvStack.popMatrix(); // final pop
 
 	}
 
-	private void installLights(Matrix4f vMatrix, int shader) {
+	private void installLights(Matrix4f vMatrix) {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 		Vector3f currentLightPos = new Vector3f(mouseLight.getPosition());
 		currentLightPos.mulPosition(vMatrix);
@@ -302,29 +298,29 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		lightPos[2] = currentLightPos.z();
 
 		// get the locations of the light and material fields in the shader
-		int globalAmbLoc = gl.glGetUniformLocation(shader, "globalAmbient");
-		int ambLoc = gl.glGetUniformLocation(shader, "light.ambient");
-		int diffLoc = gl.glGetUniformLocation(shader, "light.diffuse");
-		int specLoc = gl.glGetUniformLocation(shader, "light.specular");
-		int posLoc = gl.glGetUniformLocation(shader, "light.position");
-		int mambLoc = gl.glGetUniformLocation(shader, "material.ambient");
-		int mdiffLoc = gl.glGetUniformLocation(shader, "material.diffuse");
-		int mspecLoc = gl.glGetUniformLocation(shader, "material.specular");
-		int mshiLoc = gl.glGetUniformLocation(shader, "material.shininess");
+		int globalAmbLoc = gl.glGetUniformLocation(phongShader, "globalAmbient");
+		int ambLoc = gl.glGetUniformLocation(phongShader, "light.ambient");
+		int diffLoc = gl.glGetUniformLocation(phongShader, "light.diffuse");
+		int specLoc = gl.glGetUniformLocation(phongShader, "light.specular");
+		int posLoc = gl.glGetUniformLocation(phongShader, "light.position");
+		int mambLoc = gl.glGetUniformLocation(phongShader, "material.ambient");
+		int mdiffLoc = gl.glGetUniformLocation(phongShader, "material.diffuse");
+		int mspecLoc = gl.glGetUniformLocation(phongShader, "material.specular");
+		int mshiLoc = gl.glGetUniformLocation(phongShader, "material.shininess");
 
 		// set the uniform light and material values in the shader
-		gl.glProgramUniform4fv(shader, globalAmbLoc, 1, globalAmbientLight.getAmbient(), 0);
-		gl.glProgramUniform4fv(shader, ambLoc, 1, mouseLight.getAmbient(), 0);
-		gl.glProgramUniform4fv(shader, diffLoc, 1, mouseLight.getDiffuse(), 0);
-		gl.glProgramUniform4fv(shader, specLoc, 1, mouseLight.getSpecular(), 0);
-		gl.glProgramUniform3fv(shader, posLoc, 1, lightPos, 0);
-		gl.glProgramUniform4fv(shader, mambLoc, 1, goldMat.getAmbient(), 0);
-		gl.glProgramUniform4fv(shader, mdiffLoc, 1, goldMat.getDiffuse(), 0);
-		gl.glProgramUniform4fv(shader, mspecLoc, 1, goldMat.getSpecular(), 0);
-		gl.glProgramUniform1f(shader, mshiLoc, goldMat.getShininess());
+		gl.glProgramUniform4fv(phongShader, globalAmbLoc, 1, globalAmbientLight.getAmbient(), 0);
+		gl.glProgramUniform4fv(phongShader, ambLoc, 1, mouseLight.getAmbient(), 0);
+		gl.glProgramUniform4fv(phongShader, diffLoc, 1, mouseLight.getDiffuse(), 0);
+		gl.glProgramUniform4fv(phongShader, specLoc, 1, mouseLight.getSpecular(), 0);
+		gl.glProgramUniform3fv(phongShader, posLoc, 1, lightPos, 0);
+		gl.glProgramUniform4fv(phongShader, mambLoc, 1, goldMat.getAmbient(), 0);
+		gl.glProgramUniform4fv(phongShader, mdiffLoc, 1, goldMat.getDiffuse(), 0);
+		gl.glProgramUniform4fv(phongShader, mspecLoc, 1, goldMat.getSpecular(), 0);
+		gl.glProgramUniform1f(phongShader, mshiLoc, goldMat.getShininess());
 	}
 
-	private void uninstallLights(Matrix4f vMatrix, int shader) {
+	private void uninstallLights(Matrix4f vMatrix) {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 		Vector3f currentLightPos = new Vector3f(mouseLight.getPosition());
 		currentLightPos.mulPosition(vMatrix);
@@ -334,30 +330,30 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		lightPos[2] = currentLightPos.z();
 
 		// get the locations of the light and material fields in the shader
-		int globalAmbLoc = gl.glGetUniformLocation(shader, "globalAmbient");
-		int ambLoc = gl.glGetUniformLocation(shader, "light.ambient");
-		int diffLoc = gl.glGetUniformLocation(shader, "light.diffuse");
-		int specLoc = gl.glGetUniformLocation(shader, "light.specular");
-		int posLoc = gl.glGetUniformLocation(shader, "light.position");
-		int mambLoc = gl.glGetUniformLocation(shader, "material.ambient");
-		int mdiffLoc = gl.glGetUniformLocation(shader, "material.diffuse");
-		int mspecLoc = gl.glGetUniformLocation(shader, "material.specular");
-		int mshiLoc = gl.glGetUniformLocation(shader, "material.shininess");
+		int globalAmbLoc = gl.glGetUniformLocation(phongShader, "globalAmbient");
+		int ambLoc = gl.glGetUniformLocation(phongShader, "light.ambient");
+		int diffLoc = gl.glGetUniformLocation(phongShader, "light.diffuse");
+		int specLoc = gl.glGetUniformLocation(phongShader, "light.specular");
+		int posLoc = gl.glGetUniformLocation(phongShader, "light.position");
+		int mambLoc = gl.glGetUniformLocation(phongShader, "material.ambient");
+		int mdiffLoc = gl.glGetUniformLocation(phongShader, "material.diffuse");
+		int mspecLoc = gl.glGetUniformLocation(phongShader, "material.specular");
+		int mshiLoc = gl.glGetUniformLocation(phongShader, "material.shininess");
 
 		// set the uniform light and material values in the shader
-		gl.glProgramUniform4fv(shader, globalAmbLoc, 1, globalAmbientLight.getAmbient(), 0);
-		gl.glProgramUniform4fv(shader, ambLoc, 1, new float[] { 0f, 0f, 0f }, 0);
-		gl.glProgramUniform4fv(shader, diffLoc, 1, new float[] { 0f, 0f, 0f }, 0);
-		gl.glProgramUniform4fv(shader, specLoc, 1, new float[] { 0f, 0f, 0f }, 0);
-		gl.glProgramUniform3fv(shader, posLoc, 1, lightPos, 0);
-		gl.glProgramUniform4fv(shader, mambLoc, 1, goldMat.getAmbient(), 0);
-		gl.glProgramUniform4fv(shader, mdiffLoc, 1, goldMat.getDiffuse(), 0);
-		gl.glProgramUniform4fv(shader, mspecLoc, 1, goldMat.getSpecular(), 0);
-		gl.glProgramUniform1f(shader, mshiLoc, goldMat.getShininess());
+		gl.glProgramUniform4fv(phongShader, globalAmbLoc, 1, globalAmbientLight.getAmbient(), 0);
+		gl.glProgramUniform4fv(phongShader, ambLoc, 1, new float[] { 0f, 0f, 0f }, 0);
+		gl.glProgramUniform4fv(phongShader, diffLoc, 1, new float[] { 0f, 0f, 0f }, 0);
+		gl.glProgramUniform4fv(phongShader, specLoc, 1, new float[] { 0f, 0f, 0f }, 0);
+		gl.glProgramUniform3fv(phongShader, posLoc, 1, lightPos, 0);
+		gl.glProgramUniform4fv(phongShader, mambLoc, 1, goldMat.getAmbient(), 0);
+		gl.glProgramUniform4fv(phongShader, mdiffLoc, 1, goldMat.getDiffuse(), 0);
+		gl.glProgramUniform4fv(phongShader, mspecLoc, 1, goldMat.getSpecular(), 0);
+		gl.glProgramUniform1f(phongShader, mshiLoc, goldMat.getShininess());
 	}
 
-	private void addToDisplay(GL4 gl, String name, int texture, int normal, WorldObject obj) {
-		// gl.glUniformMatrix4fv(mvLocTex, 1, false, mvStack.get(vals));
+	private void addToDisplay(GL4 gl, String name, int texture, WorldObject obj) {
+		gl.glUniformMatrix4fv(mvLocTex, 1, false, mvStack.get(vals));
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Positions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
 		gl.glEnableVertexAttribArray(0);
@@ -365,19 +361,9 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Textures")]);
 		gl.glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0);
 		gl.glEnableVertexAttribArray(1);
-		// pull up normal coords
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Normals")]);
-		gl.glVertexAttribPointer(2, 3, GL_FLOAT, false, 0, 0);
-		gl.glEnableVertexAttribArray(2);
-		// pull up tangents
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vboDict.get(name + "Tangents"));
-		gl.glVertexAttribPointer(3, 3, GL_FLOAT, false, 0, 0);
-		gl.glEnableVertexAttribArray(3);
 		// activate texture object
 		gl.glActiveTexture(GL_TEXTURE0);
 		gl.glBindTexture(GL_TEXTURE_2D, texture);
-		gl.glActiveTexture(GL_TEXTURE1);
-		gl.glBindTexture(GL_TEXTURE_2D, normal);
 		gl.glEnable(GL_DEPTH_TEST);
 		gl.glDrawArrays(GL_TRIANGLES, 0, obj.getNumVertices());
 
@@ -408,6 +394,8 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		// load assets
 		texShader = createShaderProgram("src/a3/texVertShader.glsl", "src/a3/texFragShader.glsl");
+		// texShader = createShaderProgram("src/a3/phongVertShader.glsl",
+		// "src/a3/phongFragShader.glsl");
 		axisShader = createShaderProgram("src/a3/axisVertShader.glsl", "src/a3/axisFragShader.glsl");
 		phongShader = createShaderProgram("src/a3/phongVertShader.glsl", "src/a3/phongFragShader.glsl");
 
@@ -416,11 +404,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		metalTex = loadTexture("assets/metal.jpg");
 		yellowTex = loadTexture("assets/coin.png");
 		burlapTex = loadTexture("assets/burlap.png");
-
-		burlapNorm = loadTexture("assets/burlap_normal.jpg");
-		woodNorm = loadTexture("assets/wood_normal.jpg");
-		metalNorm = loadTexture("assets/metal_normal.jpg");
-		blankNorm = loadTexture("assets/normal.jpg");
 
 		lightObj = new Sphere();
 		scrollObj = new ImportedModel("assets/scroll.obj");
@@ -447,15 +430,14 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		addToVbo(gl, keyObj, "key");
 		addToVbo(gl, bagObj, "bag");
 		addToVbo(gl, coinObj, "coin");
-		// addToVbo(gl, bookPagesObj, "bookPages");
-		// addToVbo(gl, bookCoverObj, "bookCover");
+
+		int numSphereVerts = lightObj.getIndices().length;
 
 		int[] indicesSphere = lightObj.getIndices();
 
 		float[] pvaluesSphere = new float[indicesSphere.length * 3];
 		float[] tvaluesSphere = new float[indicesSphere.length * 2];
 		float[] nvaluesSphere = new float[indicesSphere.length * 3];
-		float[] tanvaluesSphere = new float[indicesSphere.length * 3];
 
 		for (int i = 0; i < indicesSphere.length; i++) {
 			pvaluesSphere[i * 3] = (float) (lightObj.getVertices()[indicesSphere[i]]).x;
@@ -466,9 +448,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 			nvaluesSphere[i * 3] = (float) (lightObj.getNormals()[indicesSphere[i]]).x;
 			nvaluesSphere[i * 3 + 1] = (float) (lightObj.getNormals()[indicesSphere[i]]).y;
 			nvaluesSphere[i * 3 + 2] = (float) (lightObj.getNormals()[indicesSphere[i]]).z;
-			tanvaluesSphere[i * 3] = (float) (lightObj.getTangents()[indicesSphere[i]]).x();
-			tanvaluesSphere[i * 3 + 1] = (float) (lightObj.getTangents()[indicesSphere[i]]).y();
-			tanvaluesSphere[i * 3 + 2] = (float) (lightObj.getTangents()[indicesSphere[i]]).z();
 		}
 
 		vboDict.put("lightPositions", vboDict.size());
@@ -485,11 +464,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("lightNormals")]);
 		FloatBuffer norBuf = Buffers.newDirectFloatBuffer(nvaluesSphere);
 		gl.glBufferData(GL_ARRAY_BUFFER, norBuf.limit() * 4, norBuf, GL_STATIC_DRAW);
-
-		vboDict.put("lightTangents", vboDict.size());
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("lightTangents")]);
-		FloatBuffer tanBuf = Buffers.newDirectFloatBuffer(nvaluesSphere);
-		gl.glBufferData(GL_ARRAY_BUFFER, tanBuf.limit() * 4, tanBuf, GL_STATIC_DRAW);
 
 		vboDict.put("axisPositions", vboDict.size());
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("axisPositions")]);
