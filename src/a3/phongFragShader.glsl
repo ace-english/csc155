@@ -4,6 +4,7 @@ in vec3 varyingNormal;
 in vec3 varyingLightDir;
 in vec3 varyingVertPos;
 in vec3 varyingHalfVector;
+in vec2 tc;
 
 out vec4 fragColor;
 
@@ -27,7 +28,9 @@ uniform Material material;
 uniform mat4 mv_matrix;	 
 uniform mat4 proj_matrix;
 uniform mat4 norm_matrix;
-layout (binding=0) uniform sampler2D samp;
+
+layout (binding=0) uniform sampler2D s;
+layout (binding=1) uniform sampler2D t;
 
 void main(void)
 {	// normalize the light, normal, and view vectors:
@@ -46,9 +49,13 @@ void main(void)
 	// get angle between the normal and the halfway vector
 	float cosPhi = dot(H,N);
 
-	// compute ADS contributions (per pixel):
-	vec3 ambient = ((globalAmbient * material.ambient) + (light.ambient * material.ambient)).xyz;
-	vec3 diffuse = light.diffuse.xyz * material.diffuse.xyz * max(cosTheta,0.0);
-	vec3 specular = light.specular.xyz * material.specular.xyz * pow(max(cosPhi,0.0), material.shininess*3.0);
-	fragColor = vec4((ambient + diffuse + specular), 1.0);
+	vec4 texel = texture(t,tc);
+	
+	// compute ADS contributions (per pixel):	
+	fragColor=globalAmbient +
+		texel * (light.ambient + light.diffuse * max(cosTheta,0.0)
+		+ light.specular * pow(max(cosPhi,0.0), material.shininess));
+	
+	fragColor = texel;
+	
 }

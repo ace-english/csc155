@@ -1,11 +1,18 @@
 #version 430
 
 layout (location = 0) in vec3 vertPos;
-layout (location = 1) in vec3 vertNormal;
+layout (location = 1) in vec2 texCoord;
+layout (location = 2) in vec3 vertNormal;
+layout (location = 3) in vec3 vertTangent;
+
 out vec3 varyingNormal;
 out vec3 varyingLightDir;
 out vec3 varyingVertPos;
-out vec3 varyingHalfVector;
+out vec3 originalVertex;
+out vec2 tc;
+
+layout (binding=0) uniform sampler2D s;
+layout (binding=1) uniform sampler2D t;
 
 struct PositionalLight
 {	vec4 ambient;
@@ -30,11 +37,10 @@ uniform mat4 norm_matrix;
 void main(void)
 {	varyingVertPos = (mv_matrix * vec4(vertPos,1.0)).xyz;
 	varyingLightDir = light.position - varyingVertPos;
-	varyingNormal = (norm_matrix * vec4(vertNormal,1.0)).xyz;
+	tc = texCoord;
+	originalVertex = vertPos;
 	
-	varyingHalfVector =
-		normalize(normalize(varyingLightDir)
-		+ normalize(-varyingVertPos)).xyz;
+	varyingNormal = (norm_matrix * vec4(vertNormal,1.0)).xyz;
 
 	gl_Position = proj_matrix * mv_matrix * vec4(vertPos,1.0);
 }
