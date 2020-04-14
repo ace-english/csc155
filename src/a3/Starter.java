@@ -77,7 +77,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private Sphere lightObj;
 	private int woodTex, scrollTex, burlapTex, metalTex, yellowTex;
 	private int woodNorm, blankNorm, burlapNorm, metalNorm;
-	private Material goldMat, pewterMat;
+	private Material goldMat, leatherMat, woodMat, paperMat;
 	private Light globalAmbientLight;
 	private PositionalLight mouseLight;
 	private Dictionary<String, Integer> vboDict;
@@ -261,21 +261,16 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 			mvStack.popMatrix(); // print axes
 		}
 
-		// use texture shader
-		gl.glUseProgram(texShader);
+		gl.glUseProgram(phongShader);
 
 		addToDisplay(gl, "table", woodTex, woodNorm, tableObj);
 		addToDisplay(gl, "scroll", scrollTex, blankNorm, scrollObj);
-
-		// use phong shader
-		gl.glUseProgram(phongShader);
 		addToDisplay(gl, "bag", burlapTex, burlapNorm, bagObj);
 		addToDisplay(gl, "coin", metalTex, metalNorm, coinObj);
 		addToDisplay(gl, "key", metalTex, metalNorm, keyObj);
 
 		// create light as child of camera
 		if (showLight) {
-			gl.glUseProgram(texShader);
 			mvStack.pushMatrix();
 			mvStack.translate(mouseLight.getPosition());
 			mvStack.scale(.05f, .05f, .05f);
@@ -394,8 +389,15 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 				new float[] { 0.75164f, 0.60648f, 0.22648f, 1.0f }, new float[] { 0.62828f, 0.5558f, 0.36607f, 1.0f },
 				51.2f);
 
-		pewterMat = new Material(new float[] { .11f, .06f, .11f, 1.0f }, new float[] { .43f, .47f, .54f, 1.0f },
-				new float[] { .33f, .33f, .52f, 1.0f }, 9.85f);
+		// pewterMat = new Material(new float[] { .11f, .06f, .11f, 1.0f }, new float[]
+		// { .43f, .47f, .54f, 1.0f }, new float[] { .33f, .33f, .52f, 1.0f }, 9.85f);
+
+		paperMat = new Material(new float[] { 1f, 1f, 1f }, new float[] { 0.8f, 0.8f, 0.8f },
+				new float[] { 0.5f, 0.5f, 0.5f }, 50f);
+		woodMat = new Material(new float[] { 1f, 1f, 1f }, new float[] { 0.8f, 0.8f, 0.8f },
+				new float[] { 0.475f, 0.475f, 0.475f }, 85f);
+		leatherMat = new Material(new float[] { 1f, 1f, 1f }, new float[] { 0.11f, 0.059f, 0.04087f },
+				new float[] { .5f, .5f, .5f }, 23f);
 
 		globalAmbientLight = new GlobalAmbientLight();
 		mouseLight = new PositionalLight(new float[] { 0.1f, 0.1f, 0.1f, 1.0f }, new float[] { 1.0f, 1.0f, 1.0f, 1.0f },
