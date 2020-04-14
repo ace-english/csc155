@@ -265,11 +265,11 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glUseProgram(texShader);
 
 		addToDisplay(gl, "table", woodTex, woodNorm, tableObj);
-		addToDisplay(gl, "bag", burlapTex, burlapNorm, bagObj);
 		addToDisplay(gl, "scroll", scrollTex, blankNorm, scrollObj);
 
 		// use phong shader
 		gl.glUseProgram(phongShader);
+		addToDisplay(gl, "bag", burlapTex, burlapNorm, bagObj);
 		addToDisplay(gl, "coin", metalTex, metalNorm, coinObj);
 		addToDisplay(gl, "key", metalTex, metalNorm, keyObj);
 

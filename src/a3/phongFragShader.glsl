@@ -29,8 +29,8 @@ uniform mat4 mv_matrix;
 uniform mat4 proj_matrix;
 uniform mat4 norm_matrix;
 
-layout (binding=0) uniform sampler2D s;
-layout (binding=1) uniform sampler2D t;
+layout (binding=0) uniform sampler2D t;
+layout (binding=1) uniform sampler2D s;
 
 void main(void)
 {	// normalize the light, normal, and view vectors:
@@ -55,6 +55,11 @@ void main(void)
 	fragColor=globalAmbient +
 		texel * (light.ambient + light.diffuse * max(cosTheta,0.0)
 		+ light.specular * pow(max(cosPhi,0.0), material.shininess));
+		
+		vec3 ambient = ((globalAmbient * material.ambient) + (light.ambient * material.ambient)).xyz;
+	vec3 diffuse = light.diffuse.xyz * material.diffuse.xyz * max(cosTheta,0.0);
+	vec3 specular = light.specular.xyz * material.specular.xyz * pow(max(cosPhi,0.0), material.shininess*3.0);
+	//fragColor = vec4((ambient + diffuse + specular), 1.0);
 	
 	fragColor = texel;
 	
