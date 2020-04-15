@@ -1,5 +1,12 @@
 #version 430
 
+in vec3 varyingNormal;
+in vec3 varyingLightDir;
+in vec3 varyingVertPos;
+in vec3 varyingHalfVector;
+in vec2 tc;
+
+out vec4 fragColor;
 
 struct PositionalLight
 {	vec4 ambient;  
@@ -14,15 +21,6 @@ struct Material
 	vec4 specular;  
 	float shininess;
 };
-
-in vec3 varyingNormal;
-in vec3 varyingLightDir;
-in vec3 varyingVertPos;
-in vec3 varyingHalfVector;
-in Material varyingMaterial;
-in vec2 tc;
-
-out vec4 fragColor;
 
 uniform vec4 globalAmbient;
 uniform PositionalLight light;

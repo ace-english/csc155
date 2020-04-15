@@ -263,18 +263,19 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		gl.glUseProgram(phongShader);
 
-		addToDisplay(gl, "table", woodTex, woodNorm, tableObj);
-		addToDisplay(gl, "scroll", scrollTex, blankNorm, scrollObj);
-		addToDisplay(gl, "bag", burlapTex, burlapNorm, bagObj);
-		addToDisplay(gl, "coin", metalTex, metalNorm, coinObj);
-		addToDisplay(gl, "key", metalTex, metalNorm, keyObj);
+		addToDisplay(gl, "table", woodTex, woodNorm, woodMat, tableObj);
+		addToDisplay(gl, "scroll", scrollTex, blankNorm, paperMat, scrollObj);
+		addToDisplay(gl, "bag", burlapTex, burlapNorm, leatherMat, bagObj);
+		addToDisplay(gl, "coin", metalTex, metalNorm, goldMat, coinObj);
+		addToDisplay(gl, "key", metalTex, metalNorm, goldMat, keyObj);
 
+		// TODO add sine of the times
 		// create light as child of camera
 		if (showLight) {
 			mvStack.pushMatrix();
-			mvStack.translate(mouseLight.getPosition());
 			mvStack.scale(.05f, .05f, .05f);
-			addToDisplay(gl, "light", yellowTex, blankNorm, lightObj);
+			mvStack.translate(mouseLight.getPosition());
+			// addToDisplay(gl, "light", yellowTex, blankNorm, lightObj);
 			mvStack.popMatrix();
 			installLights(mv, phongShader);
 			installLights(mv, texShader);
@@ -302,10 +303,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		int diffLoc = gl.glGetUniformLocation(shader, "light.diffuse");
 		int specLoc = gl.glGetUniformLocation(shader, "light.specular");
 		int posLoc = gl.glGetUniformLocation(shader, "light.position");
-		int mambLoc = gl.glGetUniformLocation(shader, "material.ambient");
-		int mdiffLoc = gl.glGetUniformLocation(shader, "material.diffuse");
-		int mspecLoc = gl.glGetUniformLocation(shader, "material.specular");
-		int mshiLoc = gl.glGetUniformLocation(shader, "material.shininess");
 
 		// set the uniform light and material values in the shader
 		gl.glProgramUniform4fv(shader, globalAmbLoc, 1, globalAmbientLight.getAmbient(), 0);
@@ -313,10 +310,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glProgramUniform4fv(shader, diffLoc, 1, mouseLight.getDiffuse(), 0);
 		gl.glProgramUniform4fv(shader, specLoc, 1, mouseLight.getSpecular(), 0);
 		gl.glProgramUniform3fv(shader, posLoc, 1, lightPos, 0);
-		gl.glProgramUniform4fv(shader, mambLoc, 1, goldMat.getAmbient(), 0);
-		gl.glProgramUniform4fv(shader, mdiffLoc, 1, goldMat.getDiffuse(), 0);
-		gl.glProgramUniform4fv(shader, mspecLoc, 1, goldMat.getSpecular(), 0);
-		gl.glProgramUniform1f(shader, mshiLoc, goldMat.getShininess());
 	}
 
 	private void uninstallLights(Matrix4f vMatrix, int shader) {
@@ -334,10 +327,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		int diffLoc = gl.glGetUniformLocation(shader, "light.diffuse");
 		int specLoc = gl.glGetUniformLocation(shader, "light.specular");
 		int posLoc = gl.glGetUniformLocation(shader, "light.position");
-		int mambLoc = gl.glGetUniformLocation(shader, "material.ambient");
-		int mdiffLoc = gl.glGetUniformLocation(shader, "material.diffuse");
-		int mspecLoc = gl.glGetUniformLocation(shader, "material.specular");
-		int mshiLoc = gl.glGetUniformLocation(shader, "material.shininess");
 
 		// set the uniform light and material values in the shader
 		gl.glProgramUniform4fv(shader, globalAmbLoc, 1, globalAmbientLight.getAmbient(), 0);
@@ -345,13 +334,9 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glProgramUniform4fv(shader, diffLoc, 1, new float[] { 0f, 0f, 0f }, 0);
 		gl.glProgramUniform4fv(shader, specLoc, 1, new float[] { 0f, 0f, 0f }, 0);
 		gl.glProgramUniform3fv(shader, posLoc, 1, lightPos, 0);
-		gl.glProgramUniform4fv(shader, mambLoc, 1, goldMat.getAmbient(), 0);
-		gl.glProgramUniform4fv(shader, mdiffLoc, 1, goldMat.getDiffuse(), 0);
-		gl.glProgramUniform4fv(shader, mspecLoc, 1, goldMat.getSpecular(), 0);
-		gl.glProgramUniform1f(shader, mshiLoc, goldMat.getShininess());
 	}
 
-	private void addToDisplay(GL4 gl, String name, int texture, int normal, WorldObject obj) {
+	private void addToDisplay(GL4 gl, String name, int texture, int normal, Material currentMat, WorldObject obj) {
 		// gl.glUniformMatrix4fv(mvLocTex, 1, false, mvStack.get(vals));
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Positions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
@@ -370,8 +355,15 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glActiveTexture(GL_TEXTURE1);
 		gl.glBindTexture(GL_TEXTURE_2D, normal);
 		gl.glEnable(GL_DEPTH_TEST);
+		int mambLoc = gl.glGetUniformLocation(phongShader, "material.ambient");
+		int mdiffLoc = gl.glGetUniformLocation(phongShader, "material.diffuse");
+		int mspecLoc = gl.glGetUniformLocation(phongShader, "material.specular");
+		int mshiLoc = gl.glGetUniformLocation(phongShader, "material.shininess");
+		gl.glProgramUniform4fv(phongShader, mambLoc, 1, currentMat.getAmbient(), 0);
+		gl.glProgramUniform4fv(phongShader, mdiffLoc, 1, currentMat.getDiffuse(), 0);
+		gl.glProgramUniform4fv(phongShader, mspecLoc, 1, currentMat.getSpecular(), 0);
+		gl.glProgramUniform1f(phongShader, mshiLoc, currentMat.getShininess());
 		gl.glDrawArrays(GL_TRIANGLES, 0, obj.getNumVertices());
-
 	}
 
 	public void init(GLAutoDrawable drawable) {
@@ -387,17 +379,17 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		goldMat = new Material(new float[] { 0.24725f, 0.1995f, 0.0745f, 1.0f },
 				new float[] { 0.75164f, 0.60648f, 0.22648f, 1.0f }, new float[] { 0.62828f, 0.5558f, 0.36607f, 1.0f },
-				51.2f);
+				92f);
 
 		// pewterMat = new Material(new float[] { .11f, .06f, .11f, 1.0f }, new float[]
 		// { .43f, .47f, .54f, 1.0f }, new float[] { .33f, .33f, .52f, 1.0f }, 9.85f);
 
-		paperMat = new Material(new float[] { 1f, 1f, 1f }, new float[] { 0.8f, 0.8f, 0.8f },
-				new float[] { 0.5f, 0.5f, 0.5f }, 50f);
-		woodMat = new Material(new float[] { 1f, 1f, 1f }, new float[] { 0.8f, 0.8f, 0.8f },
-				new float[] { 0.475f, 0.475f, 0.475f }, 85f);
-		leatherMat = new Material(new float[] { 1f, 1f, 1f }, new float[] { 0.11f, 0.059f, 0.04087f },
-				new float[] { .5f, .5f, .5f }, 23f);
+		paperMat = new Material(new float[] { 1f, 1f, 1f, 1.0f }, new float[] { 0.8f, 0.8f, 0.8f, 1.0f },
+				new float[] { 0.5f, 0.5f, 0.5f, 1.0f }, 50f);
+		woodMat = new Material(new float[] { 1f, 1f, 1f, 1.0f }, new float[] { 0.8f, 0.8f, 0.8f, 1.0f },
+				new float[] { 0.475f, 0.475f, 0.475f, 1.0f }, 85f);
+		leatherMat = new Material(new float[] { 1f, 1f, 1f, 1.0f, 1.0f }, new float[] { 0.11f, 0.059f, 0.04087f, 1.0f },
+				new float[] { .5f, .5f, .5f, 1.0f }, 23f);
 
 		globalAmbientLight = new GlobalAmbientLight();
 		mouseLight = new PositionalLight(new float[] { 0.1f, 0.1f, 0.1f, 1.0f }, new float[] { 1.0f, 1.0f, 1.0f, 1.0f },
