@@ -266,7 +266,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 			mvStack.pushMatrix();
 			mvStack.scale(.05f, .05f, .05f);
 			mvStack.translate(mouseLight.getPosition());
-			// addToDisplay(gl, "light", yellowTex, blankNorm, goldMat, lightObj);
+			addToDisplay(gl, "light", yellowTex, blankNorm, goldMat, lightObj);
 			mvStack.popMatrix();
 			installLights(mv, phongShader);
 			installLights(mv, texShader);
@@ -338,7 +338,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	}
 
 	private void addToDisplay(GL4 gl, String name, int texture, int normal, Material currentMat, WorldObject obj) {
-		// gl.glUniformMatrix4fv(mvLocTex, 1, false, mvStack.get(vals));
+		gl.glUniformMatrix4fv(mvLocPhong, 1, false, mvStack.get(vals));
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Positions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
 		gl.glEnableVertexAttribArray(0);
