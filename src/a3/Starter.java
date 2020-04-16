@@ -71,13 +71,12 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private double tf;
 	private boolean showAxes, showLight;
 	private int[] mouseDragCurrent;
-	private Vector3f absoluteLightPos;
 
 	private ImportedModel tableObj, scrollObj, bagObj, keyObj, coinObj, bookPagesObj, bookCoverObj;
 	private Sphere lightObj;
-	private int woodTex, scrollTex, burlapTex, metalTex, yellowTex;
-	private int woodNorm, blankNorm, burlapNorm, metalNorm;
-	private Material goldMat, leatherMat, woodMat, paperMat;
+	private int woodTex, scrollTex, burlapTex, metalTex, leatherTex, yellowTex;
+	private int woodNorm, blankNorm, burlapNorm, metalNorm, leatherNorm;
+	private Material goldMat, leatherMat, woodMat, paperMat, pewterMat;
 	private Light globalAmbientLight;
 	private PositionalLight mouseLight;
 	private Dictionary<String, Integer> vboDict;
@@ -261,21 +260,12 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 			mvStack.popMatrix(); // print axes
 		}
 
-		gl.glUseProgram(phongShader);
-
-		addToDisplay(gl, "table", woodTex, woodNorm, woodMat, tableObj);
-		addToDisplay(gl, "scroll", scrollTex, blankNorm, paperMat, scrollObj);
-		addToDisplay(gl, "bag", burlapTex, burlapNorm, leatherMat, bagObj);
-		addToDisplay(gl, "coin", metalTex, metalNorm, goldMat, coinObj);
-		addToDisplay(gl, "key", metalTex, metalNorm, goldMat, keyObj);
-
 		// TODO add sine of the times
-		// create light as child of camera
 		if (showLight) {
 			mvStack.pushMatrix();
 			mvStack.scale(.05f, .05f, .05f);
 			mvStack.translate(mouseLight.getPosition());
-			// addToDisplay(gl, "light", yellowTex, blankNorm, lightObj);
+			// addToDisplay(gl, "light", yellowTex, blankNorm, goldMat, lightObj);
 			mvStack.popMatrix();
 			installLights(mv, phongShader);
 			installLights(mv, texShader);
@@ -284,6 +274,16 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 			uninstallLights(mv, texShader);
 
 		}
+
+		gl.glUseProgram(phongShader);
+
+		addToDisplay(gl, "table", woodTex, woodNorm, woodMat, tableObj);
+		addToDisplay(gl, "scroll", scrollTex, blankNorm, paperMat, scrollObj);
+		addToDisplay(gl, "bag", burlapTex, burlapNorm, leatherMat, bagObj);
+		addToDisplay(gl, "coin", yellowTex, metalNorm, goldMat, coinObj);
+		addToDisplay(gl, "key", metalTex, metalNorm, pewterMat, keyObj);
+		addToDisplay(gl, "bookCover", leatherTex, leatherNorm, leatherMat, bookCoverObj);
+		addToDisplay(gl, "bookPages", scrollTex, blankNorm, paperMat, bookPagesObj);
 		mvStack.popMatrix(); // final pop
 
 	}
@@ -379,17 +379,17 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		goldMat = new Material(new float[] { 0.24725f, 0.1995f, 0.0745f, 1.0f },
 				new float[] { 0.75164f, 0.60648f, 0.22648f, 1.0f }, new float[] { 0.62828f, 0.5558f, 0.36607f, 1.0f },
-				92f);
+				702f);
 
-		// pewterMat = new Material(new float[] { .11f, .06f, .11f, 1.0f }, new float[]
-		// { .43f, .47f, .54f, 1.0f }, new float[] { .33f, .33f, .52f, 1.0f }, 9.85f);
+		pewterMat = new Material(new float[] { .11f, .06f, .11f, 1.0f }, new float[] { .43f, .47f, .54f, 1.0f },
+				new float[] { .33f, .33f, .52f, 1.0f }, 79.85f);
 
-		paperMat = new Material(new float[] { 1f, 1f, 1f, 1.0f }, new float[] { 0.8f, 0.8f, 0.8f, 1.0f },
+		paperMat = new Material(new float[] { .7f, .7f, .7f, 1.0f }, new float[] { 0.8f, 0.8f, 0.8f, 1.0f },
 				new float[] { 0.5f, 0.5f, 0.5f, 1.0f }, 50f);
 		woodMat = new Material(new float[] { 1f, 1f, 1f, 1.0f }, new float[] { 0.8f, 0.8f, 0.8f, 1.0f },
 				new float[] { 0.475f, 0.475f, 0.475f, 1.0f }, 85f);
-		leatherMat = new Material(new float[] { 1f, 1f, 1f, 1.0f, 1.0f }, new float[] { 0.11f, 0.059f, 0.04087f, 1.0f },
-				new float[] { .5f, .5f, .5f, 1.0f }, 23f);
+		leatherMat = new Material(new float[] { .7f, .7f, .7f, 1.0f },
+				new float[] { 0.091945f, 0.025797f, 0.021366f, 1.0f }, new float[] { .5f, .5f, .5f, 1.0f }, 60f);
 
 		globalAmbientLight = new GlobalAmbientLight();
 		mouseLight = new PositionalLight(new float[] { 0.1f, 0.1f, 0.1f, 1.0f }, new float[] { 1.0f, 1.0f, 1.0f, 1.0f },
@@ -406,10 +406,12 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		metalTex = loadTexture("assets/metal.jpg");
 		yellowTex = loadTexture("assets/coin.png");
 		burlapTex = loadTexture("assets/burlap.png");
+		leatherTex = loadTexture("assets/leather.png");
 
 		burlapNorm = loadTexture("assets/burlap_normal.jpg");
 		woodNorm = loadTexture("assets/wood_normal.jpg");
 		metalNorm = loadTexture("assets/metal_normal.jpg");
+		leatherNorm = loadTexture("assets/leather_normal.png");
 		blankNorm = loadTexture("assets/normal.jpg");
 
 		lightObj = new Sphere();
@@ -417,7 +419,9 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		tableObj = new ImportedModel("assets/table.obj");
 		bagObj = new ImportedModel("assets/bag.obj");
 		keyObj = new ImportedModel("assets/key.obj");
-		coinObj = new ImportedModel("assets/coin.obj");
+		coinObj = new ImportedModel("assets/coin_pile.obj");
+		bookPagesObj = new ImportedModel("assets/book_pages.obj");
+		bookCoverObj = new ImportedModel("assets/book_cover.obj");
 		setupVertices();
 
 	}
@@ -437,8 +441,8 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		addToVbo(gl, keyObj, "key");
 		addToVbo(gl, bagObj, "bag");
 		addToVbo(gl, coinObj, "coin");
-		// addToVbo(gl, bookPagesObj, "bookPages");
-		// addToVbo(gl, bookCoverObj, "bookCover");
+		addToVbo(gl, bookPagesObj, "bookPages");
+		addToVbo(gl, bookCoverObj, "bookCover");
 
 		int[] indicesSphere = lightObj.getIndices();
 

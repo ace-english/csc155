@@ -24,7 +24,7 @@ public class Camera {
 	}
 
 	public Camera() {
-		this.location = new Vector3f(0f, 3f, 7f);
+		this.location = new Vector3f(0f, 2f, 4f);
 		this.target = new Vector3f(0f, 0f, 0f);
 		calculateUVN();
 	}
