@@ -100,7 +100,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		@Override
 		public void mouseWheelMoved(MouseWheelEvent event) {
 			System.out.println("scroll: " + event.getWheelRotation());
-			mouseLight.getPosition().add(0f, 0f, event.getWheelRotation() * -.03f);
+			mouseLight.getPosition().add(0f, 0f, event.getWheelRotation() * -.5f);
 
 		}
 
@@ -262,6 +262,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		// TODO add sine of the times
 		if (showLight) {
+			gl.glUseProgram(texShader);
 			mvStack.pushMatrix();
 			mvStack.scale(.05f, .05f, .05f);
 			mvStack.translate(mouseLight.getPosition());
@@ -389,7 +390,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		woodMat = new Material(new float[] { 1f, 1f, 1f, 1.0f }, new float[] { 0.8f, 0.8f, 0.8f, 1.0f },
 				new float[] { 0.475f, 0.475f, 0.475f, 1.0f }, 85f);
 		leatherMat = new Material(new float[] { .7f, .7f, .7f, 1.0f },
-				new float[] { 0.091945f, 0.025797f, 0.021366f, 1.0f }, new float[] { .5f, .5f, .5f, 1.0f }, 60f);
+				new float[] { 0.291945f, 0.225797f, 0.221366f, 1.0f }, new float[] { .5f, .5f, .5f, 1.0f }, 60f);
 
 		globalAmbientLight = new GlobalAmbientLight();
 		mouseLight = new PositionalLight(new float[] { 0.1f, 0.1f, 0.1f, 1.0f }, new float[] { 1.0f, 1.0f, 1.0f, 1.0f },
