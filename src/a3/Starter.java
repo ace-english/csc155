@@ -2,15 +2,20 @@ package a3;
 
 import static com.jogamp.opengl.GL.GL_ARRAY_BUFFER;
 import static com.jogamp.opengl.GL.GL_COLOR_BUFFER_BIT;
+import static com.jogamp.opengl.GL.GL_DEPTH_ATTACHMENT;
 import static com.jogamp.opengl.GL.GL_DEPTH_BUFFER_BIT;
 import static com.jogamp.opengl.GL.GL_DEPTH_COMPONENT32;
 import static com.jogamp.opengl.GL.GL_DEPTH_TEST;
 import static com.jogamp.opengl.GL.GL_FLOAT;
+import static com.jogamp.opengl.GL.GL_FRAMEBUFFER;
+import static com.jogamp.opengl.GL.GL_FRONT;
 import static com.jogamp.opengl.GL.GL_LEQUAL;
 import static com.jogamp.opengl.GL.GL_LINEAR;
 import static com.jogamp.opengl.GL.GL_LINEAR_MIPMAP_LINEAR;
 import static com.jogamp.opengl.GL.GL_LINES;
 import static com.jogamp.opengl.GL.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT;
+import static com.jogamp.opengl.GL.GL_NONE;
+import static com.jogamp.opengl.GL.GL_POLYGON_OFFSET_FILL;
 import static com.jogamp.opengl.GL.GL_STATIC_DRAW;
 import static com.jogamp.opengl.GL.GL_TEXTURE0;
 import static com.jogamp.opengl.GL.GL_TEXTURE1;
@@ -232,7 +237,33 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		lightVmat.identity().setLookAt(mouseLight.getPosition(), origin, up); // vector from light to origin
 		lightPmat.identity().setPerspective((float) Math.toRadians(60.0f), aspect, 0.1f, 1000.0f);
+		gl.glBindFramebuffer(GL_FRAMEBUFFER, shadowBuffer[0]);
+		gl.glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, shadowTex[0], 0);
 
+		gl.glDrawBuffer(GL_NONE);
+		gl.glEnable(GL_DEPTH_TEST);
+		gl.glEnable(GL_POLYGON_OFFSET_FILL); // for reducing
+		gl.glPolygonOffset(3.0f, 5.0f); // shadow artifacts
+
+		passOne();
+
+		gl.glDisable(GL_POLYGON_OFFSET_FILL); // artifact reduction, continued
+
+		gl.glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		gl.glActiveTexture(GL_TEXTURE0);
+		gl.glBindTexture(GL_TEXTURE_2D, shadowTex[0]);
+
+		gl.glDrawBuffer(GL_FRONT);
+		passTwo();
+
+	}
+
+	private void passOne() {
+		System.out.println("pass1");
+	}
+
+	private void passTwo() {
+		GL4 gl = (GL4) GLContext.getCurrentGL();
 		// push view matrix onto the stack
 		mvStack.pushMatrix();
 		mvStack.lookAlong(camera.getN(), camera.getV());
@@ -320,7 +351,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		addToDisplay(gl, "bookCover", leatherTex, leatherNorm, leatherMat, bookCoverObj);
 		addToDisplay(gl, "bookPages", scrollTex, blankNorm, paperMat, bookPagesObj);
 		mvStack.popMatrix(); // final pop
-
 	}
 
 	private void installLights(Matrix4f vMatrix, int shader) {
