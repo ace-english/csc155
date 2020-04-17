@@ -98,6 +98,8 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private Matrix4f shadowMVP1 = new Matrix4f();
 	private Matrix4f shadowMVP2 = new Matrix4f();
 	private Matrix4f b = new Matrix4f();
+	private Vector3f origin = new Vector3f(0.0f, 0.0f, 0.0f);
+	private Vector3f up = new Vector3f(0.0f, 1.0f, 0.0f);
 
 	MouseAdapter myMouseAdapter = new MouseAdapter() {
 
@@ -228,10 +230,16 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glClear(GL_DEPTH_BUFFER_BIT);
 		elapsedTime = System.currentTimeMillis() - startTime;
 
+		lightVmat.identity().setLookAt(mouseLight.getPosition(), origin, up); // vector from light to origin
+		lightPmat.identity().setPerspective((float) Math.toRadians(60.0f), aspect, 0.1f, 1000.0f);
+
 		// push view matrix onto the stack
 		mvStack.pushMatrix();
 		mvStack.lookAlong(camera.getN(), camera.getV());
 		mvStack.translate(new Vector3f(camera.getLocation()).negate());
+
+		aspect = (float) myCanvas.getWidth() / (float) myCanvas.getHeight();
+		pMat.identity().setPerspective((float) Math.toRadians(60.0f), aspect, 0.1f, 1000.0f);
 
 		mv = new Matrix4f();
 		mv = mv.mul(mvStack);
@@ -244,8 +252,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		projLocTex = gl.glGetUniformLocation(texShader, "proj_matrix");
 		nLocTex = gl.glGetUniformLocation(texShader, "norm_matrix");
 
-		aspect = (float) myCanvas.getWidth() / (float) myCanvas.getHeight();
-		pMat.identity().setPerspective((float) Math.toRadians(60.0f), aspect, 0.1f, 1000.0f);
 		gl.glUniformMatrix4fv(mvLocTex, 1, false, mv.get(vals));
 		gl.glUniformMatrix4fv(projLocTex, 1, false, pMat.get(vals));
 		gl.glUniformMatrix4fv(nLocTex, 1, false, invTr.get(vals));
