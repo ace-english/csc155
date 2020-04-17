@@ -262,42 +262,27 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		// TODO add sine of the times
 		if (showLight) {
-			gl.glUseProgram(phongShader);
+			gl.glUseProgram(texShader);
 			mvStack.pushMatrix();
 			mvStack.scale(.05f, .05f, .05f);
 			mvStack.translate(mouseLight.getPosition());
-			gl.glUniformMatrix4fv(mvLocPhong, 1, false, mvStack.get(vals));
+			gl.glUniformMatrix4fv(mvLocTex, 1, false, mvStack.get(vals));
 			gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("lightPositions")]);
 			gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
 			gl.glEnableVertexAttribArray(0);
 			// pull up texture coords
 			gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("lightTextures")]);
 			gl.glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0);
-			gl.glEnableVertexAttribArray(1); // pull up normal coords
-			gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("lightNormals")]);
-			gl.glVertexAttribPointer(2, 3, GL_FLOAT, false, 0, 0);
 			gl.glEnableVertexAttribArray(2); // activate texture object
 			gl.glActiveTexture(GL_TEXTURE0);
 			gl.glBindTexture(GL_TEXTURE_2D, yellowTex);
-			gl.glActiveTexture(GL_TEXTURE1);
-			gl.glBindTexture(GL_TEXTURE_2D, blankNorm);
 			gl.glEnable(GL_DEPTH_TEST);
-			int mambLoc = gl.glGetUniformLocation(phongShader, "material.ambient");
-			int mdiffLoc = gl.glGetUniformLocation(phongShader, "material.diffuse");
-			int mspecLoc = gl.glGetUniformLocation(phongShader, "material.specular");
-			int mshiLoc = gl.glGetUniformLocation(phongShader, "material.shininess");
-			gl.glProgramUniform4fv(phongShader, mambLoc, 1, goldMat.getAmbient(), 0);
-			gl.glProgramUniform4fv(phongShader, mdiffLoc, 1, goldMat.getDiffuse(), 0);
-			gl.glProgramUniform4fv(phongShader, mspecLoc, 1, goldMat.getSpecular(), 0);
-			gl.glProgramUniform1f(phongShader, mshiLoc, goldMat.getShininess());
 
 			gl.glDrawArrays(GL_TRIANGLES, 0, lightObj.getNumVertices());
 			mvStack.popMatrix();
 			installLights(mv, phongShader);
-			installLights(mv, texShader);
 		} else {
 			uninstallLights(mv, phongShader);
-			uninstallLights(mv, texShader);
 
 		}
 
