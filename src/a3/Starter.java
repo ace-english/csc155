@@ -227,7 +227,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	}
 
 	private void resetLight() {
-		mouseLight.setPosition(new Vector3f(0f, 3f, 0f));
+		mouseLight.setPosition(new Vector3f(.1f, 5f, .1f));
 
 	}
 
@@ -237,8 +237,12 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glClear(GL_DEPTH_BUFFER_BIT);
 		elapsedTime = System.currentTimeMillis() - startTime;
 
+		// System.out.println("init lightVmat: " + lightVmat + "
+		// mouseLight.getPosition() " + mouseLight.getPosition());
 		lightVmat.identity().setLookAt(mouseLight.getPosition(), origin, up); // vector from light to origin
+		// System.out.println("lookat lightVmat: " + lightVmat);
 		lightPmat.identity().setPerspective((float) Math.toRadians(60.0f), aspect, 0.1f, 1000.0f);
+
 		gl.glBindFramebuffer(GL_FRAMEBUFFER, shadowBuffer[0]);
 		gl.glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, shadowTex[0], 0);
 
@@ -264,6 +268,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 
 		gl.glUseProgram(pass1Shader);
+		sLoc = gl.glGetUniformLocation(pass1Shader, "shadowMVP");
 		addToShadow(gl, "table", tableObj);
 		addToShadow(gl, "scroll", scrollObj);
 		addToShadow(gl, "bag", bagObj);
@@ -289,12 +294,15 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		mv.invert(invTr);
 		invTr.transpose(invTr);
 
-		gl.glUseProgram(texShader);
+		shadowMVP2.identity();
+		shadowMVP2.mul(b);
+		shadowMVP2.mul(lightPmat);
+		shadowMVP2.mul(lightVmat);
+		// System.out.println("lightVmat: " + lightVmat + "shadowMPV2: " + shadowMVP2);
 
+		gl.glUseProgram(texShader);
 		mvLocTex = gl.glGetUniformLocation(texShader, "mv_matrix");
 		projLocTex = gl.glGetUniformLocation(texShader, "proj_matrix");
-		nLocTex = gl.glGetUniformLocation(texShader, "norm_matrix");
-
 		gl.glUniformMatrix4fv(mvLocTex, 1, false, mv.get(vals));
 		gl.glUniformMatrix4fv(projLocTex, 1, false, pMat.get(vals));
 		gl.glUniformMatrix4fv(nLocTex, 1, false, invTr.get(vals));
@@ -303,10 +311,11 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		mvLocPhong = gl.glGetUniformLocation(phongShader, "mv_matrix");
 		projLocPhong = gl.glGetUniformLocation(phongShader, "proj_matrix");
 		nLocPhong = gl.glGetUniformLocation(phongShader, "norm_matrix");
-
+		sLoc = gl.glGetUniformLocation(phongShader, "shadowMVP");
 		gl.glUniformMatrix4fv(mvLocPhong, 1, false, mv.get(vals));
 		gl.glUniformMatrix4fv(projLocPhong, 1, false, pMat.get(vals));
 		gl.glUniformMatrix4fv(nLocPhong, 1, false, invTr.get(vals));
+		gl.glUniformMatrix4fv(sLoc, 1, false, shadowMVP2.get(vals));
 
 		tf = elapsedTime / 1000.0; // time factor
 
@@ -350,7 +359,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 			installLights(mv, phongShader);
 		} else {
 			uninstallLights(mv, phongShader);
-
 		}
 
 		gl.glUseProgram(phongShader);
@@ -414,6 +422,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	}
 
 	private void addToDisplay(GL4 gl, String name, int texture, int normal, Material currentMat, WorldObject obj) {
+		gl.glUniformMatrix4fv(sLoc, 1, false, mvStack.get(vals));
 		gl.glUniformMatrix4fv(mvLocPhong, 1, false, mvStack.get(vals));
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Positions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
@@ -448,6 +457,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		shadowMVP1.mul(lightPmat);
 		shadowMVP1.mul(lightVmat);
 		gl.glUniformMatrix4fv(sLoc, 1, false, mvStack.get(vals));
+		// System.out.println("sloc: " + sLoc + "shadowMPV1: " + shadowMVP1);
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Positions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
 		gl.glEnableVertexAttribArray(0);

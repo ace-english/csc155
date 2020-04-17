@@ -29,6 +29,7 @@ uniform Material material;
 uniform mat4 mv_matrix;	 
 uniform mat4 proj_matrix;
 uniform mat4 norm_matrix;
+uniform mat4 shadowMVP;
 
 layout (binding=0) uniform sampler2D t;
 layout (binding=1) uniform sampler2D s;
@@ -52,8 +53,8 @@ void main(void)
 	float cosPhi = dot(H,N);
 
 	vec4 texel = texture(t,tc);
-	float notInShadow=0;
-	//float notInShadow = textureProj(shadowTex, shadow_coord);
+	//float notInShadow=0;
+	float notInShadow = textureProj(shadowTex, shadow_coord);
 		
 		vec3 ambient = ((globalAmbient * material.ambient) + (light.ambient * material.ambient)).xyz;
 	vec3 diffuse = light.diffuse.xyz * material.diffuse.xyz * max(cosTheta,0.0);

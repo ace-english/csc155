@@ -10,6 +10,7 @@ out vec3 varyingLightDir;
 out vec3 varyingVertPos;
 out vec3 originalVertex;
 out vec2 tc;
+out vec4 shadow_coord;
 
 layout (binding=0) uniform sampler2D s;
 layout (binding=1) uniform sampler2D t;
@@ -45,6 +46,6 @@ void main(void)
 	
 	varyingNormal = (norm_matrix * vec4(vertNormal,1.0)).xyz;
 
-	//shadow_coord = shadowMVP * vec4(vertPos,1.0);
+	shadow_coord = shadowMVP * vec4(vertPos,1.0);
 	gl_Position = proj_matrix * mv_matrix * vec4(vertPos,1.0);
 }
