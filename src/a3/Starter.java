@@ -1,7 +1,9 @@
 package a3;
 
 import static com.jogamp.opengl.GL.GL_ARRAY_BUFFER;
+import static com.jogamp.opengl.GL.GL_CCW;
 import static com.jogamp.opengl.GL.GL_COLOR_BUFFER_BIT;
+import static com.jogamp.opengl.GL.GL_CULL_FACE;
 import static com.jogamp.opengl.GL.GL_DEPTH_ATTACHMENT;
 import static com.jogamp.opengl.GL.GL_DEPTH_BUFFER_BIT;
 import static com.jogamp.opengl.GL.GL_DEPTH_COMPONENT32;
@@ -79,7 +81,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private Matrix4f pMat = new Matrix4f();
 	private Matrix4f invTr = new Matrix4f();
 	private Matrix4f mv = new Matrix4f();
-	private int mvLocTex, projLocTex, nLocTex, mvLocAxis, projLocAxis, mvLocPhong, projLocPhong, nLocPhong;
+	private int sLoc, mvLocTex, projLocTex, nLocTex, mvLocAxis, projLocAxis, mvLocPhong, projLocPhong, nLocPhong;
 	private float aspect;
 	private double tf;
 	private boolean showAxes, showLight;
@@ -259,7 +261,17 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	}
 
 	private void passOne() {
-		System.out.println("pass1");
+		GL4 gl = (GL4) GLContext.getCurrentGL();
+
+		gl.glUseProgram(pass1Shader);
+		addToShadow(gl, "table", tableObj);
+		addToShadow(gl, "scroll", scrollObj);
+		addToShadow(gl, "bag", bagObj);
+		addToShadow(gl, "coin", coinObj);
+		addToShadow(gl, "key", keyObj);
+		addToShadow(gl, "bookCover", bookCoverObj);
+		addToShadow(gl, "bookPages", bookPagesObj);
+
 	}
 
 	private void passTwo() {
@@ -428,6 +440,23 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glProgramUniform4fv(phongShader, mdiffLoc, 1, currentMat.getDiffuse(), 0);
 		gl.glProgramUniform4fv(phongShader, mspecLoc, 1, currentMat.getSpecular(), 0);
 		gl.glProgramUniform1f(phongShader, mshiLoc, currentMat.getShininess());
+		gl.glDrawArrays(GL_TRIANGLES, 0, obj.getNumVertices());
+	}
+
+	private void addToShadow(GL4 gl, String name, WorldObject obj) {
+		shadowMVP1.identity();
+		shadowMVP1.mul(lightPmat);
+		shadowMVP1.mul(lightVmat);
+		gl.glUniformMatrix4fv(sLoc, 1, false, mvStack.get(vals));
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Positions")]);
+		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(0);
+
+		gl.glEnable(GL_CULL_FACE);
+		gl.glFrontFace(GL_CCW);
+		gl.glEnable(GL_DEPTH_TEST);
+		gl.glDepthFunc(GL_LEQUAL);
+
 		gl.glDrawArrays(GL_TRIANGLES, 0, obj.getNumVertices());
 	}
 
