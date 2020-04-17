@@ -3,8 +3,11 @@ package a3;
 import static com.jogamp.opengl.GL.GL_ARRAY_BUFFER;
 import static com.jogamp.opengl.GL.GL_COLOR_BUFFER_BIT;
 import static com.jogamp.opengl.GL.GL_DEPTH_BUFFER_BIT;
+import static com.jogamp.opengl.GL.GL_DEPTH_COMPONENT32;
 import static com.jogamp.opengl.GL.GL_DEPTH_TEST;
 import static com.jogamp.opengl.GL.GL_FLOAT;
+import static com.jogamp.opengl.GL.GL_LEQUAL;
+import static com.jogamp.opengl.GL.GL_LINEAR;
 import static com.jogamp.opengl.GL.GL_LINEAR_MIPMAP_LINEAR;
 import static com.jogamp.opengl.GL.GL_LINES;
 import static com.jogamp.opengl.GL.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT;
@@ -12,12 +15,17 @@ import static com.jogamp.opengl.GL.GL_STATIC_DRAW;
 import static com.jogamp.opengl.GL.GL_TEXTURE0;
 import static com.jogamp.opengl.GL.GL_TEXTURE1;
 import static com.jogamp.opengl.GL.GL_TEXTURE_2D;
+import static com.jogamp.opengl.GL.GL_TEXTURE_MAG_FILTER;
 import static com.jogamp.opengl.GL.GL_TEXTURE_MAX_ANISOTROPY_EXT;
 import static com.jogamp.opengl.GL.GL_TEXTURE_MIN_FILTER;
 import static com.jogamp.opengl.GL.GL_TRIANGLES;
+import static com.jogamp.opengl.GL2ES2.GL_COMPARE_REF_TO_TEXTURE;
 import static com.jogamp.opengl.GL2ES2.GL_COMPILE_STATUS;
+import static com.jogamp.opengl.GL2ES2.GL_DEPTH_COMPONENT;
 import static com.jogamp.opengl.GL2ES2.GL_FRAGMENT_SHADER;
 import static com.jogamp.opengl.GL2ES2.GL_LINK_STATUS;
+import static com.jogamp.opengl.GL2ES2.GL_TEXTURE_COMPARE_FUNC;
+import static com.jogamp.opengl.GL2ES2.GL_TEXTURE_COMPARE_MODE;
 import static com.jogamp.opengl.GL2ES2.GL_VERTEX_SHADER;
 import static com.jogamp.opengl.GL3ES3.GL_GEOMETRY_SHADER;
 import static com.jogamp.opengl.GL3ES3.GL_TESS_CONTROL_SHADER;
@@ -57,7 +65,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private GLCanvas myCanvas;
 	private double startTime = 0.0;
 	private double elapsedTime;
-	private int texShader, axisShader, phongShader;
+	private int texShader, axisShader, phongShader, pass1Shader;
 	private int vao[] = new int[1];
 	private int vbo[] = new int[40];
 	private Camera camera;
@@ -80,6 +88,16 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private Light globalAmbientLight;
 	private PositionalLight mouseLight;
 	private Dictionary<String, Integer> vboDict;
+
+	// shadow-related variables
+	private int screenSizeX, screenSizeY;
+	private int[] shadowTex = new int[1];
+	private int[] shadowBuffer = new int[1];
+	private Matrix4f lightVmat = new Matrix4f();
+	private Matrix4f lightPmat = new Matrix4f();
+	private Matrix4f shadowMVP1 = new Matrix4f();
+	private Matrix4f shadowMVP2 = new Matrix4f();
+	private Matrix4f b = new Matrix4f();
 
 	MouseAdapter myMouseAdapter = new MouseAdapter() {
 
@@ -411,6 +429,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		texShader = createShaderProgram("src/a3/texVertShader.glsl", "src/a3/texFragShader.glsl");
 		axisShader = createShaderProgram("src/a3/axisVertShader.glsl", "src/a3/axisFragShader.glsl");
 		phongShader = createShaderProgram("src/a3/phongVertShader.glsl", "src/a3/phongFragShader.glsl");
+		pass1Shader = createShaderProgram("src/a3/vert1Shader.glsl", "src/a3/frag1Shader.glsl");
 
 		woodTex = loadTexture("assets/wood.jpg");
 		scrollTex = loadTexture("assets/scroll.png");
@@ -434,7 +453,26 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		bookPagesObj = new ImportedModel("assets/book_pages.obj");
 		bookCoverObj = new ImportedModel("assets/book_cover.obj");
 		setupVertices();
+		setupShadowBuffers();
+		b.set(0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 0.5f, 0.5f, 0.5f, 1.0f);
+	}
 
+	private void setupShadowBuffers() {
+		GL4 gl = (GL4) GLContext.getCurrentGL();
+		screenSizeX = myCanvas.getWidth();
+		screenSizeY = myCanvas.getHeight();
+		// create the custom frame buffer
+		gl.glGenFramebuffers(1, shadowBuffer, 0);
+		// create the shadow texture and configure it to hold depth information.
+		// these steps are similar to those in Program 5.2
+		gl.glGenTextures(1, shadowTex, 0);
+		gl.glBindTexture(GL_TEXTURE_2D, shadowTex[0]);
+		gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, screenSizeX, screenSizeY, 0, GL_DEPTH_COMPONENT,
+				GL_FLOAT, null);
+		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 	}
 
 	private void setupVertices() {
