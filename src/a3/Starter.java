@@ -269,7 +269,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glBindTexture(GL_TEXTURE_2D, shadowTex[0]);
 
 		gl.glDrawBuffer(GL_FRONT);
-		passTwo();
+		// passTwo();
 
 	}
 
@@ -496,9 +496,9 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		paperMat = new Material(new float[] { .7f, .7f, .7f, 1.0f }, new float[] { 0.8f, 0.8f, 0.8f, 1.0f },
 				new float[] { 0.5f, 0.5f, 0.5f, 1.0f }, 50f);
-		woodMat = new Material(new float[] { 1f, 1f, 1f, 1.0f }, new float[] { 0.8f, 0.8f, 0.8f, 1.0f },
-				new float[] { 0.475f, 0.475f, 0.475f, 1.0f }, 85f);
-		leatherMat = new Material(new float[] { .7f, .7f, .7f, 1.0f },
+		woodMat = new Material(new float[] { 0.345098039f, 0.219607843f, 0.160784314f, 1.0f },
+				new float[] { 0.8f, 0.8f, 0.8f, 1.0f }, new float[] { 0.475f, 0.475f, 0.475f, 1.0f }, 85f);
+		leatherMat = new Material(new float[] { .24f, .1f, .07f, 1.0f },
 				new float[] { 0.291945f, 0.225797f, 0.221366f, 1.0f }, new float[] { .5f, .5f, .5f, 1.0f }, 60f);
 
 		globalAmbientLight = new GlobalAmbientLight();
@@ -546,6 +546,8 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glGenFramebuffers(1, shadowBuffer, 0);
 		// create the shadow texture and configure it to hold depth information.
 		// these steps are similar to those in Program 5.2
+		System.out.println("shadowTex: " + shadowTex[0]);
+		System.out.println("shadowBuffer: " + shadowBuffer[0]);
 		gl.glGenTextures(1, shadowTex, 0);
 		gl.glBindTexture(GL_TEXTURE_2D, shadowTex[0]);
 		gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, screenSizeX, screenSizeY, 0, GL_DEPTH_COMPONENT,

@@ -53,14 +53,13 @@ void main(void)
 	//float notInShadow=0;
 	float notInShadow = textureProj(shadowTex, shadow_coord);
 
-	//display with texture only
 	vec4 texel = texture(t,tc);
 	
 	//display with texture, material, and light
 	fragColor = texel* vec4((ambient + diffuse), 1.0)+vec4((specular), 1.0);
 	
 	//display with only material and light
-	fragColor = vec4((ambient + diffuse + specular), 1.0);
+	//fragColor = vec4((ambient + diffuse + specular), 1.0);
 	
 	//display if in shadow
 	if (notInShadow == 1.0)
