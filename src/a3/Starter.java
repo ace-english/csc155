@@ -22,6 +22,7 @@ import static com.jogamp.opengl.GL.GL_POLYGON_OFFSET_FILL;
 import static com.jogamp.opengl.GL.GL_STATIC_DRAW;
 import static com.jogamp.opengl.GL.GL_TEXTURE0;
 import static com.jogamp.opengl.GL.GL_TEXTURE1;
+import static com.jogamp.opengl.GL.GL_TEXTURE2;
 import static com.jogamp.opengl.GL.GL_TEXTURE_2D;
 import static com.jogamp.opengl.GL.GL_TEXTURE_MAG_FILTER;
 import static com.jogamp.opengl.GL.GL_TEXTURE_MAX_ANISOTROPY_EXT;
@@ -51,6 +52,7 @@ import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.Random;
 import java.util.Scanner;
 import java.util.Vector;
 
@@ -75,6 +77,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private GLCanvas myCanvas;
 	private double startTime = 0.0;
 	private double elapsedTime;
+	Random random = new Random();
 	private int texShader, axisShader, phongShader, pass1Shader;
 	private int vao[] = new int[1];
 	private int vbo[] = new int[40];
@@ -124,13 +127,13 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 			System.out.println("mouseDragged: (" + event.getX() + "," + event.getY() + ")");
 			float[] vector = new float[] { event.getX() - mouseDragCurrent[0], event.getY() - mouseDragCurrent[1] };
 			System.out.printf("dragging: (%f,%f)\n", vector[0], vector[1]);
-			mouseLight.getPosition().add(vector[0] * .003f, vector[1] * -.003f, 0f);
+			mouseLight.getPosition().add(vector[0] * .0003f, vector[1] * -.0003f, 0f);
 		}
 
 		@Override
 		public void mouseWheelMoved(MouseWheelEvent event) {
 			System.out.println("scroll: " + event.getWheelRotation());
-			mouseLight.getPosition().add(0f, 0f, event.getWheelRotation() * -.5f);
+			mouseLight.getPosition().add(0f, 0f, event.getWheelRotation() * -.1f);
 
 		}
 
@@ -230,7 +233,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	}
 
 	private void resetLight() {
-		mouseLight.setPosition(new Vector3f(.1f, 5f, .1f));
+		mouseLight.setPosition(new Vector3f(.01f, 2f, .01f));
 
 	}
 
@@ -240,11 +243,14 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glClear(GL_DEPTH_BUFFER_BIT);
 		elapsedTime = System.currentTimeMillis() - startTime;
 
-		// System.out.println("init lightVmat: " + lightVmat + "
-		// mouseLight.getPosition() " + mouseLight.getPosition());
 		lightVmat.identity().setLookAt(mouseLight.getPosition(), origin, up); // vector from light to origin
-		// System.out.println("lookat lightVmat: " + lightVmat);
 		lightPmat.identity().setPerspective((float) Math.toRadians(60.0f), aspect, 0.1f, 1000.0f);
+
+		tf = elapsedTime / 1000.0; // time factor
+
+		// flickering candlelight? Must be a sine of the times
+		float mod = (float) (Math.sin(15 * tf) / (150 + (Math.random() * 150)));
+		mouseLight.add(mod);
 
 		gl.glBindFramebuffer(GL_FRAMEBUFFER, shadowBuffer[0]);
 		gl.glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, shadowTex[0], 0);
@@ -259,7 +265,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glDisable(GL_POLYGON_OFFSET_FILL); // artifact reduction, continued
 
 		gl.glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		gl.glActiveTexture(GL_TEXTURE0);
+		gl.glActiveTexture(GL_TEXTURE2);
 		gl.glBindTexture(GL_TEXTURE_2D, shadowTex[0]);
 
 		gl.glDrawBuffer(GL_FRONT);
@@ -320,8 +326,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glUniformMatrix4fv(nLocPhong, 1, false, invTr.get(vals));
 		gl.glUniformMatrix4fv(sLoc, 1, false, shadowMVP2.get(vals));
 
-		tf = elapsedTime / 1000.0; // time factor
-
 		// ---------------------- axis
 		if (showAxes) {
 
@@ -339,12 +343,11 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 			mvStack.popMatrix(); // print axes
 		}
 
-		// TODO add sine of the times
 		if (showLight) {
 			gl.glUseProgram(texShader);
 			mvStack.pushMatrix();
-			mvStack.scale(.05f, .05f, .05f);
 			mvStack.translate(mouseLight.getPosition());
+			mvStack.scale(.05f, .05f, .05f);
 			gl.glUniformMatrix4fv(mvLocTex, 1, false, mvStack.get(vals));
 			gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("lightPositions")]);
 			gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
@@ -499,7 +502,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 				new float[] { 0.291945f, 0.225797f, 0.221366f, 1.0f }, new float[] { .5f, .5f, .5f, 1.0f }, 60f);
 
 		globalAmbientLight = new GlobalAmbientLight();
-		mouseLight = new PositionalLight(new float[] { 0.1f, 0.1f, 0.1f, 1.0f }, new float[] { 1.0f, 1.0f, 1.0f, 1.0f },
+		mouseLight = new PositionalLight(new float[] { 0.1f, 0.1f, 0.1f, 1.0f }, new float[] { .4f, .3f, .2f, 1.0f },
 				new float[] { 1.0f, 1.0f, 1.0f, 1.0f }, new Vector3f(0f, 0f, 0f));
 		resetLight();
 

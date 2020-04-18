@@ -60,7 +60,7 @@ void main(void)
 	fragColor = texel* vec4((ambient + diffuse), 1.0)+vec4((specular), 1.0);
 	
 	//display with only material and light
-	//fragColor = vec4((ambient + diffuse + specular), 1.0);
+	fragColor = vec4((ambient + diffuse + specular), 1.0);
 	
 	//display if in shadow
 	if (notInShadow == 1.0)
