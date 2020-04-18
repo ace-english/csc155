@@ -269,7 +269,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glBindTexture(GL_TEXTURE_2D, shadowTex[0]);
 
 		gl.glDrawBuffer(GL_FRONT);
-		// passTwo();
+		passTwo();
 
 	}
 
@@ -307,7 +307,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		shadowMVP2.mul(b);
 		shadowMVP2.mul(lightPmat);
 		shadowMVP2.mul(lightVmat);
-		// System.out.println("lightVmat: " + lightVmat + "shadowMPV2: " + shadowMVP2);
+		System.out.println("lightVmat: " + lightVmat + "shadowMPV2: " + shadowMVP2);
 
 		gl.glUseProgram(texShader);
 		mvLocTex = gl.glGetUniformLocation(texShader, "mv_matrix");
@@ -446,7 +446,12 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glBindTexture(GL_TEXTURE_2D, texture);
 		gl.glActiveTexture(GL_TEXTURE1);
 		gl.glBindTexture(GL_TEXTURE_2D, normal);
+
+		gl.glEnable(GL_CULL_FACE);
+		gl.glFrontFace(GL_CCW);
 		gl.glEnable(GL_DEPTH_TEST);
+		gl.glDepthFunc(GL_LEQUAL);
+
 		int mambLoc = gl.glGetUniformLocation(phongShader, "material.ambient");
 		int mdiffLoc = gl.glGetUniformLocation(phongShader, "material.diffuse");
 		int mspecLoc = gl.glGetUniformLocation(phongShader, "material.specular");
@@ -455,6 +460,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glProgramUniform4fv(phongShader, mdiffLoc, 1, currentMat.getDiffuse(), 0);
 		gl.glProgramUniform4fv(phongShader, mspecLoc, 1, currentMat.getSpecular(), 0);
 		gl.glProgramUniform1f(phongShader, mshiLoc, currentMat.getShininess());
+
 		gl.glDrawArrays(GL_TRIANGLES, 0, obj.getNumVertices());
 	}
 
@@ -462,8 +468,9 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		shadowMVP1.identity();
 		shadowMVP1.mul(lightPmat);
 		shadowMVP1.mul(lightVmat);
+		sLoc = gl.glGetUniformLocation(pass1Shader, "shadowMVP");
 		gl.glUniformMatrix4fv(sLoc, 1, false, mvStack.get(vals));
-		// System.out.println("sloc: " + sLoc + "shadowMPV1: " + shadowMVP1);
+		System.out.println("sloc: " + sLoc + "shadowMPV1: " + shadowMVP1);
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Positions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
 		gl.glEnableVertexAttribArray(0);

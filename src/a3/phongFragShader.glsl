@@ -50,7 +50,6 @@ void main(void)
 	vec3 specular = light.specular.xyz * material.specular.xyz * pow(max(cosPhi,0.0), material.shininess*3.0);
 	
 	//calculate notInShadow
-	//float notInShadow=0;
 	float notInShadow = textureProj(shadowTex, shadow_coord);
 
 	vec4 texel = texture(t,tc);
@@ -58,12 +57,10 @@ void main(void)
 	//display with texture, material, and light
 	fragColor = texel* vec4((ambient + diffuse), 1.0)+vec4((specular), 1.0);
 	
-	//display with only material and light
-	//fragColor = vec4((ambient + diffuse + specular), 1.0);
 	
 	//display if in shadow
-	if (notInShadow == 1.0)
-	{	fragColor += light.diffuse * material.diffuse * max(dot(L,N),0.0)
+	if (notInShadow == 1.0){
+	fragColor += light.diffuse * material.diffuse * max(dot(L,N),0.0)
 				+ light.specular * material.specular
 				* pow(max(dot(H,N),0.0),material.shininess*3.0);
 	}
