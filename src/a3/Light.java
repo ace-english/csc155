@@ -39,4 +39,17 @@ public abstract class Light {
 		this.specular = specular;
 	}
 
+	public void add(float scalar) {
+		ambient[0] += scalar;
+		ambient[1] += scalar;
+		ambient[2] += scalar;
+		diffuse[0] += scalar;
+		diffuse[1] += scalar;
+		diffuse[2] += scalar;
+		specular[0] += scalar;
+		specular[1] += scalar;
+		specular[2] += scalar;
+
+	}
+
 }
