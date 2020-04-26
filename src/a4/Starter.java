@@ -327,9 +327,8 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glUniformMatrix4fv(nLocPhong, 1, false, invTr.get(vals));
 		gl.glUniformMatrix4fv(sLoc, 1, false, shadowMVP2.get(vals));
 
-		mvStack.pushMatrix();
-
 		// ---------------------- skybox
+		gl.glUseProgram(texShader);
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("skyboxPositions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
 		gl.glEnableVertexAttribArray(0);
@@ -397,7 +396,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		addToDisplay(gl, "key", metalTex, metalNorm, pewterMat, keyObj);
 		addToDisplay(gl, "bookCover", leatherTex, leatherNorm, leatherMat, bookCoverObj);
 		addToDisplay(gl, "bookPages", scrollTex, blankNorm, paperMat, bookPagesObj);
-		mvStack.popMatrix(); // skybox
 		mvStack.popMatrix(); // final pop
 	}
 
