@@ -292,8 +292,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 		// push view matrix onto the stack
 		mvStack.pushMatrix();
-		mvStack.lookAlong(camera.getN(), camera.getV());
-		mvStack.translate(new Vector3f(camera.getLocation()).negate());
 
 		aspect = (float) myCanvas.getWidth() / (float) myCanvas.getHeight();
 		pMat.identity().setPerspective((float) Math.toRadians(60.0f), aspect, 0.1f, 1000.0f);
@@ -329,6 +327,9 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		// ---------------------- skybox
 		gl.glUseProgram(texShader);
+		mvStack.pushMatrix();
+		mvStack.translate(camera.getLocation());
+		mvStack.scale(10f, 10f, 10f);
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("skyboxPositions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
 		gl.glEnableVertexAttribArray(0);
@@ -345,6 +346,9 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glDisable(GL_DEPTH_TEST);
 		gl.glDrawArrays(GL_TRIANGLES, 0, 36);
 		gl.glEnable(GL_DEPTH_TEST);
+		mvStack.popMatrix();
+		mvStack.lookAlong(camera.getN(), camera.getV());
+		mvStack.translate(new Vector3f(camera.getLocation()).negate());
 
 		// ---------------------- axis
 		if (showAxes) {
