@@ -329,8 +329,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		// ---------------------- skybox
 		gl.glUseProgram(texShader);
 		mvStack.pushMatrix();
-		// mvStack.translate(camera.getLocation());
-		// mvStack.scale(10f, 10f, 10f);
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("skyboxPositions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
 		gl.glEnableVertexAttribArray(0);
