@@ -315,6 +315,13 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glUniformMatrix4fv(projLocTex, 1, false, pMat.get(vals));
 		gl.glUniformMatrix4fv(nLocTex, 1, false, invTr.get(vals));
 
+		gl.glUseProgram(chromeShader);
+		mvLocTex = gl.glGetUniformLocation(texShader, "mv_matrix");
+		projLocTex = gl.glGetUniformLocation(texShader, "proj_matrix");
+		gl.glUniformMatrix4fv(mvLocTex, 1, false, mv.get(vals));
+		gl.glUniformMatrix4fv(projLocTex, 1, false, pMat.get(vals));
+		gl.glUniformMatrix4fv(nLocTex, 1, false, invTr.get(vals));
+
 		gl.glUseProgram(phongShader);
 
 		mvLocPhong = gl.glGetUniformLocation(phongShader, "mv_matrix");
@@ -398,6 +405,36 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		addToDisplay(gl, "key", metalTex, metalNorm, pewterMat, keyObj);
 		addToDisplay(gl, "bookCover", leatherTex, leatherNorm, leatherMat, bookCoverObj);
 		addToDisplay(gl, "bookPages", scrollTex, blankNorm, paperMat, bookPagesObj);
+
+		// ---------------------chrome goblet
+
+		gl.glUseProgram(chromeShader);
+		gl.glUniformMatrix4fv(sLoc, 1, false, mvStack.get(vals));
+		gl.glUniformMatrix4fv(mvLocPhong, 1, false, mvStack.get(vals));
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("gobletPositions")]);
+		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(0);
+		// pull up texture coords
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("gobletTextures")]);
+		gl.glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(1);
+		// pull up normal coords
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Normals")]);
+		gl.glVertexAttribPointer(2, 3, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(2);
+		// activate texture object
+		gl.glActiveTexture(GL_TEXTURE0);
+		gl.glBindTexture(GL_TEXTURE_2D, texture);
+		gl.glActiveTexture(GL_TEXTURE1);
+		gl.glBindTexture(GL_TEXTURE_2D, normal);
+
+		gl.glEnable(GL_CULL_FACE);
+		gl.glFrontFace(GL_CCW);
+		gl.glEnable(GL_DEPTH_TEST);
+		gl.glDepthFunc(GL_LEQUAL);
+
+		gl.glDrawArrays(GL_TRIANGLES, 0, gobletObj.getNumVertices());
+
 		mvStack.popMatrix(); // final pop
 	}
 
@@ -468,37 +505,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glBindTexture(GL_TEXTURE_2D, texture);
 		gl.glActiveTexture(GL_TEXTURE1);
 		gl.glBindTexture(GL_TEXTURE_2D, normal);
-
-		gl.glEnable(GL_CULL_FACE);
-		gl.glFrontFace(GL_CCW);
-		gl.glEnable(GL_DEPTH_TEST);
-		gl.glDepthFunc(GL_LEQUAL);
-
-		int mambLoc = gl.glGetUniformLocation(phongShader, "material.ambient");
-		int mdiffLoc = gl.glGetUniformLocation(phongShader, "material.diffuse");
-		int mspecLoc = gl.glGetUniformLocation(phongShader, "material.specular");
-		int mshiLoc = gl.glGetUniformLocation(phongShader, "material.shininess");
-		gl.glProgramUniform4fv(phongShader, mambLoc, 1, currentMat.getAmbient(), 0);
-		gl.glProgramUniform4fv(phongShader, mdiffLoc, 1, currentMat.getDiffuse(), 0);
-		gl.glProgramUniform4fv(phongShader, mspecLoc, 1, currentMat.getSpecular(), 0);
-		gl.glProgramUniform1f(phongShader, mshiLoc, currentMat.getShininess());
-
-		gl.glDrawArrays(GL_TRIANGLES, 0, obj.getNumVertices());
-	}
-
-	private void addToDisplay(GL4 gl, String name, int texture, Material currentMat, WorldObject obj) {
-		gl.glUniformMatrix4fv(sLoc, 1, false, mvStack.get(vals));
-		gl.glUniformMatrix4fv(mvLocPhong, 1, false, mvStack.get(vals));
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Positions")]);
-		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
-		gl.glEnableVertexAttribArray(0);
-		// pull up texture coords
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Textures")]);
-		gl.glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0);
-		gl.glEnableVertexAttribArray(1);
-		// activate texture object
-		gl.glActiveTexture(GL_TEXTURE0);
-		gl.glBindTexture(GL_TEXTURE_2D, texture);
 
 		gl.glEnable(GL_CULL_FACE);
 		gl.glFrontFace(GL_CCW);
