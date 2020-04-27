@@ -1,4 +1,4 @@
-package a3;
+package a4;
 
 import static com.jogamp.opengl.GL.GL_ARRAY_BUFFER;
 import static com.jogamp.opengl.GL.GL_CCW;
@@ -95,7 +95,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 	private ImportedModel tableObj, scrollObj, bagObj, keyObj, coinObj, bookPagesObj, bookCoverObj;
 	private Sphere lightObj;
-	private int woodTex, scrollTex, burlapTex, metalTex, leatherTex, yellowTex;
+	private int woodTex, scrollTex, burlapTex, metalTex, leatherTex, yellowTex, skyboxTex;
 	private int woodNorm, blankNorm, burlapNorm, metalNorm, leatherNorm;
 	private Material goldMat, leatherMat, woodMat, paperMat, pewterMat;
 	private Light globalAmbientLight;
@@ -292,8 +292,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 		// push view matrix onto the stack
 		mvStack.pushMatrix();
-		mvStack.lookAlong(camera.getN(), camera.getV());
-		mvStack.translate(new Vector3f(camera.getLocation()).negate());
 
 		aspect = (float) myCanvas.getWidth() / (float) myCanvas.getHeight();
 		pMat.identity().setPerspective((float) Math.toRadians(60.0f), aspect, 0.1f, 1000.0f);
@@ -317,6 +315,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glUniformMatrix4fv(nLocTex, 1, false, invTr.get(vals));
 
 		gl.glUseProgram(phongShader);
+
 		mvLocPhong = gl.glGetUniformLocation(phongShader, "mv_matrix");
 		projLocPhong = gl.glGetUniformLocation(phongShader, "proj_matrix");
 		nLocPhong = gl.glGetUniformLocation(phongShader, "norm_matrix");
@@ -325,6 +324,31 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glUniformMatrix4fv(projLocPhong, 1, false, pMat.get(vals));
 		gl.glUniformMatrix4fv(nLocPhong, 1, false, invTr.get(vals));
 		gl.glUniformMatrix4fv(sLoc, 1, false, shadowMVP2.get(vals));
+
+		// ---------------------- skybox
+		gl.glUseProgram(texShader);
+		mvStack.pushMatrix();
+		mvStack.translate(camera.getLocation());
+		mvStack.scale(10f, 10f, 10f);
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("skyboxPositions")]);
+		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(0);
+
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("skyboxTextures")]);
+		gl.glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(1);
+
+		gl.glActiveTexture(GL_TEXTURE0);
+		gl.glBindTexture(GL_TEXTURE_2D, skyboxTex);
+
+		gl.glEnable(GL_CULL_FACE);
+		gl.glFrontFace(GL_CCW); // cube is CW, but we are viewing the inside
+		gl.glDisable(GL_DEPTH_TEST);
+		gl.glDrawArrays(GL_TRIANGLES, 0, 36);
+		gl.glEnable(GL_DEPTH_TEST);
+		mvStack.popMatrix();
+		mvStack.lookAlong(camera.getN(), camera.getV());
+		mvStack.translate(new Vector3f(camera.getLocation()).negate());
 
 		// ---------------------- axis
 		if (showAxes) {
@@ -464,6 +488,37 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glDrawArrays(GL_TRIANGLES, 0, obj.getNumVertices());
 	}
 
+	private void addToDisplay(GL4 gl, String name, int texture, Material currentMat, WorldObject obj) {
+		gl.glUniformMatrix4fv(sLoc, 1, false, mvStack.get(vals));
+		gl.glUniformMatrix4fv(mvLocPhong, 1, false, mvStack.get(vals));
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Positions")]);
+		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(0);
+		// pull up texture coords
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Textures")]);
+		gl.glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(1);
+		// activate texture object
+		gl.glActiveTexture(GL_TEXTURE0);
+		gl.glBindTexture(GL_TEXTURE_2D, texture);
+
+		gl.glEnable(GL_CULL_FACE);
+		gl.glFrontFace(GL_CCW);
+		gl.glEnable(GL_DEPTH_TEST);
+		gl.glDepthFunc(GL_LEQUAL);
+
+		int mambLoc = gl.glGetUniformLocation(phongShader, "material.ambient");
+		int mdiffLoc = gl.glGetUniformLocation(phongShader, "material.diffuse");
+		int mspecLoc = gl.glGetUniformLocation(phongShader, "material.specular");
+		int mshiLoc = gl.glGetUniformLocation(phongShader, "material.shininess");
+		gl.glProgramUniform4fv(phongShader, mambLoc, 1, currentMat.getAmbient(), 0);
+		gl.glProgramUniform4fv(phongShader, mdiffLoc, 1, currentMat.getDiffuse(), 0);
+		gl.glProgramUniform4fv(phongShader, mspecLoc, 1, currentMat.getSpecular(), 0);
+		gl.glProgramUniform1f(phongShader, mshiLoc, currentMat.getShininess());
+
+		gl.glDrawArrays(GL_TRIANGLES, 0, obj.getNumVertices());
+	}
+
 	private void addToShadow(GL4 gl, String name, WorldObject obj) {
 		shadowMVP1.identity();
 		shadowMVP1.mul(lightPmat);
@@ -525,6 +580,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		yellowTex = loadTexture("assets/coin.png");
 		burlapTex = loadTexture("assets/burlap.png");
 		leatherTex = loadTexture("assets/leather.png");
+		skyboxTex = loadTexture("assets/skybox.png");
 
 		burlapNorm = loadTexture("assets/burlap_normal.jpg");
 		woodNorm = loadTexture("assets/wood_normal.jpg");
@@ -587,6 +643,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		addToVbo(gl, bookPagesObj, "bookPages");
 		addToVbo(gl, bookCoverObj, "bookCover");
 
+		// light - sphere
 		int[] indicesSphere = lightObj.getIndices();
 
 		float[] pvaluesSphere = new float[indicesSphere.length * 3];
@@ -619,6 +676,42 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		FloatBuffer norBuf = Buffers.newDirectFloatBuffer(nvaluesSphere);
 		gl.glBufferData(GL_ARRAY_BUFFER, norBuf.limit() * 4, norBuf, GL_STATIC_DRAW);
 
+		// skybox
+
+		float[] cubeVertexPositions = { -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f,
+				1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f,
+				-1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f,
+				1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f,
+				-1.0f, 1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f,
+				-1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f,
+				1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f,
+				-1.0f };
+
+		float[] cubeTextureCoord = { 1.00f, 0.6666666f, 1.00f, 0.3333333f, 0.75f, 0.3333333f, // back face lower right
+				0.75f, 0.3333333f, 0.75f, 0.6666666f, 1.00f, 0.6666666f, // back face upper left
+				0.75f, 0.3333333f, 0.50f, 0.3333333f, 0.75f, 0.6666666f, // right face lower right
+				0.50f, 0.3333333f, 0.50f, 0.6666666f, 0.75f, 0.6666666f, // right face upper left
+				0.50f, 0.3333333f, 0.25f, 0.3333333f, 0.50f, 0.6666666f, // front face lower right
+				0.25f, 0.3333333f, 0.25f, 0.6666666f, 0.50f, 0.6666666f, // front face upper left
+				0.25f, 0.3333333f, 0.00f, 0.3333333f, 0.25f, 0.6666666f, // left face lower right
+				0.00f, 0.3333333f, 0.00f, 0.6666666f, 0.25f, 0.6666666f, // left face upper left
+				0.25f, 0.3333333f, 0.50f, 0.3333333f, 0.50f, 0.0000000f, // bottom face upper right
+				0.50f, 0.0000000f, 0.25f, 0.0000000f, 0.25f, 0.3333333f, // bottom face lower left
+				0.25f, 1.0000000f, 0.50f, 1.0000000f, 0.50f, 0.6666666f, // top face upper right
+				0.50f, 0.6666666f, 0.25f, 0.6666666f, 0.25f, 1.0000000f // top face lower left
+		};
+
+		vboDict.put("skyboxPositions", vboDict.size());
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("skyboxPositions")]);
+		FloatBuffer skyboxBufShuttle = Buffers.newDirectFloatBuffer(cubeVertexPositions);
+		gl.glBufferData(GL_ARRAY_BUFFER, skyboxBufShuttle.limit() * 4, skyboxBufShuttle, GL_STATIC_DRAW);
+
+		vboDict.put("skyboxTextures", vboDict.size());
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("skyboxTextures")]);
+		FloatBuffer skyboxTexBufShuttle = Buffers.newDirectFloatBuffer(cubeTextureCoord);
+		gl.glBufferData(GL_ARRAY_BUFFER, skyboxTexBufShuttle.limit() * 4, skyboxTexBufShuttle, GL_STATIC_DRAW);
+
+		// axis
 		vboDict.put("axisPositions", vboDict.size());
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("axisPositions")]);
 		FloatBuffer axisBufShuttle = Buffers.newDirectFloatBuffer(axisPositions);
