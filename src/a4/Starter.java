@@ -1,43 +1,8 @@
 package a4;
 
-import static com.jogamp.opengl.GL.GL_ARRAY_BUFFER;
-import static com.jogamp.opengl.GL.GL_CCW;
-import static com.jogamp.opengl.GL.GL_CLAMP_TO_EDGE;
-import static com.jogamp.opengl.GL.GL_COLOR_BUFFER_BIT;
-import static com.jogamp.opengl.GL.GL_CULL_FACE;
-import static com.jogamp.opengl.GL.GL_DEPTH_ATTACHMENT;
-import static com.jogamp.opengl.GL.GL_DEPTH_BUFFER_BIT;
-import static com.jogamp.opengl.GL.GL_DEPTH_COMPONENT32;
-import static com.jogamp.opengl.GL.GL_DEPTH_TEST;
-import static com.jogamp.opengl.GL.GL_FLOAT;
-import static com.jogamp.opengl.GL.GL_FRAMEBUFFER;
-import static com.jogamp.opengl.GL.GL_FRONT;
-import static com.jogamp.opengl.GL.GL_LEQUAL;
-import static com.jogamp.opengl.GL.GL_LINEAR;
-import static com.jogamp.opengl.GL.GL_LINEAR_MIPMAP_LINEAR;
-import static com.jogamp.opengl.GL.GL_LINES;
-import static com.jogamp.opengl.GL.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT;
-import static com.jogamp.opengl.GL.GL_NONE;
-import static com.jogamp.opengl.GL.GL_POLYGON_OFFSET_FILL;
-import static com.jogamp.opengl.GL.GL_STATIC_DRAW;
-import static com.jogamp.opengl.GL.GL_TEXTURE0;
-import static com.jogamp.opengl.GL.GL_TEXTURE1;
-import static com.jogamp.opengl.GL.GL_TEXTURE2;
-import static com.jogamp.opengl.GL.GL_TEXTURE_2D;
-import static com.jogamp.opengl.GL.GL_TEXTURE_MAG_FILTER;
-import static com.jogamp.opengl.GL.GL_TEXTURE_MAX_ANISOTROPY_EXT;
-import static com.jogamp.opengl.GL.GL_TEXTURE_MIN_FILTER;
-import static com.jogamp.opengl.GL.GL_TEXTURE_WRAP_S;
-import static com.jogamp.opengl.GL.GL_TEXTURE_WRAP_T;
-import static com.jogamp.opengl.GL.GL_TRIANGLES;
-import static com.jogamp.opengl.GL2ES2.GL_COMPARE_REF_TO_TEXTURE;
-import static com.jogamp.opengl.GL2ES2.GL_COMPILE_STATUS;
-import static com.jogamp.opengl.GL2ES2.GL_DEPTH_COMPONENT;
-import static com.jogamp.opengl.GL2ES2.GL_FRAGMENT_SHADER;
-import static com.jogamp.opengl.GL2ES2.GL_LINK_STATUS;
-import static com.jogamp.opengl.GL2ES2.GL_TEXTURE_COMPARE_FUNC;
-import static com.jogamp.opengl.GL2ES2.GL_TEXTURE_COMPARE_MODE;
-import static com.jogamp.opengl.GL2ES2.GL_VERTEX_SHADER;
+import static com.jogamp.opengl.GL.*;
+import static com.jogamp.opengl.GL2ES2.*;
+import static com.jogamp.opengl.GL2GL3.GL_TEXTURE_CUBE_MAP_SEAMLESS;
 import static com.jogamp.opengl.GL3ES3.GL_GEOMETRY_SHADER;
 import static com.jogamp.opengl.GL3ES3.GL_TESS_CONTROL_SHADER;
 import static com.jogamp.opengl.GL3ES3.GL_TESS_EVALUATION_SHADER;
@@ -78,7 +43,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private double startTime = 0.0;
 	private double elapsedTime;
 	Random random = new Random();
-	private int texShader, axisShader, phongShader, pass1Shader;
+	private int texShader, axisShader, phongShader, pass1Shader, chromeShader, glassShader;
 	private int vao[] = new int[1];
 	private int vbo[] = new int[40];
 	private Camera camera;
@@ -87,13 +52,14 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private Matrix4f pMat = new Matrix4f();
 	private Matrix4f invTr = new Matrix4f();
 	private Matrix4f mv = new Matrix4f();
-	private int sLoc, mvLocTex, projLocTex, nLocTex, mvLocAxis, projLocAxis, mvLocPhong, projLocPhong, nLocPhong;
+	private int sLoc, mvLocTex, projLocTex, nLocTex, mvLocAxis, projLocAxis, mvLocPhong, projLocPhong, nLocPhong,
+			mvLocChrome, projLocChrome, nLocChrome;
 	private float aspect;
 	private double tf;
 	private boolean showAxes, showLight;
 	private int[] mouseDragCurrent;
 
-	private ImportedModel tableObj, scrollObj, bagObj, keyObj, coinObj, bookPagesObj, bookCoverObj;
+	private ImportedModel tableObj, scrollObj, bagObj, keyObj, coinObj, bookPagesObj, bookCoverObj, gobletObj;
 	private Sphere lightObj;
 	private int woodTex, scrollTex, burlapTex, metalTex, leatherTex, yellowTex, skyboxTex;
 	private int woodNorm, blankNorm, burlapNorm, metalNorm, leatherNorm;
@@ -119,20 +85,16 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		@Override
 		public void mousePressed(MouseEvent event) {
 			mouseDragCurrent = new int[] { event.getX(), event.getY() };
-			System.out.printf("initial: (%d,%d)\n", mouseDragCurrent[0], mouseDragCurrent[1]);
 		}
 
 		@Override
 		public void mouseDragged(MouseEvent event) {
-			System.out.println("mouseDragged: (" + event.getX() + "," + event.getY() + ")");
 			float[] vector = new float[] { event.getX() - mouseDragCurrent[0], event.getY() - mouseDragCurrent[1] };
-			System.out.printf("dragging: (%f,%f)\n", vector[0], vector[1]);
 			mouseLight.getPosition().add(vector[0] * .0003f, vector[1] * -.0003f, 0f);
 		}
 
 		@Override
 		public void mouseWheelMoved(MouseWheelEvent event) {
-			System.out.println("scroll: " + event.getWheelRotation());
 			mouseLight.getPosition().add(0f, 0f, event.getWheelRotation() * -.1f);
 
 		}
@@ -140,7 +102,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	};
 
 	public Starter() {
-		setTitle("Assignment 3");
+		setTitle("Assignment 4");
 		setSize(1000, 600);
 		myCanvas = new GLCanvas();
 		myCanvas.addGLEventListener(this);
@@ -283,6 +245,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		addToShadow(gl, "bag", bagObj);
 		addToShadow(gl, "coin", coinObj);
 		addToShadow(gl, "key", keyObj);
+		addToShadow(gl, "goblet", gobletObj);
 		addToShadow(gl, "bookCover", bookCoverObj);
 		addToShadow(gl, "bookPages", bookPagesObj);
 
@@ -292,6 +255,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 		// push view matrix onto the stack
 		mvStack.pushMatrix();
+		mvStack.lookAlong(camera.getN(), camera.getV());
 
 		aspect = (float) myCanvas.getWidth() / (float) myCanvas.getHeight();
 		pMat.identity().setPerspective((float) Math.toRadians(60.0f), aspect, 0.1f, 1000.0f);
@@ -305,7 +269,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		shadowMVP2.mul(b);
 		shadowMVP2.mul(lightPmat);
 		shadowMVP2.mul(lightVmat);
-		System.out.println("lightVmat: " + lightVmat + "shadowMPV2: " + shadowMVP2);
 
 		gl.glUseProgram(texShader);
 		mvLocTex = gl.glGetUniformLocation(texShader, "mv_matrix");
@@ -314,8 +277,15 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glUniformMatrix4fv(projLocTex, 1, false, pMat.get(vals));
 		gl.glUniformMatrix4fv(nLocTex, 1, false, invTr.get(vals));
 
-		gl.glUseProgram(phongShader);
+		gl.glUseProgram(chromeShader);
+		mvLocChrome = gl.glGetUniformLocation(chromeShader, "mv_matrix");
+		projLocChrome = gl.glGetUniformLocation(chromeShader, "proj_matrix");
+		nLocChrome = gl.glGetUniformLocation(chromeShader, "norm_matrix");
+		gl.glUniformMatrix4fv(mvLocChrome, 1, false, mv.get(vals));
+		gl.glUniformMatrix4fv(projLocChrome, 1, false, pMat.get(vals));
+		gl.glUniformMatrix4fv(nLocChrome, 1, false, invTr.get(vals));
 
+		gl.glUseProgram(phongShader);
 		mvLocPhong = gl.glGetUniformLocation(phongShader, "mv_matrix");
 		projLocPhong = gl.glGetUniformLocation(phongShader, "proj_matrix");
 		nLocPhong = gl.glGetUniformLocation(phongShader, "norm_matrix");
@@ -328,8 +298,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		// ---------------------- skybox
 		gl.glUseProgram(texShader);
 		mvStack.pushMatrix();
-		mvStack.translate(camera.getLocation());
-		mvStack.scale(10f, 10f, 10f);
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("skyboxPositions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
 		gl.glEnableVertexAttribArray(0);
@@ -347,7 +315,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glDrawArrays(GL_TRIANGLES, 0, 36);
 		gl.glEnable(GL_DEPTH_TEST);
 		mvStack.popMatrix();
-		mvStack.lookAlong(camera.getN(), camera.getV());
 		mvStack.translate(new Vector3f(camera.getLocation()).negate());
 
 		// ---------------------- axis
@@ -367,6 +334,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 			mvStack.popMatrix(); // print axes
 		}
 
+		// light
 		if (showLight) {
 			gl.glUseProgram(texShader);
 			mvStack.pushMatrix();
@@ -400,7 +368,33 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		addToDisplay(gl, "key", metalTex, metalNorm, pewterMat, keyObj);
 		addToDisplay(gl, "bookCover", leatherTex, leatherNorm, leatherMat, bookCoverObj);
 		addToDisplay(gl, "bookPages", scrollTex, blankNorm, paperMat, bookPagesObj);
+		// addToDisplay(gl, "goblet", metalTex, blankNorm, goldMat, gobletObj);
+
+		// ---------------------chrome goblet
+
+		gl.glUseProgram(chromeShader);
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("gobletPositions")]);
+		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(0);
+		// pull up normal coords
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("gobletNormals")]);
+		gl.glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(1);
+		// activate texture object
+		gl.glActiveTexture(GL_TEXTURE0);
+		gl.glBindTexture(GL_TEXTURE_2D, skyboxTex);
+
+		gl.glClear(GL_DEPTH_BUFFER_BIT);
+		gl.glEnable(GL_CULL_FACE);
+		gl.glFrontFace(GL_CCW);
+		gl.glDepthFunc(GL_LEQUAL);
+
+		gl.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gobletObj.getNumVertices());
+		// gl.glDrawArrays(GL_TRIANGLES, 0, gobletObj.getNumVertices());
+		gl.glDrawElements(GL_TRIANGLES, gobletObj.getNumVertices(), GL_UNSIGNED_INT, 0);
+
 		mvStack.popMatrix(); // final pop
+
 	}
 
 	private void installLights(Matrix4f vMatrix, int shader) {
@@ -488,44 +482,12 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glDrawArrays(GL_TRIANGLES, 0, obj.getNumVertices());
 	}
 
-	private void addToDisplay(GL4 gl, String name, int texture, Material currentMat, WorldObject obj) {
-		gl.glUniformMatrix4fv(sLoc, 1, false, mvStack.get(vals));
-		gl.glUniformMatrix4fv(mvLocPhong, 1, false, mvStack.get(vals));
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Positions")]);
-		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
-		gl.glEnableVertexAttribArray(0);
-		// pull up texture coords
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Textures")]);
-		gl.glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0);
-		gl.glEnableVertexAttribArray(1);
-		// activate texture object
-		gl.glActiveTexture(GL_TEXTURE0);
-		gl.glBindTexture(GL_TEXTURE_2D, texture);
-
-		gl.glEnable(GL_CULL_FACE);
-		gl.glFrontFace(GL_CCW);
-		gl.glEnable(GL_DEPTH_TEST);
-		gl.glDepthFunc(GL_LEQUAL);
-
-		int mambLoc = gl.glGetUniformLocation(phongShader, "material.ambient");
-		int mdiffLoc = gl.glGetUniformLocation(phongShader, "material.diffuse");
-		int mspecLoc = gl.glGetUniformLocation(phongShader, "material.specular");
-		int mshiLoc = gl.glGetUniformLocation(phongShader, "material.shininess");
-		gl.glProgramUniform4fv(phongShader, mambLoc, 1, currentMat.getAmbient(), 0);
-		gl.glProgramUniform4fv(phongShader, mdiffLoc, 1, currentMat.getDiffuse(), 0);
-		gl.glProgramUniform4fv(phongShader, mspecLoc, 1, currentMat.getSpecular(), 0);
-		gl.glProgramUniform1f(phongShader, mshiLoc, currentMat.getShininess());
-
-		gl.glDrawArrays(GL_TRIANGLES, 0, obj.getNumVertices());
-	}
-
 	private void addToShadow(GL4 gl, String name, WorldObject obj) {
 		shadowMVP1.identity();
 		shadowMVP1.mul(lightPmat);
 		shadowMVP1.mul(lightVmat);
 		sLoc = gl.glGetUniformLocation(pass1Shader, "shadowMVP");
 		gl.glUniformMatrix4fv(sLoc, 1, false, mvStack.get(vals));
-		System.out.println("sloc: " + sLoc + "shadowMPV1: " + shadowMVP1);
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Positions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
 		gl.glEnableVertexAttribArray(0);
@@ -569,10 +531,11 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		resetLight();
 
 		// load assets
-		texShader = createShaderProgram("src/a3/texVertShader.glsl", "src/a3/texFragShader.glsl");
-		axisShader = createShaderProgram("src/a3/axisVertShader.glsl", "src/a3/axisFragShader.glsl");
-		phongShader = createShaderProgram("src/a3/phongVertShader.glsl", "src/a3/phongFragShader.glsl");
-		pass1Shader = createShaderProgram("src/a3/vert1Shader.glsl", "src/a3/frag1Shader.glsl");
+		texShader = createShaderProgram("src/a4/texVertShader.glsl", "src/a4/texFragShader.glsl");
+		axisShader = createShaderProgram("src/a4/axisVertShader.glsl", "src/a4/axisFragShader.glsl");
+		phongShader = createShaderProgram("src/a4/phongVertShader.glsl", "src/a4/phongFragShader.glsl");
+		pass1Shader = createShaderProgram("src/a4/vert1Shader.glsl", "src/a4/frag1Shader.glsl");
+		chromeShader = createShaderProgram("src/a4/chromeVertShader.glsl", "src/a4/chromeFragShader.glsl");
 
 		woodTex = loadTexture("assets/wood.jpg");
 		scrollTex = loadTexture("assets/scroll.png");
@@ -581,6 +544,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		burlapTex = loadTexture("assets/burlap.png");
 		leatherTex = loadTexture("assets/leather.png");
 		skyboxTex = loadTexture("assets/skybox.png");
+		gl.glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
 		burlapNorm = loadTexture("assets/burlap_normal.jpg");
 		woodNorm = loadTexture("assets/wood_normal.jpg");
@@ -596,9 +560,10 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		coinObj = new ImportedModel("assets/coin_pile.obj");
 		bookPagesObj = new ImportedModel("assets/book_pages.obj");
 		bookCoverObj = new ImportedModel("assets/book_cover.obj");
+		gobletObj = new ImportedModel("assets/goblet.obj");
+		b.set(0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 0.5f, 0.5f, 0.5f, 1.0f);
 		setupVertices();
 		setupShadowBuffers();
-		b.set(0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 0.5f, 0.5f, 0.5f, 1.0f);
 	}
 
 	private void setupShadowBuffers() {
@@ -609,8 +574,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glGenFramebuffers(1, shadowBuffer, 0);
 		// create the shadow texture and configure it to hold depth information.
 		// these steps are similar to those in Program 5.2
-		System.out.println("shadowTex: " + shadowTex[0]);
-		System.out.println("shadowBuffer: " + shadowBuffer[0]);
 		gl.glGenTextures(1, shadowTex, 0);
 		gl.glBindTexture(GL_TEXTURE_2D, shadowTex[0]);
 		gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, screenSizeX, screenSizeY, 0, GL_DEPTH_COMPONENT,
@@ -640,6 +603,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		addToVbo(gl, keyObj, "key");
 		addToVbo(gl, bagObj, "bag");
 		addToVbo(gl, coinObj, "coin");
+		addToVbo(gl, gobletObj, "goblet");
 		addToVbo(gl, bookPagesObj, "bookPages");
 		addToVbo(gl, bookCoverObj, "bookCover");
 
