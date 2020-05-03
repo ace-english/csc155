@@ -371,7 +371,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		addToDisplay(gl, "scroll", scrollTex, blankNorm, paperMat, scrollObj);
 		addToDisplay(gl, "bag", burlapTex, burlapNorm, burlapMat, bagObj);
 		addToDisplay(gl, "coin", yellowTex, metalNorm, goldMat, coinObj);
-		addToDisplay(gl, "key", metalTex, metalNorm, pewterMat, keyObj);
+		// addToDisplay(gl, "key", metalTex, metalNorm, pewterMat, keyObj);
 		addToDisplay(gl, "bookCover", leatherTex, leatherNorm, leatherMat, bookCoverObj);
 		addToDisplay(gl, "bookPages", scrollTex, blankNorm, paperMat, bookPagesObj);
 		// addToDisplay(gl, "goblet", skyboxTex, blankNorm, pewterMat, gobletObj);
@@ -380,11 +380,11 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		gl.glUseProgram(chromeShader);
 		gl.glUniformMatrix4fv(mvLocChrome, 1, false, mvStack.get(vals));
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("gobletPositions")]);
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("keyPositions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
 		gl.glEnableVertexAttribArray(0);
 		// pull up normal coords
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("gobletNormals")]);
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("keyNormals")]);
 		gl.glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0);
 		gl.glEnableVertexAttribArray(1);
 		// activate texture object
@@ -396,7 +396,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glEnable(GL_DEPTH_TEST);
 		gl.glDepthFunc(GL_LEQUAL);
 
-		gl.glDrawArrays(GL_TRIANGLES, 0, gobletObj.getNumVertices());
+		gl.glDrawArrays(GL_TRIANGLES, 0, keyObj.getNumVertices());
 
 		mvStack.popMatrix(); // final pop
 
