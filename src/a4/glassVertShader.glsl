@@ -9,7 +9,6 @@ out vec3 varyingLightDir;
 out vec3 varyingVertPos;
 out vec3 varyingNormal;
 out vec3 varyingTangent;
-out vec3 originalVertex;
 out vec3 varyingHalfVector;
 out vec2 tc;
 out vec4 glp;
@@ -37,17 +36,15 @@ uniform Material material;
 uniform mat4 mv_matrix;
 uniform mat4 proj_matrix;
 uniform mat4 norm_matrix;
-uniform mat4 shadowMVP;
+uniform int isAbove;
 
 void main(void)
 {	varyingVertPos = (mv_matrix * vec4(vertPos,1.0)).xyz;
 	varyingLightDir = light.position - varyingVertPos;
-	tc = texCoord;
-	originalVertex = vertPos;
-	
 	varyingNormal = (norm_matrix * vec4(vertNormal,1.0)).xyz;
 	varyingTangent = (norm_matrix * vec4(vertTangent,1.0)).xyz;
 
+	tc = texCoord;
 	glp = proj_matrix * mv_matrix * vec4(vertPos,1.0);
 	gl_Position = glp;
 }
