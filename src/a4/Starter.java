@@ -45,7 +45,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	Random random = new Random();
 	private int texShader, axisShader, phongShader, pass1Shader, chromeShader, glassShader;
 	private int vao[] = new int[1];
-	private int vbo[] = new int[40];
+	private int vbo[] = new int[30];
 	private Camera camera;
 	private FloatBuffer vals = Buffers.newDirectFloatBuffer(16);
 	private Matrix4fStack mvStack = new Matrix4fStack(5);
@@ -275,7 +275,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		projLocTex = gl.glGetUniformLocation(texShader, "proj_matrix");
 		gl.glUniformMatrix4fv(mvLocTex, 1, false, mv.get(vals));
 		gl.glUniformMatrix4fv(projLocTex, 1, false, pMat.get(vals));
-		gl.glUniformMatrix4fv(nLocTex, 1, false, invTr.get(vals));
 
 		gl.glUseProgram(chromeShader);
 		mvLocChrome = gl.glGetUniformLocation(chromeShader, "mv_matrix");
