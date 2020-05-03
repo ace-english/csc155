@@ -43,7 +43,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private double startTime = 0.0;
 	private double elapsedTime;
 	Random random = new Random();
-	private int texShader, axisShader, phongShader, pass1Shader, chromeShader, glassShader;
+	private int texShader, axisShader, phongShader, pass1Shader, chromeShader, glassShader, skyboxShader;
 	private int vao[] = new int[1];
 	private int vbo[] = new int[30];
 	private Camera camera;
@@ -52,8 +52,8 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private Matrix4f pMat = new Matrix4f();
 	private Matrix4f invTr = new Matrix4f();
 	private Matrix4f mv = new Matrix4f();
-	private int sLoc, mvLocTex, projLocTex, nLocTex, mvLocAxis, projLocAxis, mvLocPhong, projLocPhong, nLocPhong,
-			mvLocChrome, projLocChrome, nLocChrome;
+	private int sLoc, mvLocTex, projLocTex, mvLocSky, projLocSky, mvLocAxis, projLocAxis, mvLocPhong, projLocPhong,
+			nLocPhong, mvLocChrome, projLocChrome, nLocChrome;
 	private float aspect;
 	private double tf;
 	private boolean showAxes, showLight;
@@ -295,7 +295,14 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glUniformMatrix4fv(sLoc, 1, false, shadowMVP2.get(vals));
 
 		// ---------------------- skybox
-		gl.glUseProgram(texShader);
+		gl.glUseProgram(skyboxShader);
+
+		mvLocSky = gl.glGetUniformLocation(skyboxShader, "v_matrix");
+		projLocSky = gl.glGetUniformLocation(skyboxShader, "proj_matrix");
+
+		gl.glUniformMatrix4fv(mvLocSky, 1, false, mv.get(vals));
+		gl.glUniformMatrix4fv(projLocSky, 1, false, pMat.get(vals));
+
 		mvStack.pushMatrix();
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("skyboxPositions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
@@ -542,6 +549,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		phongShader = createShaderProgram("src/a4/phongVertShader.glsl", "src/a4/phongFragShader.glsl");
 		pass1Shader = createShaderProgram("src/a4/vert1Shader.glsl", "src/a4/frag1Shader.glsl");
 		chromeShader = createShaderProgram("src/a4/chromeVertShader.glsl", "src/a4/chromeFragShader.glsl");
+		skyboxShader = createShaderProgram("src/a4/cubeVertShader.glsl", "src/a4/cubeFragShader.glsl");
 
 		woodTex = loadTexture("assets/wood.jpg");
 		scrollTex = loadTexture("assets/scroll.png");
