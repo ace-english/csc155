@@ -45,7 +45,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	Random random = new Random();
 	private int texShader, axisShader, phongShader, pass1Shader, chromeShader, glassShader, skyboxShader;
 	private int vao[] = new int[1];
-	private int vbo[] = new int[30];
+	private int vbo[] = new int[50];
 	private Camera camera;
 	private FloatBuffer vals = Buffers.newDirectFloatBuffer(16);
 	private Matrix4fStack mvStack = new Matrix4fStack(5);
@@ -59,7 +59,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private boolean showAxes, showLight;
 	private int[] mouseDragCurrent;
 
-	private ImportedModel tableObj, scrollObj, bagObj, keyObj, coinObj, bookPagesObj, bookCoverObj, gobletObj;
+	private ImportedModel tableObj, scrollObj, bagObj, keyObj, coinObj, bookPagesObj, bookCoverObj, gobletObj, gem2Obj;
 	private Sphere lightObj;
 	private int woodTex, scrollTex, burlapTex, metalTex, leatherTex, yellowTex, skyboxTex;
 	private int woodNorm, blankNorm, burlapNorm, metalNorm, leatherNorm;
@@ -246,6 +246,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		addToShadow(gl, "coin", coinObj);
 		addToShadow(gl, "key", keyObj);
 		addToShadow(gl, "goblet", gobletObj);
+		addToShadow(gl, "gem2", gem2Obj);
 		addToShadow(gl, "bookCover", bookCoverObj);
 		addToShadow(gl, "bookPages", bookPagesObj);
 
@@ -376,7 +377,10 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		addToDisplay(gl, "bookPages", scrollTex, blankNorm, paperMat, bookPagesObj);
 		// addToDisplay(gl, "goblet", skyboxTex, blankNorm, pewterMat, gobletObj);
 
-		// ---------------------chrome goblet
+		// gl.glUseProgram(glassShader);
+		// addToDisplay(gl, "gem2", gem2Obj);
+
+		// ---------------------chrome KEY
 
 		gl.glUseProgram(chromeShader);
 		gl.glUniformMatrix4fv(mvLocChrome, 1, false, mvStack.get(vals));
@@ -570,6 +574,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		bookPagesObj = new ImportedModel("assets/book_pages.obj");
 		bookCoverObj = new ImportedModel("assets/book_cover.obj");
 		gobletObj = new ImportedModel("assets/goblet.obj");
+		gem2Obj = new ImportedModel("assets/gem2.obj");
 		b.set(0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 0.5f, 0.5f, 0.5f, 1.0f);
 		setupVertices();
 		setupShadowBuffers();
@@ -613,6 +618,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		addToVbo(gl, bagObj, "bag");
 		addToVbo(gl, coinObj, "coin");
 		addToVbo(gl, gobletObj, "goblet");
+		addToVbo(gl, gem2Obj, "gem2");
 		addToVbo(gl, bookPagesObj, "bookPages");
 		addToVbo(gl, bookCoverObj, "bookCover");
 
