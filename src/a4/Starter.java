@@ -306,7 +306,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glEnableVertexAttribArray(1);
 
 		gl.glActiveTexture(GL_TEXTURE0);
-		gl.glBindTexture(GL_TEXTURE_2D, skyboxTex);
+		gl.glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTex);
 
 		gl.glEnable(GL_CULL_FACE);
 		gl.glFrontFace(GL_CCW); // cube is CW, but we are viewing the inside
@@ -386,7 +386,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glEnableVertexAttribArray(2);
 		// activate texture object
 		gl.glActiveTexture(GL_TEXTURE0);
-		gl.glBindTexture(GL_TEXTURE_2D, skyboxTex);
+		gl.glBindTexture(GL_TEXTURE_2D, metalTex);
 		gl.glActiveTexture(GL_TEXTURE1);
 		gl.glBindTexture(GL_TEXTURE_2D, blankNorm);
 
@@ -550,7 +550,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		burlapTex = loadTexture("assets/burlap.png");
 		leatherTex = loadTexture("assets/leather.png");
 		// skyboxTex = loadTexture("assets/skybox.png");
-		skyboxTex = loadTexture("assets/lakeIslandSkyBox.jpg");
+		skyboxTex = Utils.loadCubeMap("assets/cubeMap");
 		gl.glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
 		burlapNorm = loadTexture("assets/burlap_normal.jpg");
