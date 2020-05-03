@@ -63,7 +63,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private Sphere lightObj;
 	private int woodTex, scrollTex, burlapTex, metalTex, leatherTex, yellowTex, skyboxTex;
 	private int woodNorm, blankNorm, burlapNorm, metalNorm, leatherNorm;
-	private Material goldMat, leatherMat, woodMat, paperMat, pewterMat;
+	private Material goldMat, leatherMat, woodMat, burlapMat, paperMat, pewterMat;
 	private Light globalAmbientLight;
 	private PositionalLight mouseLight;
 	private Dictionary<String, Integer> vboDict;
@@ -363,7 +363,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		addToDisplay(gl, "table", woodTex, woodNorm, woodMat, tableObj);
 		addToDisplay(gl, "scroll", scrollTex, blankNorm, paperMat, scrollObj);
-		addToDisplay(gl, "bag", burlapTex, burlapNorm, leatherMat, bagObj);
+		addToDisplay(gl, "bag", burlapTex, burlapNorm, burlapMat, bagObj);
 		addToDisplay(gl, "coin", yellowTex, metalNorm, goldMat, coinObj);
 		addToDisplay(gl, "key", metalTex, metalNorm, pewterMat, keyObj);
 		addToDisplay(gl, "bookCover", leatherTex, leatherNorm, leatherMat, bookCoverObj);
@@ -524,6 +524,8 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 				new float[] { 0.8f, 0.8f, 0.8f, 1.0f }, new float[] { 0.475f, 0.475f, 0.475f, 1.0f }, 85f);
 		leatherMat = new Material(new float[] { .24f, .1f, .07f, 1.0f },
 				new float[] { 0.291945f, 0.225797f, 0.221366f, 1.0f }, new float[] { .5f, .5f, .5f, 1.0f }, 60f);
+		burlapMat = new Material(new float[] { .24f, .1f, .07f, 1.0f },
+				new float[] { 0.291945f, 0.225797f, 0.221366f, 1.0f }, new float[] { .1f, .1f, .1f, 1.0f }, 60f);
 
 		globalAmbientLight = new GlobalAmbientLight();
 		mouseLight = new PositionalLight(new float[] { 0.1f, 0.1f, 0.1f, 1.0f }, new float[] { .4f, .3f, .2f, 1.0f },
