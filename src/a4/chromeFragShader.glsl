@@ -1,5 +1,7 @@
 #version 430
 
+in vec3 vNormal;
+in vec3 vVertPos;
 in vec2 tc;
 out vec4 color;
 
