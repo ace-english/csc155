@@ -368,7 +368,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		addToDisplay(gl, "key", metalTex, metalNorm, pewterMat, keyObj);
 		addToDisplay(gl, "bookCover", leatherTex, leatherNorm, leatherMat, bookCoverObj);
 		addToDisplay(gl, "bookPages", scrollTex, blankNorm, paperMat, bookPagesObj);
-		addToDisplay(gl, "goblet", skyboxTex, blankNorm, pewterMat, gobletObj);
+		// addToDisplay(gl, "goblet", skyboxTex, blankNorm, pewterMat, gobletObj);
 
 		// ---------------------chrome goblet
 
@@ -382,7 +382,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glEnableVertexAttribArray(1);
 		// activate texture object
 		gl.glActiveTexture(GL_TEXTURE0);
-		gl.glBindTexture(GL_TEXTURE_2D, skyboxTex);
+		gl.glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTex);
 
 		gl.glClear(GL_DEPTH_BUFFER_BIT);
 		gl.glEnable(GL_CULL_FACE);
