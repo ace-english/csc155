@@ -12,6 +12,7 @@ out vec3 varyingTangent;
 out vec3 originalVertex;
 out vec3 varyingHalfVector;
 out vec2 tc;
+out vec4 glp;
 
 layout (binding=0) uniform sampler2D s;
 layout (binding=1) uniform sampler2D t;
@@ -47,5 +48,6 @@ void main(void)
 	varyingNormal = (norm_matrix * vec4(vertNormal,1.0)).xyz;
 	varyingTangent = (norm_matrix * vec4(vertTangent,1.0)).xyz;
 
-	gl_Position = proj_matrix * mv_matrix * vec4(vertPos,1.0);
+	glp = proj_matrix * mv_matrix * vec4(vertPos,1.0);
+	gl_Position = glp;
 }

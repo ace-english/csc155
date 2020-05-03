@@ -7,6 +7,7 @@ in vec3 originalVertex;
 in vec3 varyingTangent;
 in vec3 varyingHalfVector;
 in vec2 tc;
+in vec4 glp;
 
 out vec4 fragColor;
 
