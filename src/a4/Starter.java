@@ -383,19 +383,13 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("gobletPositions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
 		gl.glEnableVertexAttribArray(0);
-		// pull up texture coords
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("gobletTextures")]);
-		gl.glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0);
-		gl.glEnableVertexAttribArray(1);
 		// pull up normal coords
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("gobletNormals")]);
-		gl.glVertexAttribPointer(2, 3, GL_FLOAT, false, 0, 0);
-		gl.glEnableVertexAttribArray(2);
+		gl.glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(1);
 		// activate texture object
 		gl.glActiveTexture(GL_TEXTURE0);
-		gl.glBindTexture(GL_TEXTURE_2D, metalTex);
-		gl.glActiveTexture(GL_TEXTURE1);
-		gl.glBindTexture(GL_TEXTURE_2D, blankNorm);
+		gl.glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTex);
 
 		gl.glEnable(GL_CULL_FACE);
 		gl.glFrontFace(GL_CCW);
