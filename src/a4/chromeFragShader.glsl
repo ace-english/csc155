@@ -1,16 +1,12 @@
 #version 430
 
-in vec3 vNormal;
-in vec3 vVertPos;
-out vec4 fragColor;
+in vec2 tc;
+out vec4 color;
 
 uniform mat4 mv_matrix;
 uniform mat4 proj_matrix;
-uniform mat4 norm_matrix;
-layout (binding = 0) uniform samplerCube t;
+layout (binding=0) uniform sampler2D samp;
 
-void main(void)
-{
-	vec3 r = -reflect(normalize(-vVertPos), normalize(vNormal));
-	fragColor = texture(t,r);
+void main(void){
+		color = texture(samp, tc);
 }

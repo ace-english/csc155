@@ -372,8 +372,8 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		// ---------------------chrome goblet
 
-		gl.glUseProgram(texShader);
-		gl.glUniformMatrix4fv(mvLocTex, 1, false, mvStack.get(vals));
+		gl.glUseProgram(chromeShader);
+		gl.glUniformMatrix4fv(mvLocChrome, 1, false, mvStack.get(vals));
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("gobletPositions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
 		gl.glEnableVertexAttribArray(0);
