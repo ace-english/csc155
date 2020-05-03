@@ -53,7 +53,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private Matrix4f invTr = new Matrix4f();
 	private Matrix4f mv = new Matrix4f();
 	private int sLoc, mvLocTex, projLocTex, mvLocSky, projLocSky, mvLocAxis, projLocAxis, mvLocPhong, projLocPhong,
-			nLocPhong, mvLocChrome, projLocChrome, nLocChrome;
+			nLocPhong, mvLocGlass, projLocGlass, nLocGlass, mvLocChrome, projLocChrome, nLocChrome;
 	private float aspect;
 	private double tf;
 	private boolean showAxes, showLight;
@@ -295,6 +295,14 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glUniformMatrix4fv(nLocPhong, 1, false, invTr.get(vals));
 		gl.glUniformMatrix4fv(sLoc, 1, false, shadowMVP2.get(vals));
 
+		gl.glUseProgram(glassShader);
+		mvLocGlass = gl.glGetUniformLocation(glassShader, "mv_matrix");
+		projLocGlass = gl.glGetUniformLocation(glassShader, "proj_matrix");
+		nLocGlass = gl.glGetUniformLocation(glassShader, "norm_matrix");
+		gl.glUniformMatrix4fv(mvLocGlass, 1, false, mv.get(vals));
+		gl.glUniformMatrix4fv(projLocGlass, 1, false, pMat.get(vals));
+		gl.glUniformMatrix4fv(nLocGlass, 1, false, invTr.get(vals));
+
 		// ---------------------- skybox
 		gl.glUseProgram(skyboxShader);
 
@@ -362,8 +370,10 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 			gl.glDrawArrays(GL_TRIANGLES, 0, lightObj.getNumVertices());
 			mvStack.popMatrix();
 			installLights(mv, phongShader);
+			installLights(mv, glassShader);
 		} else {
 			uninstallLights(mv, phongShader);
+			uninstallLights(mv, glassShader);
 		}
 
 		gl.glUseProgram(phongShader);
@@ -377,8 +387,45 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		addToDisplay(gl, "bookPages", scrollTex, blankNorm, paperMat, bookPagesObj);
 		// addToDisplay(gl, "goblet", skyboxTex, blankNorm, pewterMat, gobletObj);
 
-		// gl.glUseProgram(glassShader);
-		// addToDisplay(gl, "gem2", gem2Obj);
+		// gems
+		gl.glUseProgram(glassShader);
+		gl.glUniformMatrix4fv(sLoc, 1, false, mvStack.get(vals));
+		String name = "gem2";
+		WorldObject obj = gem2Obj;
+		Material currentMat = goldMat;
+		gl.glUniformMatrix4fv(mvLocPhong, 1, false, mvStack.get(vals));
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Positions")]);
+		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(0);
+		// pull up texture coords
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Textures")]);
+		gl.glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(1);
+		// pull up normal coords
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Normals")]);
+		gl.glVertexAttribPointer(2, 3, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(2);
+		// activate texture object
+		gl.glActiveTexture(GL_TEXTURE0);
+		gl.glBindTexture(GL_TEXTURE_2D, yellowTex);
+		gl.glActiveTexture(GL_TEXTURE1);
+		gl.glBindTexture(GL_TEXTURE_2D, blankNorm);
+
+		gl.glEnable(GL_CULL_FACE);
+		gl.glFrontFace(GL_CCW);
+		gl.glEnable(GL_DEPTH_TEST);
+		gl.glDepthFunc(GL_LEQUAL);
+
+		int mambLoc = gl.glGetUniformLocation(glassShader, "material.ambient");
+		int mdiffLoc = gl.glGetUniformLocation(glassShader, "material.diffuse");
+		int mspecLoc = gl.glGetUniformLocation(glassShader, "material.specular");
+		int mshiLoc = gl.glGetUniformLocation(glassShader, "material.shininess");
+		gl.glProgramUniform4fv(glassShader, mambLoc, 1, currentMat.getAmbient(), 0);
+		gl.glProgramUniform4fv(glassShader, mdiffLoc, 1, currentMat.getDiffuse(), 0);
+		gl.glProgramUniform4fv(glassShader, mspecLoc, 1, currentMat.getSpecular(), 0);
+		gl.glProgramUniform1f(glassShader, mshiLoc, currentMat.getShininess());
+
+		gl.glDrawArrays(GL_TRIANGLES, 0, obj.getNumVertices());
 
 		// ---------------------chrome KEY
 
@@ -545,6 +592,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		texShader = createShaderProgram("src/a4/texVertShader.glsl", "src/a4/texFragShader.glsl");
 		axisShader = createShaderProgram("src/a4/axisVertShader.glsl", "src/a4/axisFragShader.glsl");
 		phongShader = createShaderProgram("src/a4/phongVertShader.glsl", "src/a4/phongFragShader.glsl");
+		glassShader = createShaderProgram("src/a4/glassVertShader.glsl", "src/a4/glassFragShader.glsl");
 		pass1Shader = createShaderProgram("src/a4/vert1Shader.glsl", "src/a4/frag1Shader.glsl");
 		chromeShader = createShaderProgram("src/a4/chromeVertShader.glsl", "src/a4/chromeFragShader.glsl");
 		skyboxShader = createShaderProgram("src/a4/cubeVertShader.glsl", "src/a4/cubeFragShader.glsl");
@@ -555,7 +603,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		yellowTex = loadTexture("assets/coin.png");
 		burlapTex = loadTexture("assets/burlap.png");
 		leatherTex = loadTexture("assets/leather.png");
-		// skyboxTex = loadTexture("assets/skybox.png");
 		skyboxTex = Utils.loadCubeMap("assets/cubeMap");
 		gl.glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
