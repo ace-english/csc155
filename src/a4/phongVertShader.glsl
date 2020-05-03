@@ -5,10 +5,12 @@ layout (location = 1) in vec2 texCoord;
 layout (location = 2) in vec3 vertNormal;
 layout (location = 3) in vec3 vertTangent;
 
-out vec3 varyingNormal;
 out vec3 varyingLightDir;
 out vec3 varyingVertPos;
+out vec3 varyingNormal;
+out vec3 varyingTangent;
 out vec3 originalVertex;
+out vec3 varyingHalfVector;
 out vec2 tc;
 out vec4 shadow_coord;
 
@@ -45,6 +47,7 @@ void main(void)
 	originalVertex = vertPos;
 	
 	varyingNormal = (norm_matrix * vec4(vertNormal,1.0)).xyz;
+	varyingTangent = (norm_matrix * vec4(vertTangent,1.0)).xyz;
 
 	shadow_coord = shadowMVP * vec4(vertPos,1.0);
 	gl_Position = proj_matrix * mv_matrix * vec4(vertPos,1.0);

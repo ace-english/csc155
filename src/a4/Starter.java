@@ -368,11 +368,11 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		addToDisplay(gl, "key", metalTex, metalNorm, pewterMat, keyObj);
 		addToDisplay(gl, "bookCover", leatherTex, leatherNorm, leatherMat, bookCoverObj);
 		addToDisplay(gl, "bookPages", scrollTex, blankNorm, paperMat, bookPagesObj);
-		// addToDisplay(gl, "goblet", metalTex, blankNorm, goldMat, gobletObj);
+		// addToDisplay(gl, "goblet", skyboxTex, blankNorm, pewterMat, gobletObj);
 
 		// ---------------------chrome goblet
 
-		gl.glUseProgram(chromeShader);
+		// gl.glUseProgram(chromeShader);
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("gobletPositions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
 		gl.glEnableVertexAttribArray(0);
@@ -382,7 +382,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glEnableVertexAttribArray(1);
 		// activate texture object
 		gl.glActiveTexture(GL_TEXTURE0);
-		gl.glBindTexture(GL_TEXTURE_2D, skyboxTex);
+		gl.glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTex);
 
 		gl.glClear(GL_DEPTH_BUFFER_BIT);
 		gl.glEnable(GL_CULL_FACE);
@@ -543,7 +543,8 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		yellowTex = loadTexture("assets/coin.png");
 		burlapTex = loadTexture("assets/burlap.png");
 		leatherTex = loadTexture("assets/leather.png");
-		skyboxTex = loadTexture("assets/skybox.png");
+		// skyboxTex = loadTexture("assets/skybox.png");
+		skyboxTex = loadTexture("assets/lakeIslandSkyBox.jpg");
 		gl.glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
 		burlapNorm = loadTexture("assets/burlap_normal.jpg");
