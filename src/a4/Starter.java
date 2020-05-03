@@ -372,26 +372,31 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		// ---------------------chrome goblet
 
-		// gl.glUseProgram(chromeShader);
+		gl.glUseProgram(texShader);
+		gl.glUniformMatrix4fv(mvLocTex, 1, false, mvStack.get(vals));
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("gobletPositions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
 		gl.glEnableVertexAttribArray(0);
+		// pull up texture coords
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("gobletTextures")]);
+		gl.glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(1);
 		// pull up normal coords
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("gobletNormals")]);
-		gl.glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0);
-		gl.glEnableVertexAttribArray(1);
+		gl.glVertexAttribPointer(2, 3, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(2);
 		// activate texture object
 		gl.glActiveTexture(GL_TEXTURE0);
-		gl.glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTex);
+		gl.glBindTexture(GL_TEXTURE_2D, skyboxTex);
+		gl.glActiveTexture(GL_TEXTURE1);
+		gl.glBindTexture(GL_TEXTURE_2D, blankNorm);
 
-		gl.glClear(GL_DEPTH_BUFFER_BIT);
 		gl.glEnable(GL_CULL_FACE);
 		gl.glFrontFace(GL_CCW);
+		gl.glEnable(GL_DEPTH_TEST);
 		gl.glDepthFunc(GL_LEQUAL);
 
-		gl.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gobletObj.getNumVertices());
-		// gl.glDrawArrays(GL_TRIANGLES, 0, gobletObj.getNumVertices());
-		gl.glDrawElements(GL_TRIANGLES, gobletObj.getNumVertices(), GL_UNSIGNED_INT, 0);
+		gl.glDrawArrays(GL_TRIANGLES, 0, gobletObj.getNumVertices());
 
 		mvStack.popMatrix(); // final pop
 
