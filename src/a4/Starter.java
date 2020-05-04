@@ -357,32 +357,14 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glUniformMatrix4fv(nLocGlass, 1, false, invTr.get(vals));
 
 		// ---------------------- skybox
-		gl.glUseProgram(skyboxShader);
-
-		mvLocSky = gl.glGetUniformLocation(skyboxShader, "v_matrix");
-		projLocSky = gl.glGetUniformLocation(skyboxShader, "proj_matrix");
-
-		gl.glUniformMatrix4fv(mvLocSky, 1, false, mv.get(vals));
-		gl.glUniformMatrix4fv(projLocSky, 1, false, pMat.get(vals));
-
-		mvStack.pushMatrix();
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("skyboxPositions")]);
-		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
-		gl.glEnableVertexAttribArray(0);
-
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("skyboxTextures")]);
-		gl.glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0);
-		gl.glEnableVertexAttribArray(1);
-
-		gl.glActiveTexture(GL_TEXTURE0);
-		gl.glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTex);
+		renderSkyBoxPrep();
 
 		gl.glEnable(GL_CULL_FACE);
 		gl.glFrontFace(GL_CCW); // cube is CW, but we are viewing the inside
 		gl.glDisable(GL_DEPTH_TEST);
 		gl.glDrawArrays(GL_TRIANGLES, 0, 36);
 		gl.glEnable(GL_DEPTH_TEST);
-		mvStack.popMatrix();
+
 		mvStack.translate(new Vector3f(camera.getLocation()).negate());
 
 		// ---------------------- axis
@@ -504,6 +486,25 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		mvStack.popMatrix(); // final pop
 
+	}
+
+	void renderSkyBoxPrep() {
+		GL4 gl = (GL4) GLContext.getCurrentGL();
+
+		gl.glUseProgram(skyboxShader);
+
+		mvLocSky = gl.glGetUniformLocation(skyboxShader, "v_matrix");
+		projLocSky = gl.glGetUniformLocation(skyboxShader, "proj_matrix");
+
+		gl.glUniformMatrix4fv(mvLocSky, 1, false, mv.get(vals));
+		gl.glUniformMatrix4fv(projLocSky, 1, false, pMat.get(vals));
+
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("skyboxPositions")]);
+		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(0);
+
+		gl.glActiveTexture(GL_TEXTURE0);
+		gl.glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTex);
 	}
 
 	private void installLights(Matrix4f vMatrix, int shader) {
