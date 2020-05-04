@@ -13,9 +13,8 @@ out vec3 varyingHalfVector;
 out vec2 tc;
 out vec4 glp;
 
-layout (binding=0) uniform sampler2D s;
-layout (binding=1) uniform sampler2D t;
-
+layout (binding=0) uniform sampler2D reflectTex;
+layout (binding=1) uniform sampler2D refractTex;
 
 struct PositionalLight
 {	vec4 ambient;

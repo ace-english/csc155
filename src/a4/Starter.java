@@ -460,9 +460,9 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glEnableVertexAttribArray(2);
 		// activate texture object
 		gl.glActiveTexture(GL_TEXTURE0);
-		gl.glBindTexture(GL_TEXTURE_2D, yellowTex);
+		gl.glBindTexture(GL_TEXTURE_2D, reflectTextureId);
 		gl.glActiveTexture(GL_TEXTURE1);
-		gl.glBindTexture(GL_TEXTURE_2D, blankNorm);
+		gl.glBindTexture(GL_TEXTURE_2D, refractTextureId);
 
 		gl.glEnable(GL_CULL_FACE);
 		gl.glFrontFace(GL_CCW);

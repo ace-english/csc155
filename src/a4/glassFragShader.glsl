@@ -10,8 +10,8 @@ in vec4 glp;
 
 out vec4 fragColor;
 
-layout (binding=0) uniform sampler2D t;
-layout (binding=1) uniform sampler2D s;
+layout (binding=0) uniform sampler2D reflectTex;
+layout (binding=1) uniform sampler2D refractTex;
 
 struct PositionalLight
 {	vec4 ambient;  
@@ -35,43 +35,32 @@ uniform mat4 proj_matrix;
 uniform mat4 norm_matrix;
 
 
-vec3 calcNewNormal()
-{
-	vec3 normal = normalize(varyingNormal);
-	vec3 tangent = normalize(varyingTangent);
-	tangent = normalize(tangent - dot(tangent, normal) * normal);
-	vec3 bitangent = cross(tangent, normal);
-	mat3 tbn = mat3(tangent, bitangent, normal);
-	vec3 retrievedNormal = texture(s,tc).xyz;
-	retrievedNormal = retrievedNormal * 2.0 - 1.0;
-	vec3 newNormal = tbn * retrievedNormal;
-	newNormal = normalize(newNormal);
-	return newNormal;
-}
 
 void main(void)
 {	// normalize the light, normal, and view vectors:
 	vec3 L = normalize(varyingLightDir);
+	vec3 N = normalize(varyingNormal);
 	vec3 V = normalize(-varyingVertPos);
-	
-	vec3 N = calcNewNormal();
-	
+			
+	// get the angle between the light and surface normal:
 	float cosTheta = dot(L,N);
-	vec3 H = normalize(varyingHalfVector);
 	
 	// compute light reflection vector, with respect N:
 	vec3 R = normalize(reflect(-L, N));
 	
 	// angle between the view vector and reflected light:
 	float cosPhi = dot(V,R);
-		
+
+	// compute ADS contributions (per pixel):
 	vec3 ambient = ((globalAmbient * material.ambient) + (light.ambient * material.ambient)).xyz;
 	vec3 diffuse = light.diffuse.xyz * material.diffuse.xyz * max(cosTheta,0.0);
-	vec3 specular = light.specular.xyz * material.specular.xyz * pow(max(cosPhi,0.0), material.shininess*3.0);
+	vec3 specular = light.specular.xyz * material.specular.xyz * pow(max(cosPhi,0.0), material.shininess);
+	
+	vec4 mixColor, reflectColor, refractColor, blueColor;
 
-	vec4 texel = texture(t,tc);
+	refractColor = texture(refractTex, (vec2(glp.x,glp.y))/(2.0*glp.w)+0.5);
+	reflectColor = texture(reflectTex, (vec2(glp.x,-glp.y))/(2.0*glp.w)+0.5);
+	mixColor = (0.2 * refractColor) + (1.0 * reflectColor);
 	
-	//display with texture, material, and light
-	fragColor = texel* vec4((ambient + diffuse), 1.0)+vec4((specular), 1.0);
-	
+	fragColor = vec4((mixColor.xyz * (ambient + diffuse) + 0.75*specular), 1.0);
 }
