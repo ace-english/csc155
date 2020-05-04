@@ -68,6 +68,13 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private PositionalLight mouseLight;
 	private Dictionary<String, Integer> vboDict;
 
+	// reflection/refraction variables
+	private int[] bufferId = new int[1];
+	private int refractTextureId;
+	private int reflectTextureId;
+	private int refractFrameBuffer;
+	private int reflectFrameBuffer;
+
 	// shadow-related variables
 	private int screenSizeX, screenSizeY;
 	private int[] shadowTex = new int[1];
@@ -197,6 +204,52 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private void resetLight() {
 		mouseLight.setPosition(new Vector3f(.01f, 2f, .01f));
 
+	}
+
+	void createReflectRefractBuffers() {
+		GL4 gl = (GL4) GLContext.getCurrentGL();
+
+		// Initialize Reflect Framebuffer
+		gl.glGenFramebuffers(1, bufferId, 0);
+		reflectFrameBuffer = bufferId[0];
+		gl.glBindFramebuffer(GL_FRAMEBUFFER, reflectFrameBuffer);
+		gl.glGenTextures(1, bufferId, 0);
+		reflectTextureId = bufferId[0];
+		gl.glBindTexture(GL_TEXTURE_2D, reflectTextureId);
+		gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, myCanvas.getWidth(), myCanvas.getHeight(), 0, GL_RGBA,
+				GL_UNSIGNED_BYTE, null);
+		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		gl.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, reflectTextureId, 0);
+		gl.glDrawBuffer(GL_COLOR_ATTACHMENT0);
+		gl.glGenTextures(1, bufferId, 0);
+		gl.glBindTexture(GL_TEXTURE_2D, bufferId[0]);
+		gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, myCanvas.getWidth(), myCanvas.getHeight(), 0,
+				GL_DEPTH_COMPONENT, GL_FLOAT, null);
+		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		gl.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, bufferId[0], 0);
+
+		// Initialize Refract Framebuffer
+		gl.glGenFramebuffers(1, bufferId, 0);
+		refractFrameBuffer = bufferId[0];
+		gl.glBindFramebuffer(GL_FRAMEBUFFER, refractFrameBuffer);
+		gl.glGenTextures(1, bufferId, 0);
+		refractTextureId = bufferId[0];
+		gl.glBindTexture(GL_TEXTURE_2D, refractTextureId);
+		gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, myCanvas.getWidth(), myCanvas.getHeight(), 0, GL_RGBA,
+				GL_UNSIGNED_BYTE, null);
+		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		gl.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, refractTextureId, 0);
+		gl.glDrawBuffer(GL_COLOR_ATTACHMENT0);
+		gl.glGenTextures(1, bufferId, 0);
+		gl.glBindTexture(GL_TEXTURE_2D, bufferId[0]);
+		gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, myCanvas.getWidth(), myCanvas.getHeight(), 0,
+				GL_DEPTH_COMPONENT, GL_FLOAT, null);
+		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		gl.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, bufferId[0], 0);
 	}
 
 	public void display(GLAutoDrawable drawable) {

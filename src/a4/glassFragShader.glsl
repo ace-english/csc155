@@ -3,7 +3,6 @@
 in vec3 varyingNormal;
 in vec3 varyingLightDir;
 in vec3 varyingVertPos;
-in vec3 originalVertex;
 in vec3 varyingTangent;
 in vec3 varyingHalfVector;
 in vec2 tc;
