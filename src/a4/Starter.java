@@ -314,6 +314,8 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		aspect = (float) myCanvas.getWidth() / (float) myCanvas.getHeight();
 		pMat.identity().setPerspective((float) Math.toRadians(60.0f), aspect, 0.1f, 1000.0f);
 
+		mvStack.translate(new Vector3f(camera.getLocation()).negate());
+
 		mv = new Matrix4f();
 		mv = mv.mul(mvStack);
 		mv.invert(invTr);
@@ -422,7 +424,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		addToDisplay(gl, "bookPages", scrollTex, blankNorm, paperMat, bookPagesObj);
 		// addToDisplay(gl, "goblet", skyboxTex, blankNorm, pewterMat, gobletObj);
 
-		// gems
+		// ------------------------------------------------- gems
 		gl.glUseProgram(glassShader);
 		gl.glUniformMatrix4fv(sLoc, 1, false, mvStack.get(vals));
 		String name = "gem2";
@@ -446,7 +448,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glActiveTexture(GL_TEXTURE1);
 		gl.glBindTexture(GL_TEXTURE_2D, refractTextureId);
 
-		gl.glEnable(GL_CULL_FACE);
+		// gl.glEnable(GL_CULL_FACE);
 		gl.glFrontFace(GL_CCW);
 		gl.glEnable(GL_DEPTH_TEST);
 		gl.glDepthFunc(GL_LEQUAL);
