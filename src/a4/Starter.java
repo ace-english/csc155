@@ -726,7 +726,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		yellowTex = loadTexture("assets/coin.png");
 		burlapTex = loadTexture("assets/burlap.png");
 		leatherTex = loadTexture("assets/leather.png");
-		skyboxTex = Utils.loadCubeMap("assets/cubeMap");
+		skyboxTex = Utils.loadCubeMap("assets/stars");
 		gl.glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
 		burlapNorm = loadTexture("assets/burlap_normal.jpg");
