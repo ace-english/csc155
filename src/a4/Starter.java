@@ -358,6 +358,73 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glUniformMatrix4fv(projLocGlass, 1, false, pMat.get(vals));
 		gl.glUniformMatrix4fv(nLocGlass, 1, false, invTr.get(vals));
 
+		/**
+		 * some sort of buffer flimflam
+		 */
+
+		gl.glClear(GL_COLOR_BUFFER_BIT);
+		gl.glClear(GL_DEPTH_BUFFER_BIT);
+
+		// render reflection scene to reflection buffer ----------------
+
+		gl.glBindFramebuffer(GL_FRAMEBUFFER, reflectFrameBuffer);
+		gl.glClear(GL_DEPTH_BUFFER_BIT);
+		gl.glClear(GL_COLOR_BUFFER_BIT);
+		renderSkyBoxPrep();
+		gl.glEnable(GL_CULL_FACE);
+		gl.glFrontFace(GL_CCW); // cube is CW, but we are viewing the inside
+		gl.glDisable(GL_DEPTH_TEST);
+		gl.glDrawArrays(GL_TRIANGLES, 0, 36);
+		gl.glEnable(GL_DEPTH_TEST);
+
+		// render refraction scene to refraction buffer
+		// ----------------------------------------
+
+		gl.glBindFramebuffer(GL_FRAMEBUFFER, refractFrameBuffer);
+		gl.glClear(GL_DEPTH_BUFFER_BIT);
+		gl.glClear(GL_COLOR_BUFFER_BIT);
+
+		renderSkyBoxPrep();
+		gl.glEnable(GL_CULL_FACE);
+		gl.glFrontFace(GL_CCW); // cube is CW, but we are viewing the inside
+		gl.glDisable(GL_DEPTH_TEST);
+		gl.glDrawArrays(GL_TRIANGLES, 0, 36);
+		gl.glEnable(GL_DEPTH_TEST);
+
+		// renderFloorPrep();
+
+		gl.glUseProgram(phongShader);
+		if (showLight) {
+			installLights(mv, phongShader);
+		} else {
+			uninstallLights(mv, phongShader);
+		}
+
+		gl.glUniformMatrix4fv(sLoc, 1, false, mvStack.get(vals));
+		gl.glUniformMatrix4fv(mvLocPhong, 1, false, mvStack.get(vals));
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("tablePositions")]);
+		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(0);
+		// pull up texture coords
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("tableTextures")]);
+		gl.glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(1);
+		// pull up normal coords
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("tableNormals")]);
+		gl.glVertexAttribPointer(2, 3, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(2);
+		// activate texture object
+		gl.glActiveTexture(GL_TEXTURE0);
+		gl.glBindTexture(GL_TEXTURE_2D, woodTex);
+
+		gl.glEnable(GL_DEPTH_TEST);
+		gl.glDepthFunc(GL_LEQUAL);
+		gl.glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		/**
+		 * end flimflam
+		 */
+
 		// ---------------------- skybox
 		renderSkyBoxPrep();
 
