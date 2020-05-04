@@ -59,7 +59,8 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private boolean showAxes, showLight;
 	private int[] mouseDragCurrent;
 
-	private ImportedModel tableObj, scrollObj, bagObj, keyObj, coinObj, bookPagesObj, bookCoverObj, gobletObj, gem2Obj;
+	private ImportedModel tableObj, scrollObj, bagObj, keyObj, coinObj, bookPagesObj, bookCoverObj, gobletObj, gem2Obj,
+			floorObj;
 	private Sphere lightObj;
 	private int woodTex, scrollTex, burlapTex, metalTex, leatherTex, yellowTex, skyboxTex;
 	private int woodNorm, blankNorm, burlapNorm, metalNorm, leatherNorm;
@@ -293,6 +294,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		gl.glUseProgram(pass1Shader);
 		sLoc = gl.glGetUniformLocation(pass1Shader, "shadowMVP");
+		addToShadow(gl, "floor", floorObj);
 		addToShadow(gl, "table", tableObj);
 		addToShadow(gl, "scroll", scrollObj);
 		addToShadow(gl, "bag", bagObj);
@@ -457,8 +459,8 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		if (showLight) {
 			gl.glUseProgram(texShader);
 			mvStack.pushMatrix();
-			mvStack.translate(mouseLight.getPosition());
 			mvStack.scale(.05f, .05f, .05f);
+			mvStack.translate(mouseLight.getPosition());
 			gl.glUniformMatrix4fv(mvLocTex, 1, false, mvStack.get(vals));
 			gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("lightPositions")]);
 			gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
@@ -482,6 +484,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		gl.glUseProgram(phongShader);
 
+		addToDisplay(gl, "floor", woodTex, woodNorm, woodMat, floorObj);
 		addToDisplay(gl, "table", woodTex, woodNorm, woodMat, tableObj);
 		addToDisplay(gl, "scroll", scrollTex, blankNorm, paperMat, scrollObj);
 		addToDisplay(gl, "bag", burlapTex, burlapNorm, burlapMat, bagObj);
@@ -738,6 +741,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		lightObj = new Sphere();
 		scrollObj = new ImportedModel("assets/scroll.obj");
 		tableObj = new ImportedModel("assets/table.obj");
+		floorObj = new ImportedModel("assets/floor.obj");
 		bagObj = new ImportedModel("assets/bag.obj");
 		keyObj = new ImportedModel("assets/key.obj");
 		coinObj = new ImportedModel("assets/coin_pile.obj");
@@ -783,6 +787,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glGenBuffers(vbo.length, vbo, 0);
 
 		addToVbo(gl, tableObj, "table");
+		addToVbo(gl, floorObj, "floor");
 		addToVbo(gl, scrollObj, "scroll");
 		addToVbo(gl, keyObj, "key");
 		addToVbo(gl, bagObj, "bag");
