@@ -14,8 +14,8 @@ out vec3 varyingHalfVector;
 out vec2 tc;
 out vec4 shadow_coord;
 
-layout (binding=0) uniform sampler2D s;
-layout (binding=1) uniform sampler2D t;
+layout (binding=0) uniform sampler3D t;
+layout (binding=1) uniform sampler2D s;
 layout (binding=2) uniform sampler2DShadow shadowTex;
 
 

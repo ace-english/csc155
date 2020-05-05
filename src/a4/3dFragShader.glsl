@@ -11,7 +11,7 @@ in vec4 shadow_coord;
 
 out vec4 fragColor;
 
-layout (binding=0) uniform sampler2D t;
+layout (binding=0) uniform sampler3D t;
 layout (binding=1) uniform sampler2D s;
 layout (binding=2) uniform sampler2DShadow shadowTex;
 
@@ -75,7 +75,7 @@ void main(void)
 	//calculate notInShadow
 	float notInShadow = textureProj(shadowTex, shadow_coord);
 
-	vec4 texel = texture(t,tc);
+	vec4 texel = texture(t,originalVertex/2.0+0.5);
 	
 	//display with texture, material, and light
 	fragColor = texel* vec4((ambient + diffuse), 1.0)+vec4((specular), 1.0);
