@@ -6,6 +6,11 @@ import static com.jogamp.opengl.GL2GL3.GL_TEXTURE_CUBE_MAP_SEAMLESS;
 import static com.jogamp.opengl.GL3ES3.GL_GEOMETRY_SHADER;
 import static com.jogamp.opengl.GL3ES3.GL_TESS_CONTROL_SHADER;
 import static com.jogamp.opengl.GL3ES3.GL_TESS_EVALUATION_SHADER;
+import static com.jogamp.opengl.GL4.*;
+import java.lang.Math;
+import java.awt.Color;
+import com.jogamp.opengl.awt.GLCanvas;
+import com.jogamp.common.nio.Buffers;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -14,6 +19,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.Dictionary;
 import java.util.Hashtable;
@@ -68,6 +74,13 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private Light globalAmbientLight;
 	private PositionalLight mouseLight;
 	private Dictionary<String, Integer> vboDict;
+
+	// 3D Texture variables
+	private int noiseTexture;
+	private int noiseHeight = 300;
+	private int noiseWidth = 300;
+	private int noiseDepth = 300;
+	private double[][][] noise = new double[noiseHeight][noiseWidth][noiseDepth];
 
 	// reflection/refraction variables
 	private int[] bufferId = new int[1];
@@ -459,8 +472,8 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		if (showLight) {
 			gl.glUseProgram(texShader);
 			mvStack.pushMatrix();
-			mvStack.scale(.05f, .05f, .05f);
 			mvStack.translate(mouseLight.getPosition());
+			mvStack.scale(.05f, .05f, .05f);
 			gl.glUniformMatrix4fv(mvLocTex, 1, false, mvStack.get(vals));
 			gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("lightPositions")]);
 			gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
@@ -496,7 +509,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		// ------------------------------------------------- gems
 		gl.glUseProgram(glassShader);
-		gl.glUniformMatrix4fv(sLoc, 1, false, mvStack.get(vals));
 		String name = "gem2";
 		WorldObject obj = gem2Obj;
 		Material currentMat = goldMat;
@@ -702,12 +714,15 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		paperMat = new Material(new float[] { .7f, .7f, .7f, 1.0f }, new float[] { 0.8f, 0.8f, 0.8f, 1.0f },
 				new float[] { 0.5f, 0.5f, 0.5f, 1.0f }, 50f);
-		woodMat = new Material(new float[] { 0.345098039f, 0.219607843f, 0.160784314f, 1.0f },
-				new float[] { 0.8f, 0.8f, 0.8f, 1.0f }, new float[] { 0.475f, 0.475f, 0.475f, 1.0f }, 85f);
+		woodMat = new Material(new float[] { 0.5f, 0.3f, 0.15f, 1.0f }, new float[] { 0.5f, 0.3f, 0.15f, 1.0f },
+				new float[] { 0.5f, 0.3f, 0.15f, 1.0f }, 15f);
 		leatherMat = new Material(new float[] { .24f, .1f, .07f, 1.0f },
 				new float[] { 0.291945f, 0.225797f, 0.221366f, 1.0f }, new float[] { .5f, .5f, .5f, 1.0f }, 60f);
 		burlapMat = new Material(new float[] { .24f, .1f, .07f, 1.0f },
 				new float[] { 0.291945f, 0.225797f, 0.221366f, 1.0f }, new float[] { .1f, .1f, .1f, 1.0f }, 60f);
+
+		generateNoise();
+		noiseTexture = buildNoiseTexture();
 
 		globalAmbientLight = new GlobalAmbientLight();
 		mouseLight = new PositionalLight(new float[] { 0.1f, 0.1f, 0.1f, 1.0f }, new float[] { .4f, .3f, .2f, 1.0f },
@@ -903,6 +918,100 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		FloatBuffer norBuf = Buffers.newDirectFloatBuffer(nvalues);
 		gl.glBufferData(GL_ARRAY_BUFFER, norBuf.limit() * 4, norBuf, GL_STATIC_DRAW);
 
+	}
+
+	private void fillDataArray(byte data[]) {
+		double xyPeriod = 30.0;
+		double turbPower = 0.15;
+		double turbSize = 40.0;
+
+		for (int i = 0; i < noiseWidth; i++) {
+			for (int j = 0; j < noiseHeight; j++) {
+				for (int k = 0; k < noiseDepth; k++) {
+					double xValue = (i - (double) noiseWidth / 2.0) / (double) noiseWidth;
+					double yValue = (j - (double) noiseHeight / 2.0) / (double) noiseHeight;
+					double distValue = Math.sqrt(xValue * xValue + yValue * yValue)
+							+ turbPower * turbulence(i, j, k, turbSize) / 256.0;
+					double sineValue = 128.0 * Math.abs(Math.sin(2.0 * xyPeriod * distValue * Math.PI));
+
+					Color c = new Color((int) (60 + (int) sineValue), (int) (10 + (int) sineValue), 0);
+
+					data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 0] = (byte) c.getRed();
+					data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 1] = (byte) c.getGreen();
+					data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 2] = (byte) c.getBlue();
+					data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 3] = (byte) 255;
+				}
+			}
+		}
+	}
+
+	private int buildNoiseTexture() {
+		GL4 gl = (GL4) GLContext.getCurrentGL();
+
+		byte[] data = new byte[noiseHeight * noiseWidth * noiseDepth * 4];
+
+		fillDataArray(data);
+
+		ByteBuffer bb = Buffers.newDirectByteBuffer(data);
+
+		int[] textureIDs = new int[1];
+		gl.glGenTextures(1, textureIDs, 0);
+		int textureID = textureIDs[0];
+
+		gl.glBindTexture(GL_TEXTURE_3D, textureID);
+
+		gl.glTexStorage3D(GL_TEXTURE_3D, 1, GL_RGBA8, noiseWidth, noiseHeight, noiseDepth);
+		gl.glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, noiseWidth, noiseHeight, noiseDepth, GL_RGBA,
+				GL_UNSIGNED_INT_8_8_8_8_REV, bb);
+
+		gl.glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+		return textureID;
+	}
+
+	void generateNoise() {
+		for (int x = 0; x < noiseHeight; x++) {
+			for (int y = 0; y < noiseWidth; y++) {
+				for (int z = 0; z < noiseDepth; z++) {
+					noise[x][y][z] = random.nextDouble();
+				}
+			}
+		}
+	}
+
+	double smoothNoise(double x1, double y1, double z1) { // get fractional part of x, y, and z
+		double fractX = x1 - (int) x1;
+		double fractY = y1 - (int) y1;
+		double fractZ = z1 - (int) z1;
+
+		// neighbor values
+		int x2 = ((int) x1 + noiseWidth + 1) % noiseWidth;
+		int y2 = ((int) y1 + noiseHeight + 1) % noiseHeight;
+		int z2 = ((int) z1 + noiseDepth + 1) % noiseDepth;
+
+		// smooth the noise by interpolating
+		double value = 0.0;
+		value += (1 - fractX) * (1 - fractY) * (1 - fractZ) * noise[(int) x1][(int) y1][(int) z1];
+		value += (1 - fractX) * fractY * (1 - fractZ) * noise[(int) x1][(int) y2][(int) z1];
+		value += fractX * (1 - fractY) * (1 - fractZ) * noise[(int) x2][(int) y1][(int) z1];
+		value += fractX * fractY * (1 - fractZ) * noise[(int) x2][(int) y2][(int) z1];
+
+		value += (1 - fractX) * (1 - fractY) * fractZ * noise[(int) x1][(int) y1][(int) z2];
+		value += (1 - fractX) * fractY * fractZ * noise[(int) x1][(int) y2][(int) z2];
+		value += fractX * (1 - fractY) * fractZ * noise[(int) x2][(int) y1][(int) z2];
+		value += fractX * fractY * fractZ * noise[(int) x2][(int) y2][(int) z2];
+
+		return value;
+	}
+
+	private double turbulence(double x, double y, double z, double size) {
+		double value = 0.0, initialSize = size;
+		while (size >= 0.9) {
+			value = value + smoothNoise(x / size, y / size, z / size) * size;
+			size = size / 2.0;
+		}
+		value = 128.0 * value / initialSize;
+		return value;
 	}
 
 	public static void main(String[] args) {
