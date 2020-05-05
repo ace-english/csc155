@@ -442,7 +442,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		// gems
 		gl.glUseProgram(glassShader);
-		gl.glUniformMatrix4fv(sLoc, 1, false, mvStack.get(vals));
 		String name = "gem2";
 		WorldObject obj = gem2Obj;
 		Material currentMat = goldMat;
