@@ -6,6 +6,11 @@ import static com.jogamp.opengl.GL2GL3.GL_TEXTURE_CUBE_MAP_SEAMLESS;
 import static com.jogamp.opengl.GL3ES3.GL_GEOMETRY_SHADER;
 import static com.jogamp.opengl.GL3ES3.GL_TESS_CONTROL_SHADER;
 import static com.jogamp.opengl.GL3ES3.GL_TESS_EVALUATION_SHADER;
+import static com.jogamp.opengl.GL4.*;
+import java.lang.Math;
+import java.awt.Color;
+import com.jogamp.opengl.awt.GLCanvas;
+import com.jogamp.common.nio.Buffers;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -14,6 +19,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.Dictionary;
 import java.util.Hashtable;
@@ -59,7 +65,8 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private boolean showAxes, showLight;
 	private int[] mouseDragCurrent;
 
-	private ImportedModel tableObj, scrollObj, bagObj, keyObj, coinObj, bookPagesObj, bookCoverObj, gobletObj, gem2Obj;
+	private ImportedModel tableObj, scrollObj, bagObj, keyObj, coinObj, bookPagesObj, bookCoverObj, gobletObj, gem2Obj,
+			floorObj;
 	private Sphere lightObj;
 	private int woodTex, scrollTex, burlapTex, metalTex, leatherTex, yellowTex, skyboxTex;
 	private int woodNorm, blankNorm, burlapNorm, metalNorm, leatherNorm;
@@ -67,6 +74,13 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private Light globalAmbientLight;
 	private PositionalLight mouseLight;
 	private Dictionary<String, Integer> vboDict;
+
+	// 3D Texture variables
+	private int noiseTexture;
+	private int noiseHeight = 300;
+	private int noiseWidth = 300;
+	private int noiseDepth = 300;
+	private double[][][] noise = new double[noiseHeight][noiseWidth][noiseDepth];
 
 	// reflection/refraction variables
 	private int[] bufferId = new int[1];
@@ -293,6 +307,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		gl.glUseProgram(pass1Shader);
 		sLoc = gl.glGetUniformLocation(pass1Shader, "shadowMVP");
+		addToShadow(gl, "floor", floorObj);
 		addToShadow(gl, "table", tableObj);
 		addToShadow(gl, "scroll", scrollObj);
 		addToShadow(gl, "bag", bagObj);
@@ -313,6 +328,8 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		aspect = (float) myCanvas.getWidth() / (float) myCanvas.getHeight();
 		pMat.identity().setPerspective((float) Math.toRadians(60.0f), aspect, 0.1f, 1000.0f);
+
+		mvStack.translate(new Vector3f(camera.getLocation()).negate());
 
 		mv = new Matrix4f();
 		mv = mv.mul(mvStack);
@@ -356,33 +373,82 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glUniformMatrix4fv(projLocGlass, 1, false, pMat.get(vals));
 		gl.glUniformMatrix4fv(nLocGlass, 1, false, invTr.get(vals));
 
-		// ---------------------- skybox
-		gl.glUseProgram(skyboxShader);
+		/**
+		 * some sort of buffer flimflam
+		 */
 
-		mvLocSky = gl.glGetUniformLocation(skyboxShader, "v_matrix");
-		projLocSky = gl.glGetUniformLocation(skyboxShader, "proj_matrix");
+		gl.glClear(GL_COLOR_BUFFER_BIT);
+		gl.glClear(GL_DEPTH_BUFFER_BIT);
 
-		gl.glUniformMatrix4fv(mvLocSky, 1, false, mv.get(vals));
-		gl.glUniformMatrix4fv(projLocSky, 1, false, pMat.get(vals));
+		// render reflection scene to reflection buffer ----------------
 
-		mvStack.pushMatrix();
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("skyboxPositions")]);
+		gl.glBindFramebuffer(GL_FRAMEBUFFER, reflectFrameBuffer);
+		gl.glClear(GL_DEPTH_BUFFER_BIT);
+		gl.glClear(GL_COLOR_BUFFER_BIT);
+		renderSkyBoxPrep();
+		gl.glEnable(GL_CULL_FACE);
+		gl.glFrontFace(GL_CCW); // cube is CW, but we are viewing the inside
+		gl.glDisable(GL_DEPTH_TEST);
+		gl.glDrawArrays(GL_TRIANGLES, 0, 36);
+		gl.glEnable(GL_DEPTH_TEST);
+
+		// render refraction scene to refraction buffer
+		// ----------------------------------------
+
+		gl.glBindFramebuffer(GL_FRAMEBUFFER, refractFrameBuffer);
+		gl.glClear(GL_DEPTH_BUFFER_BIT);
+		gl.glClear(GL_COLOR_BUFFER_BIT);
+
+		renderSkyBoxPrep();
+		gl.glEnable(GL_CULL_FACE);
+		gl.glFrontFace(GL_CCW); // cube is CW, but we are viewing the inside
+		gl.glDisable(GL_DEPTH_TEST);
+		gl.glDrawArrays(GL_TRIANGLES, 0, 36);
+		gl.glEnable(GL_DEPTH_TEST);
+
+		// renderFloorPrep();
+
+		gl.glUseProgram(phongShader);
+		if (showLight) {
+			installLights(mv, phongShader);
+		} else {
+			uninstallLights(mv, phongShader);
+		}
+
+		gl.glUniformMatrix4fv(sLoc, 1, false, mvStack.get(vals));
+		gl.glUniformMatrix4fv(mvLocPhong, 1, false, mvStack.get(vals));
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("tablePositions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
 		gl.glEnableVertexAttribArray(0);
-
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("skyboxTextures")]);
+		// pull up texture coords
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("tableTextures")]);
 		gl.glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0);
 		gl.glEnableVertexAttribArray(1);
-
+		// pull up normal coords
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("tableNormals")]);
+		gl.glVertexAttribPointer(2, 3, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(2);
+		// activate texture object
 		gl.glActiveTexture(GL_TEXTURE0);
-		gl.glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTex);
+		gl.glBindTexture(GL_TEXTURE_2D, woodTex);
+
+		gl.glEnable(GL_DEPTH_TEST);
+		gl.glDepthFunc(GL_LEQUAL);
+		gl.glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		/**
+		 * end flimflam
+		 */
+
+		// ---------------------- skybox
+		renderSkyBoxPrep();
 
 		gl.glEnable(GL_CULL_FACE);
 		gl.glFrontFace(GL_CCW); // cube is CW, but we are viewing the inside
 		gl.glDisable(GL_DEPTH_TEST);
 		gl.glDrawArrays(GL_TRIANGLES, 0, 36);
 		gl.glEnable(GL_DEPTH_TEST);
-		mvStack.popMatrix();
+
 		mvStack.translate(new Vector3f(camera.getLocation()).negate());
 
 		// ---------------------- axis
@@ -431,6 +497,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		gl.glUseProgram(phongShader);
 
+		addToDisplay(gl, "floor", woodTex, woodNorm, woodMat, floorObj);
 		addToDisplay(gl, "table", woodTex, woodNorm, woodMat, tableObj);
 		addToDisplay(gl, "scroll", scrollTex, blankNorm, paperMat, scrollObj);
 		addToDisplay(gl, "bag", burlapTex, burlapNorm, burlapMat, bagObj);
@@ -440,7 +507,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		addToDisplay(gl, "bookPages", scrollTex, blankNorm, paperMat, bookPagesObj);
 		// addToDisplay(gl, "goblet", skyboxTex, blankNorm, pewterMat, gobletObj);
 
-		// gems
+		// ------------------------------------------------- gems
 		gl.glUseProgram(glassShader);
 		String name = "gem2";
 		WorldObject obj = gem2Obj;
@@ -463,7 +530,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glActiveTexture(GL_TEXTURE1);
 		gl.glBindTexture(GL_TEXTURE_2D, refractTextureId);
 
-		gl.glEnable(GL_CULL_FACE);
+		// gl.glEnable(GL_CULL_FACE);
 		gl.glFrontFace(GL_CCW);
 		gl.glEnable(GL_DEPTH_TEST);
 		gl.glDepthFunc(GL_LEQUAL);
@@ -503,6 +570,25 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		mvStack.popMatrix(); // final pop
 
+	}
+
+	void renderSkyBoxPrep() {
+		GL4 gl = (GL4) GLContext.getCurrentGL();
+
+		gl.glUseProgram(skyboxShader);
+
+		mvLocSky = gl.glGetUniformLocation(skyboxShader, "v_matrix");
+		projLocSky = gl.glGetUniformLocation(skyboxShader, "proj_matrix");
+
+		gl.glUniformMatrix4fv(mvLocSky, 1, false, mv.get(vals));
+		gl.glUniformMatrix4fv(projLocSky, 1, false, pMat.get(vals));
+
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("skyboxPositions")]);
+		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(0);
+
+		gl.glActiveTexture(GL_TEXTURE0);
+		gl.glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTex);
 	}
 
 	private void installLights(Matrix4f vMatrix, int shader) {
@@ -628,12 +714,15 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		paperMat = new Material(new float[] { .7f, .7f, .7f, 1.0f }, new float[] { 0.8f, 0.8f, 0.8f, 1.0f },
 				new float[] { 0.5f, 0.5f, 0.5f, 1.0f }, 50f);
-		woodMat = new Material(new float[] { 0.345098039f, 0.219607843f, 0.160784314f, 1.0f },
-				new float[] { 0.8f, 0.8f, 0.8f, 1.0f }, new float[] { 0.475f, 0.475f, 0.475f, 1.0f }, 85f);
+		woodMat = new Material(new float[] { 0.5f, 0.3f, 0.15f, 1.0f }, new float[] { 0.5f, 0.3f, 0.15f, 1.0f },
+				new float[] { 0.5f, 0.3f, 0.15f, 1.0f }, 15f);
 		leatherMat = new Material(new float[] { .24f, .1f, .07f, 1.0f },
 				new float[] { 0.291945f, 0.225797f, 0.221366f, 1.0f }, new float[] { .5f, .5f, .5f, 1.0f }, 60f);
 		burlapMat = new Material(new float[] { .24f, .1f, .07f, 1.0f },
 				new float[] { 0.291945f, 0.225797f, 0.221366f, 1.0f }, new float[] { .1f, .1f, .1f, 1.0f }, 60f);
+
+		generateNoise();
+		noiseTexture = buildNoiseTexture();
 
 		globalAmbientLight = new GlobalAmbientLight();
 		mouseLight = new PositionalLight(new float[] { 0.1f, 0.1f, 0.1f, 1.0f }, new float[] { .4f, .3f, .2f, 1.0f },
@@ -655,7 +744,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		yellowTex = loadTexture("assets/coin.png");
 		burlapTex = loadTexture("assets/burlap.png");
 		leatherTex = loadTexture("assets/leather.png");
-		skyboxTex = Utils.loadCubeMap("assets/cubeMap");
+		skyboxTex = Utils.loadCubeMap("assets/stars");
 		gl.glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
 		burlapNorm = loadTexture("assets/burlap_normal.jpg");
@@ -667,6 +756,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		lightObj = new Sphere();
 		scrollObj = new ImportedModel("assets/scroll.obj");
 		tableObj = new ImportedModel("assets/table.obj");
+		floorObj = new ImportedModel("assets/floor.obj");
 		bagObj = new ImportedModel("assets/bag.obj");
 		keyObj = new ImportedModel("assets/key.obj");
 		coinObj = new ImportedModel("assets/coin_pile.obj");
@@ -712,6 +802,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glGenBuffers(vbo.length, vbo, 0);
 
 		addToVbo(gl, tableObj, "table");
+		addToVbo(gl, floorObj, "floor");
 		addToVbo(gl, scrollObj, "scroll");
 		addToVbo(gl, keyObj, "key");
 		addToVbo(gl, bagObj, "bag");
@@ -827,6 +918,100 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		FloatBuffer norBuf = Buffers.newDirectFloatBuffer(nvalues);
 		gl.glBufferData(GL_ARRAY_BUFFER, norBuf.limit() * 4, norBuf, GL_STATIC_DRAW);
 
+	}
+
+	private void fillDataArray(byte data[]) {
+		double xyPeriod = 30.0;
+		double turbPower = 0.15;
+		double turbSize = 40.0;
+
+		for (int i = 0; i < noiseWidth; i++) {
+			for (int j = 0; j < noiseHeight; j++) {
+				for (int k = 0; k < noiseDepth; k++) {
+					double xValue = (i - (double) noiseWidth / 2.0) / (double) noiseWidth;
+					double yValue = (j - (double) noiseHeight / 2.0) / (double) noiseHeight;
+					double distValue = Math.sqrt(xValue * xValue + yValue * yValue)
+							+ turbPower * turbulence(i, j, k, turbSize) / 256.0;
+					double sineValue = 128.0 * Math.abs(Math.sin(2.0 * xyPeriod * distValue * Math.PI));
+
+					Color c = new Color((int) (60 + (int) sineValue), (int) (10 + (int) sineValue), 0);
+
+					data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 0] = (byte) c.getRed();
+					data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 1] = (byte) c.getGreen();
+					data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 2] = (byte) c.getBlue();
+					data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 3] = (byte) 255;
+				}
+			}
+		}
+	}
+
+	private int buildNoiseTexture() {
+		GL4 gl = (GL4) GLContext.getCurrentGL();
+
+		byte[] data = new byte[noiseHeight * noiseWidth * noiseDepth * 4];
+
+		fillDataArray(data);
+
+		ByteBuffer bb = Buffers.newDirectByteBuffer(data);
+
+		int[] textureIDs = new int[1];
+		gl.glGenTextures(1, textureIDs, 0);
+		int textureID = textureIDs[0];
+
+		gl.glBindTexture(GL_TEXTURE_3D, textureID);
+
+		gl.glTexStorage3D(GL_TEXTURE_3D, 1, GL_RGBA8, noiseWidth, noiseHeight, noiseDepth);
+		gl.glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, noiseWidth, noiseHeight, noiseDepth, GL_RGBA,
+				GL_UNSIGNED_INT_8_8_8_8_REV, bb);
+
+		gl.glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+		return textureID;
+	}
+
+	void generateNoise() {
+		for (int x = 0; x < noiseHeight; x++) {
+			for (int y = 0; y < noiseWidth; y++) {
+				for (int z = 0; z < noiseDepth; z++) {
+					noise[x][y][z] = random.nextDouble();
+				}
+			}
+		}
+	}
+
+	double smoothNoise(double x1, double y1, double z1) { // get fractional part of x, y, and z
+		double fractX = x1 - (int) x1;
+		double fractY = y1 - (int) y1;
+		double fractZ = z1 - (int) z1;
+
+		// neighbor values
+		int x2 = ((int) x1 + noiseWidth + 1) % noiseWidth;
+		int y2 = ((int) y1 + noiseHeight + 1) % noiseHeight;
+		int z2 = ((int) z1 + noiseDepth + 1) % noiseDepth;
+
+		// smooth the noise by interpolating
+		double value = 0.0;
+		value += (1 - fractX) * (1 - fractY) * (1 - fractZ) * noise[(int) x1][(int) y1][(int) z1];
+		value += (1 - fractX) * fractY * (1 - fractZ) * noise[(int) x1][(int) y2][(int) z1];
+		value += fractX * (1 - fractY) * (1 - fractZ) * noise[(int) x2][(int) y1][(int) z1];
+		value += fractX * fractY * (1 - fractZ) * noise[(int) x2][(int) y2][(int) z1];
+
+		value += (1 - fractX) * (1 - fractY) * fractZ * noise[(int) x1][(int) y1][(int) z2];
+		value += (1 - fractX) * fractY * fractZ * noise[(int) x1][(int) y2][(int) z2];
+		value += fractX * (1 - fractY) * fractZ * noise[(int) x2][(int) y1][(int) z2];
+		value += fractX * fractY * fractZ * noise[(int) x2][(int) y2][(int) z2];
+
+		return value;
+	}
+
+	private double turbulence(double x, double y, double z, double size) {
+		double value = 0.0, initialSize = size;
+		while (size >= 0.9) {
+			value = value + smoothNoise(x / size, y / size, z / size) * size;
+			size = size / 2.0;
+		}
+		value = 128.0 * value / initialSize;
+		return value;
 	}
 
 	public static void main(String[] args) {
