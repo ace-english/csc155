@@ -349,12 +349,9 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		// gl.glUniformMatrix4fv(projLocTex, 1, false, pMat.get(vals));
 
 		chromeShader.use();
-		mvLocChrome = gl.glGetUniformLocation(chromeShader.getShader(), "mv_matrix");
-		projLocChrome = gl.glGetUniformLocation(chromeShader.getShader(), "proj_matrix");
-		nLocChrome = gl.glGetUniformLocation(chromeShader.getShader(), "norm_matrix");
-		gl.glUniformMatrix4fv(mvLocChrome, 1, false, mv.get(vals));
-		gl.glUniformMatrix4fv(projLocChrome, 1, false, pMat.get(vals));
-		gl.glUniformMatrix4fv(nLocChrome, 1, false, invTr.get(vals));
+chromeShader.updateLocation("mv_matrix",mvStack,vals);
+chromeShader.updateLocation("proj_matrix",pMat,vals);
+chromeShader.updateLocation("norm_matrix",invTr,vals);
 
 		phongShader.use();
 		mvLocPhong = gl.glGetUniformLocation(phongShader.getShader(), "mv_matrix");
