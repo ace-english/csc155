@@ -343,10 +343,10 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		shadowMVP2.mul(lightVmat);
 
 		texShader.use();
-		mvLocTex = gl.glGetUniformLocation(texShader.getShader(), "mv_matrix");
-		projLocTex = gl.glGetUniformLocation(texShader.getShader(), "proj_matrix");
-		gl.glUniformMatrix4fv(mvLocTex, 1, false, mv.get(vals));
-		gl.glUniformMatrix4fv(projLocTex, 1, false, pMat.get(vals));
+		texShader.updateLocation("mv_matrix", mvStack, vals);
+		texShader.updateLocation("proj_matrix", pMat, vals);
+		// gl.glUniformMatrix4fv(mvLocTex, 1, false, mv.get(vals));
+		// gl.glUniformMatrix4fv(projLocTex, 1, false, pMat.get(vals));
 
 		chromeShader.use();
 		mvLocChrome = gl.glGetUniformLocation(chromeShader.getShader(), "mv_matrix");
