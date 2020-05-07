@@ -32,8 +32,26 @@ uniform mat4 proj_matrix;
 uniform mat4 norm_matrix;
 layout (binding = 0) uniform samplerCube t;
 
+
+vec3 calcNewNormal(){
+	vec3 normal = normalize(varyingNormal);
+//	vec3 tangent = normalize(varyingTangent);
+//	tangent = normalize(tangent - dot(tangent, normal) * normal);
+//	vec3 bitangent = cross(tangent, normal);
+//	mat3 tbn = mat3(tangent, bitangent, normal);
+//	vec3 retrievedNormal = texture(s,tc).xyz;
+//	retrievedNormal = retrievedNormal * 2.0 - 1.0;
+//	vec3 newNormal = tbn * retrievedNormal;
+//	newNormal = normalize(newNormal);
+//	vec3 newNormal=normalize(varyingNormal)
+	return normal;
+}
+
 void main(void)
 {
+	vec3 L = normalize(varyingLightDir);
+	vec3 V = normalize(-varyingVertPos);
+	
 	vec3 r = -reflect(normalize(-varyingVertPos), normalize(varyingNormal));
 	vec4 color = texture(t,r);
 	vec4 fogColor = vec4(0.0, 0.0, 0.1, 1.0);	// dark blue
