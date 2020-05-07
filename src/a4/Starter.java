@@ -489,9 +489,11 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 			gl.glDrawArrays(GL_TRIANGLES, 0, lightObj.getNumVertices());
 			mvStack.popMatrix();
 			installLights(mv, phongShader);
+			installLights(mv, chromeShader);
 			installLights(mv, glassShader);
 		} else {
 			uninstallLights(mv, phongShader);
+			uninstallLights(mv, chromeShader);
 			uninstallLights(mv, glassShader);
 		}
 
@@ -549,6 +551,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		// ---------------------chrome KEY
 
 		gl.glUseProgram(chromeShader);
+		currentMat = pewterMat;
 		gl.glUniformMatrix4fv(mvLocChrome, 1, false, mvStack.get(vals));
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("keyPositions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
@@ -565,6 +568,15 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glFrontFace(GL_CCW);
 		gl.glEnable(GL_DEPTH_TEST);
 		gl.glDepthFunc(GL_LEQUAL);
+
+		mambLoc = gl.glGetUniformLocation(chromeShader, "material.ambient");
+		mdiffLoc = gl.glGetUniformLocation(chromeShader, "material.diffuse");
+		mspecLoc = gl.glGetUniformLocation(chromeShader, "material.specular");
+		mshiLoc = gl.glGetUniformLocation(chromeShader, "material.shininess");
+		gl.glProgramUniform4fv(chromeShader, mambLoc, 1, currentMat.getAmbient(), 0);
+		gl.glProgramUniform4fv(chromeShader, mdiffLoc, 1, currentMat.getDiffuse(), 0);
+		gl.glProgramUniform4fv(chromeShader, mspecLoc, 1, currentMat.getSpecular(), 0);
+		gl.glProgramUniform1f(chromeShader, mshiLoc, currentMat.getShininess());
 
 		gl.glDrawArrays(GL_TRIANGLES, 0, keyObj.getNumVertices());
 

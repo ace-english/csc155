@@ -67,7 +67,11 @@ void main(void)
 	vec3 specular = light.specular.xyz * material.specular.xyz * pow(max(cosPhi,0.0), material.shininess*3.0);
 	
 	vec3 r = -reflect(normalize(-varyingVertPos), normalize(varyingNormal));
-	vec4 color = texture(t,r);
+	vec4 texel = texture(t,r);
+	
+	vec4 color = texel*vec4((ambient + diffuse), 1.0)+vec4((specular), 1.0);
+	
+	
 	vec4 fogColor = vec4(0.0, 0.0, 0.1, 1.0);	// dark blue
 	float fogStart = 5;
 	float fogEnd = 10;
