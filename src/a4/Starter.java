@@ -306,7 +306,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private void passOne() {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 
-		gl.glUseProgram(pass1Shader.getShader());
+		pass1Shader.use();
 		sLoc = gl.glGetUniformLocation(pass1Shader.getShader(), "shadowMVP");
 		addToShadow(gl, "floor", floorObj);
 		addToShadow(gl, "table", tableObj);
@@ -342,13 +342,13 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		shadowMVP2.mul(lightPmat);
 		shadowMVP2.mul(lightVmat);
 
-		gl.glUseProgram(texShader.getShader());
+		texShader.use();
 		mvLocTex = gl.glGetUniformLocation(texShader.getShader(), "mv_matrix");
 		projLocTex = gl.glGetUniformLocation(texShader.getShader(), "proj_matrix");
 		gl.glUniformMatrix4fv(mvLocTex, 1, false, mv.get(vals));
 		gl.glUniformMatrix4fv(projLocTex, 1, false, pMat.get(vals));
 
-		gl.glUseProgram(chromeShader.getShader());
+		chromeShader.use();
 		mvLocChrome = gl.glGetUniformLocation(chromeShader.getShader(), "mv_matrix");
 		projLocChrome = gl.glGetUniformLocation(chromeShader.getShader(), "proj_matrix");
 		nLocChrome = gl.glGetUniformLocation(chromeShader.getShader(), "norm_matrix");
@@ -356,7 +356,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glUniformMatrix4fv(projLocChrome, 1, false, pMat.get(vals));
 		gl.glUniformMatrix4fv(nLocChrome, 1, false, invTr.get(vals));
 
-		gl.glUseProgram(phongShader.getShader());
+		phongShader.use();
 		mvLocPhong = gl.glGetUniformLocation(phongShader.getShader(), "mv_matrix");
 		projLocPhong = gl.glGetUniformLocation(phongShader.getShader(), "proj_matrix");
 		nLocPhong = gl.glGetUniformLocation(phongShader.getShader(), "norm_matrix");
@@ -366,7 +366,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glUniformMatrix4fv(nLocPhong, 1, false, invTr.get(vals));
 		gl.glUniformMatrix4fv(sLoc, 1, false, shadowMVP2.get(vals));
 
-		gl.glUseProgram(glassShader.getShader());
+		glassShader.use();
 		mvLocGlass = gl.glGetUniformLocation(glassShader.getShader(), "mv_matrix");
 		projLocGlass = gl.glGetUniformLocation(glassShader.getShader(), "proj_matrix");
 		nLocGlass = gl.glGetUniformLocation(glassShader.getShader(), "norm_matrix");
@@ -409,7 +409,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		// renderFloorPrep();
 
-		gl.glUseProgram(phongShader.getShader());
+		phongShader.use();
 		if (showLight) {
 			phongShader.installLights(mv, globalAmbientLight, mouseLight);
 		} else {
@@ -455,7 +455,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		// ---------------------- axis
 		if (showAxes) {
 
-			gl.glUseProgram(axisShader.getShader());
+			axisShader.use();
 			mvLocAxis = gl.glGetUniformLocation(axisShader.getShader(), "mv_matrix");
 			projLocAxis = gl.glGetUniformLocation(axisShader.getShader(), "proj_matrix");
 			gl.glUniformMatrix4fv(projLocAxis, 1, false, pMat.get(vals));
@@ -471,7 +471,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		// light
 		if (showLight) {
-			gl.glUseProgram(texShader.getShader());
+			texShader.use();
 			mvStack.pushMatrix();
 			mvStack.translate(mouseLight.getPosition());
 			mvStack.scale(.05f, .05f, .05f);
