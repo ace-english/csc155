@@ -8,6 +8,7 @@ in vec3 originalVertex;
 in vec3 varyingHalfVector;
 in vec2 tc;
 in vec4 shadow_coord;
+in vec3 vertEyeSpacePos;
 
 out vec4 fragColor;
 
@@ -72,20 +73,28 @@ void main(void)
 	vec3 diffuse = light.diffuse.xyz * material.diffuse.xyz * max(cosTheta,0.0);
 	vec3 specular = light.specular.xyz * material.specular.xyz * pow(max(cosPhi,0.0), material.shininess*3.0);
 	
+
 	//calculate notInShadow
 	float notInShadow = textureProj(shadowTex, shadow_coord);
 
 	vec4 texel = texture(t,tc);
 	
 	//display with texture, material, and light
-	fragColor = texel* vec4((ambient + diffuse), 1.0)+vec4((specular), 1.0);
+	vec4 color = texel* vec4((ambient + diffuse), 1.0)+vec4((specular), 1.0);
 	
 	
 	//display if in shadow
 	if (notInShadow == 1.0){
-	fragColor += light.diffuse * material.diffuse * max(dot(L,N),0.0)
+	color += light.diffuse * material.diffuse * max(dot(L,N),0.0)
 				+ light.specular * material.specular
 				* pow(max(dot(H,N),0.0),material.shininess*3.0);
 	}
+	
+	vec4 fogColor = vec4(0.7, 0.8, 0.9, 1.0);	// bluish gray
+	float fogStart = 0.2;
+	float fogEnd = 0.8;
+	
+	
+	fragColor=color;
 	
 }
