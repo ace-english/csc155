@@ -569,14 +569,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glEnable(GL_DEPTH_TEST);
 		gl.glDepthFunc(GL_LEQUAL);
 
-		mambLoc = gl.glGetUniformLocation(chromeShader, "material.ambient");
-		mdiffLoc = gl.glGetUniformLocation(chromeShader, "material.diffuse");
-		mspecLoc = gl.glGetUniformLocation(chromeShader, "material.specular");
-		mshiLoc = gl.glGetUniformLocation(chromeShader, "material.shininess");
-		gl.glProgramUniform4fv(chromeShader, mambLoc, 1, currentMat.getAmbient(), 0);
-		gl.glProgramUniform4fv(chromeShader, mdiffLoc, 1, currentMat.getDiffuse(), 0);
-		gl.glProgramUniform4fv(chromeShader, mspecLoc, 1, currentMat.getSpecular(), 0);
-		gl.glProgramUniform1f(chromeShader, mshiLoc, currentMat.getShininess());
+		setMaterial(gl, chromeShader, pewterMat);
 
 		gl.glDrawArrays(GL_TRIANGLES, 0, keyObj.getNumVertices());
 
@@ -676,16 +669,21 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glEnable(GL_DEPTH_TEST);
 		gl.glDepthFunc(GL_LEQUAL);
 
-		int mambLoc = gl.glGetUniformLocation(phongShader, "material.ambient");
-		int mdiffLoc = gl.glGetUniformLocation(phongShader, "material.diffuse");
-		int mspecLoc = gl.glGetUniformLocation(phongShader, "material.specular");
-		int mshiLoc = gl.glGetUniformLocation(phongShader, "material.shininess");
-		gl.glProgramUniform4fv(phongShader, mambLoc, 1, currentMat.getAmbient(), 0);
-		gl.glProgramUniform4fv(phongShader, mdiffLoc, 1, currentMat.getDiffuse(), 0);
-		gl.glProgramUniform4fv(phongShader, mspecLoc, 1, currentMat.getSpecular(), 0);
-		gl.glProgramUniform1f(phongShader, mshiLoc, currentMat.getShininess());
+		setMaterial(gl, phongShader, currentMat);
 
 		gl.glDrawArrays(GL_TRIANGLES, 0, obj.getNumVertices());
+	}
+
+	private void setMaterial(GL4 gl, int shader, Material mat) {
+		int mambLoc = gl.glGetUniformLocation(shader, "material.ambient");
+		int mdiffLoc = gl.glGetUniformLocation(shader, "material.diffuse");
+		int mspecLoc = gl.glGetUniformLocation(shader, "material.specular");
+		int mshiLoc = gl.glGetUniformLocation(shader, "material.shininess");
+		gl.glProgramUniform4fv(shader, mambLoc, 1, mat.getAmbient(), 0);
+		gl.glProgramUniform4fv(shader, mdiffLoc, 1, mat.getDiffuse(), 0);
+		gl.glProgramUniform4fv(shader, mspecLoc, 1, mat.getSpecular(), 0);
+		gl.glProgramUniform1f(shader, mshiLoc, mat.getShininess());
+
 	}
 
 	private void addToShadow(GL4 gl, String name, WorldObject obj) {
@@ -717,26 +715,24 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		showAxes = false;
 		showLight = true;
 
-		goldMat = new Material(new float[] { 0.24725f, 0.1995f, 0.0745f, 1.0f },
-				new float[] { 0.75164f, 0.60648f, 0.22648f, 1.0f }, new float[] { 0.62828f, 0.5558f, 0.36607f, 1.0f },
-				702f);
+		goldMat = new Material(Utils.goldAmbient(), Utils.goldDiffuse(), Utils.goldSpecular(), Utils.goldShininess());
 
 		pewterMat = new Material(new float[] { .11f, .06f, .11f, 1.0f }, new float[] { .43f, .47f, .54f, 1.0f },
-				new float[] { .33f, .33f, .52f, 1.0f }, 79.85f);
+				new float[] { .13f, .13f, .22f, 1.0f }, 79.85f);
 
 		paperMat = new Material(new float[] { .7f, .7f, .7f, 1.0f }, new float[] { 0.8f, 0.8f, 0.8f, 1.0f },
 				new float[] { 0.5f, 0.5f, 0.5f, 1.0f }, 50f);
 		woodMat = new Material(new float[] { 0.5f, 0.3f, 0.15f, 1.0f }, new float[] { 0.5f, 0.3f, 0.15f, 1.0f },
 				new float[] { 0.5f, 0.3f, 0.15f, 1.0f }, 15f);
-		leatherMat = new Material(new float[] { .24f, .1f, .07f, 1.0f },
-				new float[] { 0.291945f, 0.225797f, 0.221366f, 1.0f }, new float[] { .5f, .5f, .5f, 1.0f }, 60f);
+		leatherMat = new Material(new float[] { .24f, .1f, .07f, 1.0f }, new float[] { 0.5f, 0.35f, 0.35f, 1.0f },
+				new float[] { .5f, .5f, .5f, 1.0f }, 60f);
 		burlapMat = new Material(new float[] { .24f, .1f, .07f, 1.0f },
 				new float[] { 0.291945f, 0.225797f, 0.221366f, 1.0f }, new float[] { .1f, .1f, .1f, 1.0f }, 60f);
 
 		generateNoise();
 		noiseTexture = buildNoiseTexture();
 
-		globalAmbientLight = new GlobalAmbientLight();
+		globalAmbientLight = new GlobalAmbientLight(new float[] { .7f, .7f, .9f });
 		mouseLight = new PositionalLight(new float[] { 0.1f, 0.1f, 0.1f, 1.0f }, new float[] { .4f, .3f, .2f, 1.0f },
 				new float[] { 1.0f, 1.0f, 1.0f, 1.0f }, new Vector3f(0f, 0f, 0f));
 		resetLight();

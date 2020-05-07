@@ -74,7 +74,7 @@ void main(void)
 	
 	vec4 fogColor = vec4(0.0, 0.0, 0.1, 1.0);	// dark blue
 	float fogStart = 5;
-	float fogEnd = 10;
+	float fogEnd = 6;
 	float dist = length(vertEyeSpacePos.xyz);
 	float fogFactor = clamp(((fogEnd-dist)/(fogEnd-fogStart)), 0.0, 1.0);
 	fragColor = mix(fogColor,color,fogFactor);
