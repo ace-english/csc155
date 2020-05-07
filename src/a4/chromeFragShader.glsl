@@ -35,15 +35,14 @@ layout (binding = 0) uniform samplerCube t;
 
 vec3 calcNewNormal(){
 	vec3 normal = normalize(varyingNormal);
-//	vec3 tangent = normalize(varyingTangent);
-//	tangent = normalize(tangent - dot(tangent, normal) * normal);
-//	vec3 bitangent = cross(tangent, normal);
-//	mat3 tbn = mat3(tangent, bitangent, normal);
+	vec3 tangent = normalize(varyingTangent);
+	tangent = normalize(tangent - dot(tangent, normal) * normal);
+	vec3 bitangent = cross(tangent, normal);
+	mat3 tbn = mat3(tangent, bitangent, normal);
 //	vec3 retrievedNormal = texture(s,tc).xyz;
 //	retrievedNormal = retrievedNormal * 2.0 - 1.0;
 //	vec3 newNormal = tbn * retrievedNormal;
 //	newNormal = normalize(newNormal);
-//	vec3 newNormal=normalize(varyingNormal)
 	return normal;
 }
 
@@ -51,6 +50,21 @@ void main(void)
 {
 	vec3 L = normalize(varyingLightDir);
 	vec3 V = normalize(-varyingVertPos);
+	
+	vec3 N = calcNewNormal();
+	
+	float cosTheta = dot(L,N);
+	vec3 H = normalize(varyingHalfVector);
+	
+	// compute light reflection vector, with respect N:
+	vec3 R = normalize(reflect(-L, N));
+	
+	// angle between the view vector and reflected light:
+	float cosPhi = dot(V,R);
+		
+	vec3 ambient = ((globalAmbient * material.ambient) + (light.ambient * material.ambient)).xyz;
+	vec3 diffuse = light.diffuse.xyz * material.diffuse.xyz * max(cosTheta,0.0);
+	vec3 specular = light.specular.xyz * material.specular.xyz * pow(max(cosPhi,0.0), material.shininess*3.0);
 	
 	vec3 r = -reflect(normalize(-varyingVertPos), normalize(varyingNormal));
 	vec4 color = texture(t,r);
