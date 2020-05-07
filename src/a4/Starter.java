@@ -59,8 +59,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private Matrix4f pMat = new Matrix4f();
 	private Matrix4f invTr = new Matrix4f();
 	private Matrix4f mv = new Matrix4f();
-	private int sLoc, mvLocTex, projLocTex, mvLocSky, projLocSky, mvLocAxis, projLocAxis, mvLocPhong, projLocPhong,
-			nLocPhong, mvLocGlass, projLocGlass, nLocGlass, mvLocChrome, projLocChrome, nLocChrome;
+	private int sLoc, mvLocTex, mvLocAxis, mvLocPhong, mvLocGlass;
 	private float aspect;
 	private double tf;
 	private boolean showAxes, showLight;
@@ -307,7 +306,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 
 		pass1Shader.use();
-		sLoc = gl.glGetUniformLocation(pass1Shader.getShader(), "shadowMVP");
+		pass1Shader.updateLocation("shadowMVP", shadowMVP2, vals);
 		addToShadow(gl, "floor", floorObj);
 		addToShadow(gl, "table", tableObj);
 		addToShadow(gl, "scroll", scrollObj);
@@ -349,27 +348,22 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		// gl.glUniformMatrix4fv(projLocTex, 1, false, pMat.get(vals));
 
 		chromeShader.use();
-chromeShader.updateLocation("mv_matrix",mvStack,vals);
-chromeShader.updateLocation("proj_matrix",pMat,vals);
-chromeShader.updateLocation("norm_matrix",invTr,vals);
+		chromeShader.updateLocation("mv_matrix", mvStack, vals);
+		chromeShader.updateLocation("proj_matrix", pMat, vals);
+		chromeShader.updateLocation("norm_matrix", invTr, vals);
 
 		phongShader.use();
 		mvLocPhong = gl.glGetUniformLocation(phongShader.getShader(), "mv_matrix");
-		projLocPhong = gl.glGetUniformLocation(phongShader.getShader(), "proj_matrix");
-		nLocPhong = gl.glGetUniformLocation(phongShader.getShader(), "norm_matrix");
-		sLoc = gl.glGetUniformLocation(phongShader.getShader(), "shadowMVP");
+		phongShader.updateLocation("proj_matrix", pMat, vals);
+		phongShader.updateLocation("norm_matrix", invTr, vals);
+		phongShader.updateLocation("shadowMVP", shadowMVP2, vals);
 		gl.glUniformMatrix4fv(mvLocPhong, 1, false, mv.get(vals));
-		gl.glUniformMatrix4fv(projLocPhong, 1, false, pMat.get(vals));
-		gl.glUniformMatrix4fv(nLocPhong, 1, false, invTr.get(vals));
-		gl.glUniformMatrix4fv(sLoc, 1, false, shadowMVP2.get(vals));
 
 		glassShader.use();
 		mvLocGlass = gl.glGetUniformLocation(glassShader.getShader(), "mv_matrix");
-		projLocGlass = gl.glGetUniformLocation(glassShader.getShader(), "proj_matrix");
-		nLocGlass = gl.glGetUniformLocation(glassShader.getShader(), "norm_matrix");
+		glassShader.updateLocation("proj_matrix", pMat, vals);
+		glassShader.updateLocation("norm_matrix", invTr, vals);
 		gl.glUniformMatrix4fv(mvLocGlass, 1, false, mv.get(vals));
-		gl.glUniformMatrix4fv(projLocGlass, 1, false, pMat.get(vals));
-		gl.glUniformMatrix4fv(nLocGlass, 1, false, invTr.get(vals));
 
 		/**
 		 * some sort of buffer flimflam
@@ -413,7 +407,7 @@ chromeShader.updateLocation("norm_matrix",invTr,vals);
 			phongShader.uninstallLights(mv, globalAmbientLight, mouseLight);
 		}
 
-		gl.glUniformMatrix4fv(sLoc, 1, false, mvStack.get(vals));
+		// gl.glUniformMatrix4fv(sLoc, 1, false, mvStack.get(vals));
 		gl.glUniformMatrix4fv(mvLocPhong, 1, false, mvStack.get(vals));
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("tablePositions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
@@ -454,8 +448,7 @@ chromeShader.updateLocation("norm_matrix",invTr,vals);
 
 			axisShader.use();
 			mvLocAxis = gl.glGetUniformLocation(axisShader.getShader(), "mv_matrix");
-			projLocAxis = gl.glGetUniformLocation(axisShader.getShader(), "proj_matrix");
-			gl.glUniformMatrix4fv(projLocAxis, 1, false, pMat.get(vals));
+			axisShader.updateLocation("proj_matrix", pMat, vals);
 			mvStack.pushMatrix();
 			mvStack.scale(10f, 10f, 10f);
 			gl.glUniformMatrix4fv(mvLocAxis, 1, false, mvStack.get(vals));
@@ -631,8 +624,7 @@ chromeShader.updateLocation("norm_matrix",invTr,vals);
 		shadowMVP1.identity();
 		shadowMVP1.mul(lightPmat);
 		shadowMVP1.mul(lightVmat);
-		sLoc = gl.glGetUniformLocation(pass1Shader.getShader(), "shadowMVP");
-		gl.glUniformMatrix4fv(sLoc, 1, false, mvStack.get(vals));
+		pass1Shader.updateLocation("shadowMVP", shadowMVP2, vals);
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Positions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
 		gl.glEnableVertexAttribArray(0);
