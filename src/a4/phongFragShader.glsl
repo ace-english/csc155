@@ -80,9 +80,7 @@ void main(void)
 	vec4 texel = texture(t,tc);
 	
 	//display with texture, material, and light
-	vec4 color = texel* vec4((ambient + diffuse), 1.0)+vec4((specular), 1.0);
-	//vec4 color = globalAmbient + texel * (light.ambient + light.diffuse * max(cosTheta,0.0)+ light.specular * pow(max(cosPhi,0.0), material.shininess));
-	
+	vec4 color = texel* vec4((ambient + diffuse), 1.0)+vec4((specular), 1.0);	
 	
 	//display if in shadow
 	if (notInShadow == 1.0){

@@ -22,32 +22,45 @@ public class Shader {
 	private int shader;
 	private GL4 gl;
 
-	public Shader(gl, String VertFile, String FragFile) {
-		shader=createShaderProgram("src/a4/phongVertShader.glsl", "src/a4/phongFragShader.glsl");
-		this,gl=gl;
+	public Shader(GL4 gl, String VertFile, String FragFile) {
+		shader = createShaderProgram("src/a4/phongVertShader.glsl", "src/a4/phongFragShader.glsl");
+		this.gl = gl;
 	}
 
 	private void installLights(Matrix4f mv) {
 
 	}
 
-	private void setup(GL4 gl) {
-		gl.glUseProgram(shader);
-		mvLocTex = gl.glGetUniformLocation(shader, "mv_matrix");
-		projLocTex = gl.glGetUniformLocation(shader, "proj_matrix");
-		gl.glUniformMatrix4fv(mvLocTex, 1, false, mv.get(vals));
-		gl.glUniformMatrix4fv(projLocTex, 1, false, pMat.get(vals));
+	public int getShader() {
+		return shader;
 	}
 
-	public void setMaterial() {
+	public GL4 getGl() {
+		return gl;
+	}
+
+	public void use() {
+		gl.glUseProgram(shader);
+
+	}
+
+	private void setup(GL4 gl) {
+		gl.glUseProgram(shader);
+		// mvLocTex = gl.glGetUniformLocation(shader, "mv_matrix");
+		// projLocTex = gl.glGetUniformLocation(shader, "proj_matrix");
+		// gl.glUniformMatrix4fv(mvLocTex, 1, false, mv.get(vals));
+		// gl.glUniformMatrix4fv(projLocTex, 1, false, pMat.get(vals));
+	}
+
+	public void setMaterial(Material material) {
 		int mambLoc = gl.glGetUniformLocation(shader, "material.ambient");
 		int mdiffLoc = gl.glGetUniformLocation(shader, "material.diffuse");
 		int mspecLoc = gl.glGetUniformLocation(shader, "material.specular");
 		int mshiLoc = gl.glGetUniformLocation(shader, "material.shininess");
-		gl.glProgramUniform4fv(shader, mambLoc, 1, currentMat.getAmbient(), 0);
-		gl.glProgramUniform4fv(shader, mdiffLoc, 1, currentMat.getDiffuse(), 0);
-		gl.glProgramUniform4fv(shader, mspecLoc, 1, currentMat.getSpecular(), 0);
-		gl.glProgramUniform1f(shader, mshiLoc, currentMat.getShininess());
+		gl.glProgramUniform4fv(shader, mambLoc, 1, material.getAmbient(), 0);
+		gl.glProgramUniform4fv(shader, mdiffLoc, 1, material.getDiffuse(), 0);
+		gl.glProgramUniform4fv(shader, mspecLoc, 1, material.getSpecular(), 0);
+		gl.glProgramUniform1f(shader, mshiLoc, material.getShininess());
 	}
 
 	private static int createShaderProgram(String vS, String fS) {
