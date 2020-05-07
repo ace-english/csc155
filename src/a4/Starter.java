@@ -28,6 +28,7 @@ import java.util.Scanner;
 import java.util.Vector;
 
 import javax.swing.JFrame;
+import javax.swing.Spring;
 
 import org.joml.Matrix4f;
 import org.joml.Matrix4fStack;
@@ -499,14 +500,14 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		gl.glUseProgram(phongShader.getShader());
 
-		addToDisplay(gl, "floor", woodTex, woodNorm, woodMat, floorObj, phongShader);
-		addToDisplay(gl, "table", woodTex, woodNorm, woodMat, tableObj, phongShader);
-		addToDisplay(gl, "scroll", scrollTex, blankNorm, paperMat, scrollObj, phongShader);
-		addToDisplay(gl, "bag", burlapTex, burlapNorm, burlapMat, bagObj, phongShader);
-		addToDisplay(gl, "coin", yellowTex, metalNorm, goldMat, coinObj, phongShader);
+		addToDisplay("floor", woodTex, woodNorm, woodMat, floorObj, phongShader);
+		addToDisplay("table", woodTex, woodNorm, woodMat, tableObj, phongShader);
+		addToDisplay("scroll", scrollTex, blankNorm, paperMat, scrollObj, phongShader);
+		addToDisplay("bag", burlapTex, burlapNorm, burlapMat, bagObj, phongShader);
+		addToDisplay("coin", yellowTex, metalNorm, goldMat, coinObj, phongShader);
 		// addToDisplay(gl, "key", metalTex, metalNorm, pewterMat, keyObj);
-		addToDisplay(gl, "bookCover", leatherTex, leatherNorm, leatherMat, bookCoverObj, phongShader);
-		addToDisplay(gl, "bookPages", scrollTex, blankNorm, paperMat, bookPagesObj, phongShader);
+		addToDisplay("bookCover", leatherTex, leatherNorm, leatherMat, bookCoverObj, phongShader);
+		addToDisplay("bookPages", scrollTex, blankNorm, paperMat, bookPagesObj, phongShader);
 		// addToDisplay(gl, "goblet", skyboxTex, blankNorm, pewterMat, gobletObj);
 
 		// ------------------------------------------------- gems
@@ -568,6 +569,36 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 	}
 
+	public void addToDisplayChrome(Spring name, Material currentMat, WorldObject obj) {
+		GL4 gl = (GL4) GLContext.getCurrentGL();
+		chromeShader.use();
+
+		chromeShader.updateLocation("mv_matrix", mvStack, vals);
+
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Positions")]);
+		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(0);
+		// pull up normal coords
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Normals")]);
+		gl.glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(1);
+		// activate texture object
+		gl.glActiveTexture(GL_TEXTURE0);
+		gl.glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTex);
+
+		gl.glEnable(GL_CULL_FACE);
+		gl.glFrontFace(GL_CCW);
+		gl.glEnable(GL_DEPTH_TEST);
+		gl.glDepthFunc(GL_LEQUAL);
+
+		chromeShader.setMaterial(currentMat);
+
+		gl.glDrawArrays(GL_TRIANGLES, 0, obj.getNumVertices());
+
+		mvStack.popMatrix(); // final pop
+
+	}
+
 	void renderSkyBoxPrep() {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 
@@ -587,8 +618,10 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTex);
 	}
 
-	private void addToDisplay(GL4 gl, String name, int texture0, int texture1, Material currentMat, WorldObject obj,
+	private void addToDisplay(String name, int texture0, int texture1, Material currentMat, WorldObject obj,
 			Shader shader) {
+		GL4 gl = (GL4) GLContext.getCurrentGL();
+
 		shader.updateLocation("mv_matrix", mvStack, vals);
 		shader.updateLocation("shadowMVP", mvStack, vals);
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Positions")]);
