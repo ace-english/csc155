@@ -504,7 +504,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		addToDisplay("table", woodTex, woodNorm, woodMat, tableObj, phongShader);
 		addToDisplay("scroll", scrollTex, blankNorm, paperMat, scrollObj, phongShader);
 		addToDisplay("bag", burlapTex, burlapNorm, burlapMat, bagObj, phongShader);
-		addToDisplay("coin", yellowTex, metalNorm, goldMat, coinObj, phongShader);
+		// addToDisplay("coin", yellowTex, metalNorm, goldMat, coinObj, phongShader);
 		// addToDisplay(gl, "key", metalTex, metalNorm, pewterMat, keyObj);
 		addToDisplay("bookCover", leatherTex, leatherNorm, leatherMat, bookCoverObj, phongShader);
 		addToDisplay("bookPages", scrollTex, blankNorm, paperMat, bookPagesObj, phongShader);
@@ -544,7 +544,8 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		// ---------------------chrome KEY
 
 		addToDisplayChrome("key", pewterMat, keyObj);
-		// addToDisplayChrome("coin", goldMat, coinObj);
+		addToDisplayChrome("coin", goldMat, coinObj);
+		addToDisplayChrome("goblet", goldMat, gobletObj);
 
 		mvStack.popMatrix(); // final pop
 
