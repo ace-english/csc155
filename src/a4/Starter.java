@@ -498,7 +498,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 			chromeShader.uninstallLights(mv, globalAmbientLight, mouseLight);
 		}
 
-		gl.glUseProgram(phongShader.getShader());
+		phongShader.use();
 
 		addToDisplay("floor", woodTex, woodNorm, woodMat, floorObj, phongShader);
 		addToDisplay("table", woodTex, woodNorm, woodMat, tableObj, phongShader);
@@ -511,7 +511,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		// addToDisplay(gl, "goblet", skyboxTex, blankNorm, pewterMat, gobletObj);
 
 		// ------------------------------------------------- gems
-		gl.glUseProgram(glassShader.getShader());
+		glassShader.use();
 		String name = "gem2";
 		WorldObject obj = gem2Obj;
 		gl.glUniformMatrix4fv(mvLocPhong, 1, false, mvStack.get(vals));
@@ -543,33 +543,14 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		// ---------------------chrome KEY
 
-		gl.glUseProgram(chromeShader.getShader());
-		gl.glUniformMatrix4fv(mvLocChrome, 1, false, mvStack.get(vals));
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("keyPositions")]);
-		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
-		gl.glEnableVertexAttribArray(0);
-		// pull up normal coords
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("keyNormals")]);
-		gl.glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0);
-		gl.glEnableVertexAttribArray(1);
-		// activate texture object
-		gl.glActiveTexture(GL_TEXTURE0);
-		gl.glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTex);
-
-		gl.glEnable(GL_CULL_FACE);
-		gl.glFrontFace(GL_CCW);
-		gl.glEnable(GL_DEPTH_TEST);
-		gl.glDepthFunc(GL_LEQUAL);
-
-		chromeShader.setMaterial(pewterMat);
-
-		gl.glDrawArrays(GL_TRIANGLES, 0, keyObj.getNumVertices());
+		addToDisplayChrome("key", pewterMat, keyObj);
+		// addToDisplayChrome("coin", goldMat, coinObj);
 
 		mvStack.popMatrix(); // final pop
 
 	}
 
-	public void addToDisplayChrome(Spring name, Material currentMat, WorldObject obj) {
+	public void addToDisplayChrome(String name, Material currentMat, WorldObject obj) {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 		chromeShader.use();
 
@@ -594,8 +575,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		chromeShader.setMaterial(currentMat);
 
 		gl.glDrawArrays(GL_TRIANGLES, 0, obj.getNumVertices());
-
-		mvStack.popMatrix(); // final pop
 
 	}
 
