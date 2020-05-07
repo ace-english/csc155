@@ -13,7 +13,7 @@ out vec3 originalVertex;
 out vec3 varyingHalfVector;
 out vec2 tc;
 out vec4 shadow_coord;
-//out vec3 vertEyeSpacePos;
+out vec3 vertEyeSpacePos;
 
 layout (binding=0) uniform sampler2D s;
 layout (binding=1) uniform sampler2D t;
@@ -42,7 +42,9 @@ uniform mat4 norm_matrix;
 uniform mat4 shadowMVP;
 
 void main(void)
-{	varyingVertPos = (mv_matrix * vec4(vertPos,1.0)).xyz;
+{	
+	vec4 p = vec4(vertPos,1.0);
+	varyingVertPos = (mv_matrix * vec4(vertPos,1.0)).xyz;
 	varyingLightDir = light.position - varyingVertPos;
 	tc = texCoord;
 	originalVertex = vertPos;
@@ -50,7 +52,7 @@ void main(void)
 	varyingNormal = (norm_matrix * vec4(vertNormal,1.0)).xyz;
 	varyingTangent = (norm_matrix * vec4(vertTangent,1.0)).xyz;
 	
-	//vertEyeSpacePos = (mv_matrix * p).xyz;
+	vertEyeSpacePos = (mv_matrix*p).xyz;
 
 	shadow_coord = shadowMVP * vec4(vertPos,1.0);
 	gl_Position = proj_matrix * mv_matrix * vec4(vertPos,1.0);

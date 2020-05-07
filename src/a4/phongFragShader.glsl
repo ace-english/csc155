@@ -89,11 +89,10 @@ void main(void)
 				+ light.specular * material.specular
 				* pow(max(dot(H,N),0.0),material.shininess*3.0);
 	}
-	
 	vec4 fogColor = vec4(0.7, 0.8, 0.9, 1.0);	// bluish gray
 	float fogStart = 0.2;
 	float fogEnd = 0.8;
-	
+	float dist = length(vertEyeSpacePos.xyz);
 	
 	fragColor=color;
 	
