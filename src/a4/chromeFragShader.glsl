@@ -69,7 +69,7 @@ void main(void)
 	vec3 r = -reflect(normalize(-varyingVertPos), normalize(varyingNormal));
 	vec4 texel = texture(t,r);
 	
-	vec4 color = texel*vec4((ambient + diffuse), 1.0)+vec4((specular), 1.0);
+	vec4 color = texel+vec4((ambient + diffuse), 1.0)+vec4((specular), 1.0);
 	
 	
 	vec4 fogColor = vec4(0.0, 0.0, 0.1, 1.0);	// dark blue
