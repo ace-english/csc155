@@ -500,15 +500,23 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		phongShader.use();
 
-		addToDisplay("floor", woodTex, woodNorm, woodMat, floorObj, phongShader);
+		// addToDisplay("floor", woodTex, woodNorm, woodMat, floorObj, phongShader);
 		addToDisplay("table", woodTex, woodNorm, woodMat, tableObj, phongShader);
 		addToDisplay("scroll", scrollTex, blankNorm, paperMat, scrollObj, phongShader);
+		mvStack.pushMatrix();
+		mvStack.translate(new Vector3f(0f, 0f, 2f));
+		phongShader.updateLocation("mv_stack", mvStack, vals);
 		addToDisplay("bag", burlapTex, burlapNorm, burlapMat, bagObj, phongShader);
-		// addToDisplay("coin", yellowTex, metalNorm, goldMat, coinObj, phongShader);
-		// addToDisplay(gl, "key", metalTex, metalNorm, pewterMat, keyObj);
+		addToDisplayChrome("coin", goldMat, coinObj);
+		mvStack.popMatrix();
+
 		addToDisplay("bookCover", leatherTex, leatherNorm, leatherMat, bookCoverObj, phongShader);
 		addToDisplay("bookPages", scrollTex, blankNorm, paperMat, bookPagesObj, phongShader);
-		// addToDisplay(gl, "goblet", skyboxTex, blankNorm, pewterMat, gobletObj);
+
+		// ---------------------chrome KEY
+
+		addToDisplayChrome("key", pewterMat, keyObj);
+		addToDisplayChrome("goblet", goldMat, gobletObj);
 
 		// ------------------------------------------------- gems
 		glassShader.use();
@@ -540,12 +548,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		glassShader.setMaterial(goldMat);
 
 		gl.glDrawArrays(GL_TRIANGLES, 0, obj.getNumVertices());
-
-		// ---------------------chrome KEY
-
-		addToDisplayChrome("key", pewterMat, keyObj);
-		addToDisplayChrome("coin", goldMat, coinObj);
-		addToDisplayChrome("goblet", goldMat, gobletObj);
 
 		mvStack.popMatrix(); // final pop
 
@@ -582,13 +584,10 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	void renderSkyBoxPrep() {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 
-		gl.glUseProgram(skyboxShader.getShader());
+		skyboxShader.use();
 
-		mvLocSky = gl.glGetUniformLocation(skyboxShader.getShader(), "v_matrix");
-		projLocSky = gl.glGetUniformLocation(skyboxShader.getShader(), "proj_matrix");
-
-		gl.glUniformMatrix4fv(mvLocSky, 1, false, mv.get(vals));
-		gl.glUniformMatrix4fv(projLocSky, 1, false, pMat.get(vals));
+		skyboxShader.updateLocation("v_matrix", mv, vals);
+		skyboxShader.updateLocation("proj_matrix", pMat, vals);
 
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("skyboxPositions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
@@ -656,7 +655,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 		vboDict = new Hashtable<String, Integer>();
-		camera = new Camera();
+		camera = new Camera(new Vector3f(0f, 1f, 2f));
 		showAxes = false;
 		showLight = true;
 
@@ -669,7 +668,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 				new float[] { 0.5f, 0.5f, 0.5f, 1.0f }, 50f);
 		woodMat = new Material(new float[] { 0.5f, 0.3f, 0.15f, 1.0f }, new float[] { 0.5f, 0.3f, 0.15f, 1.0f },
 				new float[] { 0.5f, 0.3f, 0.15f, 1.0f }, 15f);
-		leatherMat = new Material(new float[] { .24f, .1f, .07f, 1.0f }, new float[] { 0.5f, 0.35f, 0.35f, 1.0f },
+		leatherMat = new Material(new float[] { .5f, .2f, .1f, 1.0f }, new float[] { 0.5f, 0.35f, 0.35f, 1.0f },
 				new float[] { .5f, .5f, .5f, 1.0f }, 60f);
 		burlapMat = new Material(new float[] { .24f, .1f, .07f, 1.0f },
 				new float[] { 0.291945f, 0.225797f, 0.221366f, 1.0f }, new float[] { .1f, .1f, .1f, 1.0f }, 60f);
