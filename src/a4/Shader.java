@@ -10,10 +10,12 @@ import static com.jogamp.opengl.GL3ES3.GL_TESS_EVALUATION_SHADER;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.FloatBuffer;
 import java.util.Scanner;
 import java.util.Vector;
 
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 import com.jogamp.opengl.GL4;
 import com.jogamp.opengl.GLContext;
@@ -23,12 +25,55 @@ public class Shader {
 	private GL4 gl;
 
 	public Shader(GL4 gl, String VertFile, String FragFile) {
-		shader = createShaderProgram("src/a4/phongVertShader.glsl", "src/a4/phongFragShader.glsl");
+		shader = createShaderProgram(VertFile, FragFile);
 		this.gl = gl;
 	}
 
-	private void installLights(Matrix4f mv) {
+	public void installLights(Matrix4f mv, Light globalAmbientLight, PositionalLight mouseLight) {
+		Vector3f currentLightPos = new Vector3f(mouseLight.getPosition());
+		currentLightPos.mulPosition(mv);
+		float[] lightPos = new float[3];
+		lightPos[0] = currentLightPos.x();
+		lightPos[1] = currentLightPos.y();
+		lightPos[2] = currentLightPos.z();
 
+		// get the locations of the light and material fields in the shader
+		int globalAmbLoc = gl.glGetUniformLocation(shader, "globalAmbient");
+		int ambLoc = gl.glGetUniformLocation(shader, "light.ambient");
+		int diffLoc = gl.glGetUniformLocation(shader, "light.diffuse");
+		int specLoc = gl.glGetUniformLocation(shader, "light.specular");
+		int posLoc = gl.glGetUniformLocation(shader, "light.position");
+
+		// set the uniform light and material values in the shader
+		gl.glProgramUniform4fv(shader, globalAmbLoc, 1, globalAmbientLight.getAmbient(), 0);
+		gl.glProgramUniform4fv(shader, ambLoc, 1, mouseLight.getAmbient(), 0);
+		gl.glProgramUniform4fv(shader, diffLoc, 1, mouseLight.getDiffuse(), 0);
+		gl.glProgramUniform4fv(shader, specLoc, 1, mouseLight.getSpecular(), 0);
+		gl.glProgramUniform3fv(shader, posLoc, 1, lightPos, 0);
+	}
+
+	public void uninstallLights(Matrix4f mv, Light globalAmbientLight, PositionalLight mouseLight) {
+		GL4 gl = (GL4) GLContext.getCurrentGL();
+		Vector3f currentLightPos = new Vector3f(mouseLight.getPosition());
+		currentLightPos.mulPosition(mv);
+		float[] lightPos = new float[3];
+		lightPos[0] = currentLightPos.x();
+		lightPos[1] = currentLightPos.y();
+		lightPos[2] = currentLightPos.z();
+
+		// get the locations of the light and material fields in the shader
+		int globalAmbLoc = gl.glGetUniformLocation(shader, "globalAmbient");
+		int ambLoc = gl.glGetUniformLocation(shader, "light.ambient");
+		int diffLoc = gl.glGetUniformLocation(shader, "light.diffuse");
+		int specLoc = gl.glGetUniformLocation(shader, "light.specular");
+		int posLoc = gl.glGetUniformLocation(shader, "light.position");
+
+		// set the uniform light and material values in the shader
+		gl.glProgramUniform4fv(shader, globalAmbLoc, 1, globalAmbientLight.getAmbient(), 0);
+		gl.glProgramUniform4fv(shader, ambLoc, 1, new float[] { 0f, 0f, 0f }, 0);
+		gl.glProgramUniform4fv(shader, diffLoc, 1, new float[] { 0f, 0f, 0f }, 0);
+		gl.glProgramUniform4fv(shader, specLoc, 1, new float[] { 0f, 0f, 0f }, 0);
+		gl.glProgramUniform3fv(shader, posLoc, 1, lightPos, 0);
 	}
 
 	public int getShader() {
@@ -44,12 +89,9 @@ public class Shader {
 
 	}
 
-	private void setup(GL4 gl) {
-		gl.glUseProgram(shader);
-		// mvLocTex = gl.glGetUniformLocation(shader, "mv_matrix");
-		// projLocTex = gl.glGetUniformLocation(shader, "proj_matrix");
-		// gl.glUniformMatrix4fv(mvLocTex, 1, false, mv.get(vals));
-		// gl.glUniformMatrix4fv(projLocTex, 1, false, pMat.get(vals));
+	public void updateLocation(String name, Matrix4f matrix, FloatBuffer vals) {
+		int loc = gl.glGetUniformLocation(shader, name);
+		gl.glUniformMatrix4fv(loc, 1, false, matrix.get(vals));
 	}
 
 	public void setMaterial(Material material) {

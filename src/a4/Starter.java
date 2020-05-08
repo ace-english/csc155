@@ -484,8 +484,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 			chromeShader.uninstallLights(mv, globalAmbientLight, mouseLight);
 		}
 
-		phongShader.use();
-
 		addToDisplay("table", woodTex, woodNorm, woodMat, tableObj, phongShader);
 		addToDisplay("scroll", scrollTex, blankNorm, paperMat, scrollObj, phongShader);
 		mvStack.pushMatrix();
@@ -585,6 +583,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private void addToDisplay(String name, int texture0, int texture1, Material currentMat, WorldObject obj,
 			Shader shader) {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
+		phongShader.use();
 
 		shader.updateLocation("mv_matrix", mvStack, vals);
 		shader.updateLocation("shadowMVP", mvStack, vals);
