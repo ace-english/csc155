@@ -308,14 +308,17 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		pass1Shader.use();
 		pass1Shader.updateLocation("shadowMVP", shadowMVP2, vals);
-		addToShadow(gl, "floor", floorObj);
 		addToShadow(gl, "table", tableObj);
 		addToShadow(gl, "scroll", scrollObj);
 		addToShadow(gl, "bag", bagObj);
 		addToShadow(gl, "coin", coinObj);
 		addToShadow(gl, "key", keyObj);
 		addToShadow(gl, "goblet", gobletObj);
+		addToShadow(gl, "gem1", gem1Obj);
 		addToShadow(gl, "gem2", gem2Obj);
+		addToShadow(gl, "gem3", gem3Obj);
+		addToShadow(gl, "gem4", gem4Obj);
+		addToShadow(gl, "gem5", gem5Obj);
 		addToShadow(gl, "bookCover", bookCoverObj);
 		addToShadow(gl, "bookPages", bookPagesObj);
 
@@ -504,7 +507,14 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		addToDisplayChrome("goblet", goldMat, gobletObj);
 
 		// ------------------------------------------------- gems
+		mvStack.pushMatrix();
+		mvStack.translate(new Vector3f(0.3f, 0f, 2f));
+		glassShader.updateLocation("mv_matrix", mvStack, vals);
+		addToDisplayGlass("gem1", gem1Obj);
 		addToDisplayGlass("gem2", gem2Obj);
+		addToDisplayGlass("gem4", gem4Obj);
+		addToDisplayGlass("gem5", gem5Obj);
+		mvStack.popMatrix();
 
 		mvStack.popMatrix(); // final pop
 
@@ -573,7 +583,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glDrawArrays(GL_TRIANGLES, 0, obj.getNumVertices());
 
 		gl.glCullFace(GL_BACK);
-		gl.glProgramUniform1f(glassShader.getShader(), alphaLoc, 0.7f);
+		gl.glProgramUniform1f(glassShader.getShader(), alphaLoc, 0.5f);
 		gl.glProgramUniform1f(glassShader.getShader(), flipLoc, 1.0f);
 		gl.glDrawArrays(GL_TRIANGLES, 0, obj.getNumVertices());
 
@@ -717,14 +727,17 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		lightObj = new Sphere();
 		scrollObj = new ImportedModel("assets/scroll.obj");
 		tableObj = new ImportedModel("assets/table.obj");
-		floorObj = new ImportedModel("assets/floor.obj");
 		bagObj = new ImportedModel("assets/bag.obj");
 		keyObj = new ImportedModel("assets/key.obj");
 		coinObj = new ImportedModel("assets/coin_pile.obj");
 		bookPagesObj = new ImportedModel("assets/book_pages.obj");
 		bookCoverObj = new ImportedModel("assets/book_cover.obj");
 		gobletObj = new ImportedModel("assets/goblet.obj");
+		gem1Obj = new ImportedModel("assets/gem1.obj");
 		gem2Obj = new ImportedModel("assets/gem2.obj");
+		gem3Obj = new ImportedModel("assets/gem3.obj");
+		gem4Obj = new ImportedModel("assets/gem4.obj");
+		gem5Obj = new ImportedModel("assets/gem5.obj");
 		b.set(0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 0.5f, 0.5f, 0.5f, 1.0f);
 		setupVertices();
 		setupShadowBuffers();
@@ -763,13 +776,16 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glGenBuffers(vbo.length, vbo, 0);
 
 		addToVbo(gl, tableObj, "table");
-		addToVbo(gl, floorObj, "floor");
 		addToVbo(gl, scrollObj, "scroll");
 		addToVbo(gl, keyObj, "key");
 		addToVbo(gl, bagObj, "bag");
 		addToVbo(gl, coinObj, "coin");
 		addToVbo(gl, gobletObj, "goblet");
+		addToVbo(gl, gem1Obj, "gem1");
 		addToVbo(gl, gem2Obj, "gem2");
+		addToVbo(gl, gem2Obj, "gem3");
+		addToVbo(gl, gem4Obj, "gem4");
+		addToVbo(gl, gem5Obj, "gem5");
 		addToVbo(gl, bookPagesObj, "bookPages");
 		addToVbo(gl, bookCoverObj, "bookCover");
 
