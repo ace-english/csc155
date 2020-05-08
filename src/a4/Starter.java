@@ -226,6 +226,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glGenFramebuffers(1, bufferId, 0);
 		reflectFrameBuffer = bufferId[0];
 		gl.glBindFramebuffer(GL_FRAMEBUFFER, reflectFrameBuffer);
+		// gl.glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		gl.glGenTextures(1, bufferId, 0);
 		reflectTextureId = bufferId[0];
 		gl.glBindTexture(GL_TEXTURE_2D, reflectTextureId);
@@ -270,6 +271,8 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glClear(GL_COLOR_BUFFER_BIT);
 		gl.glClear(GL_DEPTH_BUFFER_BIT);
 		elapsedTime = System.currentTimeMillis() - startTime;
+
+		gl.glEnable(GL.GL_LINE_SMOOTH);
 
 		lightVmat.identity().setLookAt(mouseLight.getPosition(), origin, up); // vector from light to origin
 		lightPmat.identity().setPerspective((float) Math.toRadians(60.0f), aspect, 0.1f, 1000.0f);
