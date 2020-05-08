@@ -51,6 +51,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private double elapsedTime;
 	Random random = new Random();
 	private Shader texShader, axisShader, phongShader, pass1Shader, chromeShader, glassShader, skyboxShader;
+	int sLoc, alphaLoc, flipLoc;
 	private int vao[] = new int[1];
 	private int vbo[] = new int[50];
 	private Camera camera;
@@ -344,8 +345,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		texShader.use();
 		texShader.updateLocation("mv_matrix", mvStack, vals);
 		texShader.updateLocation("proj_matrix", pMat, vals);
-		// gl.glUniformMatrix4fv(mvLocTex, 1, false, mv.get(vals));
-		// gl.glUniformMatrix4fv(projLocTex, 1, false, pMat.get(vals));
 
 		chromeShader.use();
 		chromeShader.updateLocation("mv_matrix", mvStack, vals);
@@ -362,6 +361,8 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		glassShader.updateLocation("mv_matrix", mv, vals);
 		glassShader.updateLocation("proj_matrix", pMat, vals);
 		glassShader.updateLocation("norm_matrix", invTr, vals);
+		alphaLoc = gl.glGetUniformLocation(glassShader.getShader(), "alpha");
+		flipLoc = gl.glGetUniformLocation(glassShader.getShader(), "flipNormal");
 
 		/**
 		 * some sort of buffer flimflam
@@ -405,7 +406,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 			phongShader.uninstallLights(mv, globalAmbientLight, mouseLight);
 		}
 
-		// gl.glUniformMatrix4fv(sLoc, 1, false, mvStack.get(vals));
+		gl.glUniformMatrix4fv(sLoc, 1, false, mvStack.get(vals));
 		phongShader.updateLocation("mv_matrix", mvStack, vals);
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("tablePositions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
@@ -524,6 +525,26 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glActiveTexture(GL_TEXTURE1);
 		gl.glBindTexture(GL_TEXTURE_2D, refractTextureId);
 
+		// 2-pass rendering a transparent version of the pyramid
+
+		gl.glEnable(GL_BLEND);
+		gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		gl.glBlendEquation(GL_FUNC_ADD);
+
+		gl.glEnable(GL_CULL_FACE);
+
+		gl.glCullFace(GL_FRONT);
+		gl.glProgramUniform1f(glassShader.getShader(), alphaLoc, 0.3f);
+		gl.glProgramUniform1f(glassShader.getShader(), flipLoc, -1.0f);
+		gl.glDrawArrays(GL_TRIANGLES, 0, obj.getNumVertices());
+
+		gl.glCullFace(GL_BACK);
+		gl.glProgramUniform1f(glassShader.getShader(), alphaLoc, 0.7f);
+		gl.glProgramUniform1f(glassShader.getShader(), flipLoc, 1.0f);
+		gl.glDrawArrays(GL_TRIANGLES, 0, obj.getNumVertices());
+
+		gl.glDisable(GL_BLEND);
+
 		// gl.glEnable(GL_CULL_FACE);
 		gl.glFrontFace(GL_CCW);
 		gl.glEnable(GL_DEPTH_TEST);
@@ -531,7 +552,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		glassShader.setMaterial(goldMat);
 
-		gl.glDrawArrays(GL_TRIANGLES, 0, obj.getNumVertices());
+		// gl.glDrawArrays(GL_TRIANGLES, 0, obj.getNumVertices());
 
 		mvStack.popMatrix(); // final pop
 
@@ -584,7 +605,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private void addToDisplay(String name, int texture0, int texture1, Material currentMat, WorldObject obj,
 			Shader shader) {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
-		phongShader.use();
+		shader.use();
 
 		shader.updateLocation("mv_matrix", mvStack, vals);
 		shader.updateLocation("shadowMVP", mvStack, vals);
