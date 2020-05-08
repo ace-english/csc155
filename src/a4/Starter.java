@@ -59,7 +59,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private Matrix4f pMat = new Matrix4f();
 	private Matrix4f invTr = new Matrix4f();
 	private Matrix4f mv = new Matrix4f();
-	private int sLoc;
 	private float aspect;
 	private double tf;
 	private boolean showAxes, showLight;
@@ -487,7 +486,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		phongShader.use();
 
-		// addToDisplay("floor", woodTex, woodNorm, woodMat, floorObj, phongShader);
 		addToDisplay("table", woodTex, woodNorm, woodMat, tableObj, phongShader);
 		addToDisplay("scroll", scrollTex, blankNorm, paperMat, scrollObj, phongShader);
 		mvStack.pushMatrix();
