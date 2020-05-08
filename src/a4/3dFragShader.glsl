@@ -46,15 +46,12 @@ void main(void)
 	// angle between the view vector and reflected light:
 	float cosPhi = dot(V,R);
 
-	vec4 texColor = texture(s,originalPosition/2.0+0.5);
-	vec4 matAmb = material.ambient;
-	vec4 matDiff = material.diffuse;
-	vec4 matSpec = material.specular;
+	vec4 texel = texture(s,originalPosition/2.0+0.5);
+	
+	vec3 ambient = ((globalAmbient * material.ambient) + (light.ambient * material.ambient)).xyz*0.5;
+	vec3 diffuse = light.diffuse.xyz * material.diffuse.xyz * max(cosTheta,0.0);
+	vec3 specular = light.specular.xyz * material.specular.xyz * pow(max(cosPhi,0.0), material.shininess*3.0);
 
-	fragColor = 0.5 *
-				(globalAmbient * matAmb  +  light.ambient * matAmb
-				+ light.diffuse * matDiff * max(cosTheta,0.0)
-				+ light.specular * matSpec * pow(max(cosPhi,0.0), material.shininess))
-				+
-				0.5 * texColor;
+	//fragColor = texel* vec4((ambient + diffuse), 1.0)+vec4((specular), 1.0);
+	fragColor = texel;
 }

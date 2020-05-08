@@ -82,6 +82,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private int noiseWidth = 300;
 	private int noiseDepth = 300;
 	private double[][][] noise = new double[noiseHeight][noiseWidth][noiseDepth];
+	private Matrix4f texRotMat = new Matrix4f();
 
 	// reflection/refraction variables
 	private int[] bufferId = new int[1];
@@ -369,9 +370,10 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		flipLoc = gl.glGetUniformLocation(glassShader.getShader(), "flipNormal");
 
 		threeDShader.use();
-		phongShader.updateLocation("mv_matrix", mv, vals);
-		phongShader.updateLocation("proj_matrix", pMat, vals);
-		phongShader.updateLocation("norm_matrix", invTr, vals);
+		threeDShader.updateLocation("mv_matrix", mv, vals);
+		threeDShader.updateLocation("proj_matrix", pMat, vals);
+		threeDShader.updateLocation("norm_matrix", invTr, vals);
+		threeDShader.updateLocation("texRot_matrix", texRotMat, vals);
 
 		/**
 		 * some sort of buffer flimflam
@@ -415,7 +417,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 			phongShader.uninstallLights(mv, globalAmbientLight, mouseLight);
 		}
 
-		gl.glUniformMatrix4fv(sLoc, 1, false, mvStack.get(vals));
+		// gl.glUniformMatrix4fv(sLoc, 1, false, mvStack.get(vals));
 		phongShader.updateLocation("mv_matrix", mvStack, vals);
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("tablePositions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
@@ -495,7 +497,32 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 			chromeShader.uninstallLights(mv, globalAmbientLight, mouseLight);
 		}
 
-		addToDisplay("table", woodTex, woodNorm, woodMat, tableObj, phongShader);
+		// ----------------------------------table
+		threeDShader.use();
+		threeDShader.updateLocation("mv_matrix", mvStack, vals);
+		threeDShader.updateLocation("proj_matrix", pMat, vals);
+		threeDShader.updateLocation("norm_matrix", invTr, vals);
+		threeDShader.updateLocation("texRot_matrix", texRotMat, vals);
+
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("tablePositions")]);
+		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(0);
+		// pull up texture coords
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("tableNormals")]);
+		gl.glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(1); // activate texture object
+
+		gl.glActiveTexture(GL_TEXTURE0);
+		gl.glBindTexture(GL_TEXTURE_3D, noiseTexture);
+
+		gl.glEnable(GL_CULL_FACE);
+		gl.glFrontFace(GL_CCW);
+		gl.glEnable(GL_DEPTH_TEST);
+		gl.glDepthFunc(GL_LEQUAL);
+
+		gl.glDrawArrays(GL_TRIANGLES, 0, tableObj.getNumVertices());
+
+		// -----------------------------------tabletop items
 		addToDisplay("scroll", scrollTex, blankNorm, paperMat, scrollObj, phongShader);
 		mvStack.pushMatrix();
 		mvStack.translate(new Vector3f(0f, 0f, 2f));
@@ -506,9 +533,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		addToDisplay("bookCover", leatherTex, leatherNorm, leatherMat, bookCoverObj, phongShader);
 		addToDisplay("bookPages", scrollTex, blankNorm, paperMat, bookPagesObj, phongShader);
-
-		// ---------------------chrome KEY
-
 		addToDisplayChrome("key", pewterMat, keyObj);
 		addToDisplayChrome("goblet", goldMat, gobletObj);
 
@@ -683,6 +707,10 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		camera = new Camera(new Vector3f(0f, 1f, 2f));
 		showAxes = false;
 		showLight = true;
+
+		texRotMat.rotateY((float) Math.toRadians(50.0f));
+		texRotMat.rotateX((float) Math.toRadians(10.0f));
+		texRotMat.rotateZ((float) Math.toRadians(10.0f));
 
 		goldMat = new Material(Utils.goldAmbient(), Utils.goldDiffuse(), Utils.goldSpecular(), Utils.goldShininess());
 
