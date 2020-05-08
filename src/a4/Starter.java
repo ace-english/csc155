@@ -66,7 +66,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private int[] mouseDragCurrent;
 
 	private ImportedModel tableObj, scrollObj, bagObj, keyObj, coinObj, bookPagesObj, bookCoverObj, gobletObj, gem2Obj,
-			floorObj;
+			gem1Obj, gem3Obj, gem4Obj, gem5Obj;
 	private Sphere lightObj;
 	private int woodTex, scrollTex, burlapTex, metalTex, leatherTex, yellowTex, skyboxTex;
 	private int woodNorm, blankNorm, burlapNorm, metalNorm, leatherNorm;
@@ -504,9 +504,43 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		addToDisplayChrome("goblet", goldMat, gobletObj);
 
 		// ------------------------------------------------- gems
+		addToDisplayGlass("gem2", gem2Obj);
+
+		mvStack.popMatrix(); // final pop
+
+	}
+
+	public void addToDisplayChrome(String name, Material currentMat, WorldObject obj) {
+		GL4 gl = (GL4) GLContext.getCurrentGL();
+		chromeShader.use();
+
+		chromeShader.updateLocation("mv_matrix", mvStack, vals);
+
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Positions")]);
+		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(0);
+		// pull up normal coords
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Normals")]);
+		gl.glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(1);
+		// activate texture object
+		gl.glActiveTexture(GL_TEXTURE0);
+		gl.glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTex);
+
+		gl.glEnable(GL_CULL_FACE);
+		gl.glFrontFace(GL_CCW);
+		gl.glEnable(GL_DEPTH_TEST);
+		gl.glDepthFunc(GL_LEQUAL);
+
+		chromeShader.setMaterial(currentMat);
+
+		gl.glDrawArrays(GL_TRIANGLES, 0, obj.getNumVertices());
+
+	}
+
+	public void addToDisplayGlass(String name, WorldObject obj) {
+		GL4 gl = (GL4) GLContext.getCurrentGL();
 		glassShader.use();
-		String name = "gem2";
-		WorldObject obj = gem2Obj;
 		glassShader.updateLocation("mv_matrix", mvStack, vals);
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Positions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
@@ -553,36 +587,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		glassShader.setMaterial(goldMat);
 
 		// gl.glDrawArrays(GL_TRIANGLES, 0, obj.getNumVertices());
-
-		mvStack.popMatrix(); // final pop
-
-	}
-
-	public void addToDisplayChrome(String name, Material currentMat, WorldObject obj) {
-		GL4 gl = (GL4) GLContext.getCurrentGL();
-		chromeShader.use();
-
-		chromeShader.updateLocation("mv_matrix", mvStack, vals);
-
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Positions")]);
-		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
-		gl.glEnableVertexAttribArray(0);
-		// pull up normal coords
-		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Normals")]);
-		gl.glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0);
-		gl.glEnableVertexAttribArray(1);
-		// activate texture object
-		gl.glActiveTexture(GL_TEXTURE0);
-		gl.glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTex);
-
-		gl.glEnable(GL_CULL_FACE);
-		gl.glFrontFace(GL_CCW);
-		gl.glEnable(GL_DEPTH_TEST);
-		gl.glDepthFunc(GL_LEQUAL);
-
-		chromeShader.setMaterial(currentMat);
-
-		gl.glDrawArrays(GL_TRIANGLES, 0, obj.getNumVertices());
 
 	}
 
