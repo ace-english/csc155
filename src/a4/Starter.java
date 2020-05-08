@@ -59,7 +59,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private Matrix4f pMat = new Matrix4f();
 	private Matrix4f invTr = new Matrix4f();
 	private Matrix4f mv = new Matrix4f();
-	private int sLoc, mvLocTex, mvLocAxis, mvLocPhong, mvLocGlass;
+	private int sLoc;
 	private float aspect;
 	private double tf;
 	private boolean showAxes, showLight;
@@ -353,17 +353,15 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		chromeShader.updateLocation("norm_matrix", invTr, vals);
 
 		phongShader.use();
-		mvLocPhong = gl.glGetUniformLocation(phongShader.getShader(), "mv_matrix");
+		phongShader.updateLocation("mv_matrix", mv, vals);
 		phongShader.updateLocation("proj_matrix", pMat, vals);
 		phongShader.updateLocation("norm_matrix", invTr, vals);
 		phongShader.updateLocation("shadowMVP", shadowMVP2, vals);
-		gl.glUniformMatrix4fv(mvLocPhong, 1, false, mv.get(vals));
 
 		glassShader.use();
-		mvLocGlass = gl.glGetUniformLocation(glassShader.getShader(), "mv_matrix");
+		glassShader.updateLocation("mv_matrix", mv, vals);
 		glassShader.updateLocation("proj_matrix", pMat, vals);
 		glassShader.updateLocation("norm_matrix", invTr, vals);
-		gl.glUniformMatrix4fv(mvLocGlass, 1, false, mv.get(vals));
 
 		/**
 		 * some sort of buffer flimflam
@@ -408,7 +406,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		}
 
 		// gl.glUniformMatrix4fv(sLoc, 1, false, mvStack.get(vals));
-		gl.glUniformMatrix4fv(mvLocPhong, 1, false, mvStack.get(vals));
+		phongShader.updateLocation("mv_matrix", mvStack, vals);
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("tablePositions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
 		gl.glEnableVertexAttribArray(0);
@@ -447,11 +445,10 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		if (showAxes) {
 
 			axisShader.use();
-			mvLocAxis = gl.glGetUniformLocation(axisShader.getShader(), "mv_matrix");
 			axisShader.updateLocation("proj_matrix", pMat, vals);
 			mvStack.pushMatrix();
 			mvStack.scale(10f, 10f, 10f);
-			gl.glUniformMatrix4fv(mvLocAxis, 1, false, mvStack.get(vals));
+			axisShader.updateLocation("mv_matrix", mvStack, vals);
 			gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("axisPositions")]);
 			gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
 			gl.glEnableVertexAttribArray(0);
@@ -465,7 +462,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 			mvStack.pushMatrix();
 			mvStack.translate(mouseLight.getPosition());
 			mvStack.scale(.05f, .05f, .05f);
-			gl.glUniformMatrix4fv(mvLocTex, 1, false, mvStack.get(vals));
+			texShader.updateLocation("mv_matrix", mvStack, vals);
 			gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get("lightPositions")]);
 			gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
 			gl.glEnableVertexAttribArray(0);
@@ -512,7 +509,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		glassShader.use();
 		String name = "gem2";
 		WorldObject obj = gem2Obj;
-		gl.glUniformMatrix4fv(mvLocPhong, 1, false, mvStack.get(vals));
+		glassShader.updateLocation("mv_matrix", mvStack, vals);
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[vboDict.get(name + "Positions")]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
 		gl.glEnableVertexAttribArray(0);
