@@ -52,6 +52,6 @@ void main(void)
 	vec3 diffuse = light.diffuse.xyz * material.diffuse.xyz * max(cosTheta,0.0);
 	vec3 specular = light.specular.xyz * material.specular.xyz * pow(max(cosPhi,0.0), material.shininess*3.0);
 
-	//fragColor = texel* vec4((ambient + diffuse), 1.0)+vec4((specular), 1.0);
-	fragColor = texel;
+	fragColor = texel* vec4((ambient + diffuse), 1.0)+vec4((specular), 1.0);
+	//fragColor = texel;
 }

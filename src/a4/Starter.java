@@ -489,10 +489,12 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 			gl.glDrawArrays(GL_TRIANGLES, 0, lightObj.getNumVertices());
 			mvStack.popMatrix();
 			phongShader.installLights(mv, globalAmbientLight, mouseLight);
+			threeDShader.installLights(mv, globalAmbientLight, mouseLight);
 			glassShader.installLights(mv, globalAmbientLight, mouseLight);
 			chromeShader.installLights(mv, globalAmbientLight, mouseLight);
 		} else {
 			phongShader.uninstallLights(mv, globalAmbientLight, mouseLight);
+			threeDShader.uninstallLights(mv, globalAmbientLight, mouseLight);
 			glassShader.uninstallLights(mv, globalAmbientLight, mouseLight);
 			chromeShader.uninstallLights(mv, globalAmbientLight, mouseLight);
 		}
@@ -514,6 +516,8 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 
 		gl.glActiveTexture(GL_TEXTURE0);
 		gl.glBindTexture(GL_TEXTURE_3D, noiseTexture);
+
+		threeDShader.setMaterial(woodMat);
 
 		gl.glEnable(GL_CULL_FACE);
 		gl.glFrontFace(GL_CCW);
