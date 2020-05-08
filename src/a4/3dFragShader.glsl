@@ -4,6 +4,7 @@ in vec3 varyingNormal;
 in vec3 originalPosition;
 in vec3 varyingLightDir;
 in vec3 varyingVertPos;
+in vec3 vertEyeSpacePos;
 
 out vec4 fragColor;
 
@@ -52,6 +53,11 @@ void main(void)
 	vec3 diffuse = light.diffuse.xyz * material.diffuse.xyz * max(cosTheta,0.0);
 	vec3 specular = light.specular.xyz * material.specular.xyz * pow(max(cosPhi,0.0), material.shininess*3.0);
 
-	fragColor = texel* vec4((ambient + diffuse), 1.0)+vec4((specular), 1.0);
-	//fragColor = texel;
+	vec4 color = texel* vec4((ambient + diffuse), 1.0)+vec4((specular), 1.0);
+	vec4 fogColor = vec4(0.0, 0.0, 0.1, 1.0);	// dark blue
+	float fogStart = 5;
+	float fogEnd = 10;
+	float dist = length(vertEyeSpacePos.xyz);
+	float fogFactor = clamp(((fogEnd-dist)/(fogEnd-fogStart)), 0.0, 1.0);
+	fragColor = mix(fogColor,color,fogFactor);
 }

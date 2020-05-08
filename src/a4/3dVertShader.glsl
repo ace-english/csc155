@@ -6,6 +6,7 @@ out vec3 varyingNormal;
 out vec3 originalPosition;
 out vec3 varyingLightDir;
 out vec3 varyingVertPos;
+out vec3 vertEyeSpacePos;
 
 struct PositionalLight
 {	vec4 ambient;
@@ -31,9 +32,14 @@ uniform mat4 texRot_matrix;
 layout (binding=0) uniform sampler3D s;
 
 void main(void)
-{	varyingNormal = (norm_matrix * vec4(normal,1.0)).xyz;
+{
+	vec4 p = vec4(position,1.0);	
+	varyingNormal = (norm_matrix * vec4(normal,1.0)).xyz;
 	originalPosition = vec3(texRot_matrix * vec4(position,1.0)).xyz;
 	varyingVertPos = (mv_matrix * vec4(position,1.0)).xyz;
 	varyingLightDir = light.position - varyingVertPos;
+	
+	vertEyeSpacePos = (mv_matrix*p).xyz;
+	
 	gl_Position = proj_matrix * mv_matrix * vec4(position,1.0);
 }
