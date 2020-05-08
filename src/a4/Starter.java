@@ -272,8 +272,6 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		gl.glClear(GL_DEPTH_BUFFER_BIT);
 		elapsedTime = System.currentTimeMillis() - startTime;
 
-		gl.glEnable(GL.GL_LINE_SMOOTH);
-
 		lightVmat.identity().setLookAt(mouseLight.getPosition(), origin, up); // vector from light to origin
 		lightPmat.identity().setPerspective((float) Math.toRadians(60.0f), aspect, 0.1f, 1000.0f);
 

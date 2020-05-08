@@ -34,6 +34,9 @@ uniform mat4 mv_matrix;
 uniform mat4 proj_matrix;
 uniform mat4 norm_matrix;
 
+uniform float alpha;
+uniform float flipNormal;
+
 
 
 void main(void)
@@ -61,8 +64,11 @@ void main(void)
 	refractColor = texture(refractTex, (vec2(glp.x,glp.y))/(2.0*glp.w)+0.5);
 	reflectColor = texture(reflectTex, (vec2(glp.x,-glp.y))/(2.0*glp.w)+0.5);
 	mixColor = (0.2 * refractColor) + (1.0 * reflectColor);
-	//mixColor=vec4(1,0,0,1);
-	mixColor=refractColor;
+	mixColor=vec4(1,0,0,1);
+	//mixColor=refractColor;
 	
 	fragColor = vec4((mixColor.xyz * (ambient + diffuse) + 0.75*specular), 1.0);
+	
+	// the following is added for transparency
+	fragColor = vec4(fragColor.xyz, alpha);
 }

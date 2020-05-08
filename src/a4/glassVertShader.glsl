@@ -36,11 +36,17 @@ uniform mat4 mv_matrix;
 uniform mat4 proj_matrix;
 uniform mat4 norm_matrix;
 
+uniform float alpha;
+uniform float flipNormal;
+
 void main(void)
 {	varyingVertPos = (mv_matrix * vec4(vertPos,1.0)).xyz;
 	varyingLightDir = light.position - varyingVertPos;
 	varyingNormal = (norm_matrix * vec4(vertNormal,1.0)).xyz;
 	varyingTangent = (norm_matrix * vec4(vertTangent,1.0)).xyz;
+	
+	//if rendering a back-face, flip the normal
+	if (flipNormal < 0) varyingNormal = -varyingNormal;
 
 	tc = texCoord;
 	glp = proj_matrix * mv_matrix * vec4(vertPos,1.0);
