@@ -12,11 +12,8 @@ out vec3 varyingTangent;
 out vec3 originalVertex;
 out vec3 varyingHalfVector;
 out vec2 tc;
-out vec4 shadow_coord;
 
-layout (binding=0) uniform sampler3D t;
-layout (binding=1) uniform sampler2D s;
-layout (binding=2) uniform sampler2DShadow shadowTex;
+layout (binding=0) uniform sampler3D s;
 
 
 struct PositionalLight
@@ -38,17 +35,16 @@ uniform Material material;
 uniform mat4 mv_matrix;
 uniform mat4 proj_matrix;
 uniform mat4 norm_matrix;
-uniform mat4 shadowMVP;
+uniform mat4 texRot_matrix;
 
 void main(void)
 {	varyingVertPos = (mv_matrix * vec4(vertPos,1.0)).xyz;
 	varyingLightDir = light.position - varyingVertPos;
 	tc = texCoord;
-	originalVertex = vertPos;
+	originalVertex = vec3(texRot_matrix * vec4(position,1.0)).xyz;
 	
 	varyingNormal = (norm_matrix * vec4(vertNormal,1.0)).xyz;
 	varyingTangent = (norm_matrix * vec4(vertTangent,1.0)).xyz;
 
-	shadow_coord = shadowMVP * vec4(vertPos,1.0);
 	gl_Position = proj_matrix * mv_matrix * vec4(vertPos,1.0);
 }

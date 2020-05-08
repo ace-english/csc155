@@ -50,7 +50,8 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 	private double startTime = 0.0;
 	private double elapsedTime;
 	Random random = new Random();
-	private Shader texShader, axisShader, phongShader, pass1Shader, chromeShader, glassShader, skyboxShader;
+	private Shader texShader, axisShader, phongShader, pass1Shader, chromeShader, glassShader, skyboxShader,
+			threeDShader;
 	int sLoc, alphaLoc, flipLoc;
 	private int vao[] = new int[1];
 	private int vbo[] = new int[50];
@@ -366,6 +367,11 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		glassShader.updateLocation("norm_matrix", invTr, vals);
 		alphaLoc = gl.glGetUniformLocation(glassShader.getShader(), "alpha");
 		flipLoc = gl.glGetUniformLocation(glassShader.getShader(), "flipNormal");
+
+		threeDShader.use();
+		phongShader.updateLocation("mv_matrix", mv, vals);
+		phongShader.updateLocation("proj_matrix", pMat, vals);
+		phongShader.updateLocation("norm_matrix", invTr, vals);
 
 		/**
 		 * some sort of buffer flimflam
@@ -708,6 +714,7 @@ public class Starter extends JFrame implements GLEventListener, KeyListener {
 		pass1Shader = new Shader(gl, "src/a4/vert1Shader.glsl", "src/a4/frag1Shader.glsl");
 		chromeShader = new Shader(gl, "src/a4/chromeVertShader.glsl", "src/a4/chromeFragShader.glsl");
 		skyboxShader = new Shader(gl, "src/a4/cubeVertShader.glsl", "src/a4/cubeFragShader.glsl");
+		threeDShader = new Shader(gl, "src/a4/3dVertShader.glsl", "src/a4/3dFragShader.glsl");
 
 		woodTex = loadTexture("assets/wood.jpg");
 		scrollTex = loadTexture("assets/scroll.png");
